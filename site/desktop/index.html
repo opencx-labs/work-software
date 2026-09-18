@@ -27,6 +27,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="/styles.css" />
     <script src="/site.js" defer></script>
+    <script src="/download.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
@@ -511,16 +512,23 @@
           </div>
           <div class="release-box">
             <h3>Desktop preview</h3>
-            <p>For Mac with Apple silicon.</p>
+            <p id="release-status" aria-live="polite">
+              Preview 0.1.0-alpha.6 for Mac with Apple silicon.
+            </p>
             <a
               class="button primary"
-              href="https://github.com/opencx-labs/catamorphic/releases"
+              id="desktop-download"
+              href="https://github.com/opencx-labs/catamorphic/releases/download/desktop-v0.1.0-alpha.6/Catamorphic-0.1.0-alpha.6-arm64.dmg"
               >Get the Mac preview</a
             >
             <p class="note">
-              Opens GitHub Releases. Choose the latest macOS preview and
-              download the .dmg. Windows and Linux downloads are not available
-              yet.
+              Downloads the Mac disk image. Windows and Linux downloads are not
+              available yet.
+              <a
+                class="text-link"
+                href="https://github.com/opencx-labs/catamorphic/releases"
+                >Release notes and all downloads</a
+              >.
             </p>
           </div>
         </div>
