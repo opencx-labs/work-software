@@ -63,255 +63,32 @@
           </div>
         </div>
       </section>
-      <section
-        class="wrap"
-        aria-label="See what working with Work could look like"
-      >
-        <div class="showcase">
+      <section class="wrap" aria-label="See the actual desktop app">
+        <figure class="showcase film-showcase">
           <div class="showcase-top">
             <p>A little help. A lot more possible.</p>
-            <div class="scenario-picker" aria-label="Choose a work example">
-              <button
-                type="button"
-                data-scenario="launch"
-                aria-pressed="true"
-                aria-controls="workspace-preview"
-              >
-                Plan a launch</button
-              ><button
-                type="button"
-                data-scenario="research"
-                aria-pressed="false"
-                aria-controls="workspace-preview"
-              >
-                Explore a market</button
-              ><button
-                type="button"
-                data-scenario="operations"
-                aria-pressed="false"
-                aria-controls="workspace-preview"
-              >
-                Run the week
-              </button>
-            </div>
+            <button class="film-toggle" type="button" aria-controls="desktop-film" hidden>
+              <span data-film-icon aria-hidden="true">▶</span>
+              <span data-film-label>Watch the film</span>
+              <span class="film-duration">0:24</span>
+            </button>
           </div>
-          <div class="workspace" id="workspace-preview">
-            <div class="window-bar">
-              <span class="window-dots" aria-hidden="true"
-                ><i></i><i></i><i></i></span
-              ><span class="window-title" data-field="project"
-                >The next big thing</span
-              ><span>work.</span>
-            </div>
-            <div class="window-body">
-              <aside
-                class="project-sidebar"
-                aria-label="Illustrative project navigation"
-              >
-                <strong>My workspace</strong>
-                <div class="sidebar-item">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="3" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" />
-                    <rect x="14" y="14" width="7" height="7" rx="1" /></svg
-                  >All projects
-                </div>
-                <div class="sidebar-label">Projects</div>
-                <div class="sidebar-item active" data-project="launch">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"
-                    /></svg
-                  >The next big thing
-                </div>
-                <div class="sidebar-item" data-project="research">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"
-                    /></svg
-                  >A little perspective
-                </div>
-                <div class="sidebar-item" data-project="operations">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"
-                    /></svg
-                  >Keeping things moving
-                </div>
-                <div class="sidebar-label">In this project</div>
-                <div class="sidebar-item">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"
-                    />
-                    <path d="M14 3v6h6M8 13h8m-8 4h5" /></svg
-                  >Notes &amp; ideas
-                </div>
-                <div class="sidebar-item">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"
-                    />
-                    <path d="M14 3v6h6M8 13h8m-8 4h5" /></svg
-                  >Research
-                </div>
-                <div class="sidebar-item active">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"
-                    />
-                    <path d="M14 3v6h6M8 13h8m-8 4h5" /></svg
-                  >Launch plan
-                </div>
-              </aside>
-              <div class="document">
-                <div class="document-breadcrumb">
-                  Project / <span data-field="file">Launch plan</span>
-                </div>
-                <h2 data-field="title">A good idea. A clear plan.</h2>
-                <p data-field="description">
-                  A new collection, a small team, and everything we need to get
-                  it out into the world.
-                </p>
-                <span class="doc-status" data-field="status"
-                  >Ready for your review</span
-                >
-                <div class="doc-row">
-                  <span class="checked">✓</span
-                  ><span class="row-title">Shape the story</span
-                  ><small>Brand brief</small>
-                </div>
-                <div class="doc-row">
-                  <span class="checked">✓</span
-                  ><span class="row-title">Find our people</span
-                  ><small>Audience research</small>
-                </div>
-                <div class="doc-row">
-                  <span class="checked">✓</span
-                  ><span class="row-title">Bring it to life</span
-                  ><small>Launch checklist</small>
-                </div>
-                <p class="doc-bottom">
-                  Your ideas, made into something you can work with.
-                </p>
-              </div>
-              <aside
-                class="assistant"
-                aria-label="Illustrative assistant conversation"
-              >
-                <div class="assistant-title">
-                  <span class="assistant-mark">w</span>Your assistant
-                </div>
-                <div class="user-prompt" data-field="prompt">
-                  Let's turn these ideas into a launch plan. Start with the
-                  notes in this project.
-                </div>
-                <p class="assistant-reply" data-field="reply">
-                  I've brought your notes together into a plan, with the story,
-                  the audience, and a checklist for launch day.
-                </p>
-                <div class="artifact">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"
-                    />
-                    <path d="M14 3v6h6M8 13h8m-8 4h5" /></svg
-                  ><span data-field="artifact">Launch plan</span>
-                </div>
-                <div class="composer">
-                  Keep going from here<span aria-hidden="true">↑</span>
-                </div>
-              </aside>
-            </div>
-          </div>
-        </div>
+          <video id="desktop-film" class="product-film" controls playsinline muted preload="none"
+            width="1920" height="1080" poster="/assets/work-desktop-poster.jpg"
+            aria-label="Work desktop product film" aria-describedby="film-description">
+            <source src="/assets/work-desktop-film.mp4" type="video/mp4" />
+            <track kind="captions" src="/assets/work-desktop-film.vtt" srclang="en" label="English visual descriptions" />
+            <p><a href="/assets/work-desktop-film.mp4">Watch the desktop film</a>.</p>
+          </video>
+        </figure>
         <div class="demo-caption">
-          <span>Illustrative workspace. Your projects will look like you.</span
-          ><span id="preview-status" role="status" aria-live="polite"
-            >Launch plan example selected.</span
-          >
+          <span id="film-description">The real desktop app. A prepared demo project. Room for your ideas.</span>
+          <a href="/assets/work-desktop-film.mp4" target="_blank" rel="noopener">Watch full screen <span aria-hidden="true">↗</span></a>
         </div>
+        <details class="film-transcript">
+          <summary>About this film</summary>
+          <p>Recorded in the current Catamorphic desktop preview. A launch plan leads into a working, custom-built launch board. Completing two tasks updates its progress. Audience notes appear in a floating document, keeping the project in view. The project and its content were prepared for this demonstration. Camera movement and captions were added in editing. This silent film does not demonstrate an AI generation or response time.</p>
+        </details>
       </section>
       <section class="intro wrap">
         <h2>You bring the ambition.<br />Bring it all together.</h2>
