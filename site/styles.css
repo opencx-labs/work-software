@@ -213,19 +213,6 @@ h1 {
   padding: 32px 40px 0;
   overflow: hidden;
 }
-.showcase-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  color: var(--bg);
-  margin-bottom: 28px;
-}
-.showcase-top p {
-  font-weight: 550;
-  font-size: 16px;
-  letter-spacing: -0.03em;
-}
 .scenario-picker {
   display: flex;
   gap: 5px;
@@ -425,13 +412,6 @@ h1 {
   color: var(--muted);
   display: flex;
   justify-content: space-between;
-}
-.demo-caption {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 14px;
-  color: var(--muted);
-  font-size: 12px;
 }
 .intro {
   padding: 120px 0;
@@ -971,11 +951,6 @@ h1 {
   .window-body .project-sidebar {
     display: none;
   }
-  .showcase-top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
   .scenario-picker {
     flex-wrap: wrap;
   }
@@ -1095,12 +1070,6 @@ h1 {
     padding: 20px 13px 0;
     border-radius: 8px;
   }
-  .showcase-top {
-    margin: 0 4px 20px;
-  }
-  .showcase-top p {
-    font-size: 14px;
-  }
   .scenario-picker {
     gap: 3px;
   }
@@ -1146,11 +1115,6 @@ h1 {
   }
   .doc-row {
     padding: 10px 0;
-  }
-  .demo-caption {
-    font-size: 11px;
-    flex-wrap: wrap;
-    gap: 6px;
   }
   .product-visual {
     padding: 24px;
@@ -1220,7 +1184,7 @@ h1 {
 /* Real desktop footage replaces the illustrative hero workspace. */
 .film-showcase {
 	margin: 0;
-	padding-bottom: 32px;
+	padding: 32px;
 }
 .product-film {
 	display: block;
@@ -1231,70 +1195,8 @@ h1 {
 	border-radius: 8px;
 	border: 1px solid var(--strong);
 }
-.film-toggle {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: 12px;
-	color: var(--bg);
-	background: transparent;
-	border: 1px solid currentColor;
-	border-radius: 6px;
-	padding: 10px 14px;
-	font-size: 13px;
-	white-space: nowrap;
-	cursor: pointer;
-}
-.film-toggle[hidden] {
-	display: none;
-}
-.film-toggle:hover {
-	background: #0a0a0b12;
-}
-.film-toggle:focus-visible {
-	outline-color: var(--bg);
-}
-.film-duration {
-	padding-left: 12px;
-	border-left: 1px solid #0a0a0b44;
-	font-variant-numeric: tabular-nums;
-}
-.film-transcript {
-	color: var(--muted);
-	font-size: 12px;
-	margin-top: 12px;
-	max-width: 780px;
-}
-.film-transcript summary {
-	cursor: pointer;
-	width: fit-content;
-}
-.film-transcript p {
-	margin-top: 12px;
-	line-height: 1.8;
-}
 @media (max-width: 600px) {
 	.film-showcase {
-		padding: 18px 12px 12px;
-	}
-	.film-showcase .showcase-top {
-		align-items: flex-start;
-		gap: 12px;
-		margin-bottom: 18px;
-	}
-	.film-showcase .showcase-top p {
-		max-width: 160px;
-		font-size: 14px;
-	}
-	.film-toggle {
-		gap: 7px;
-		padding: 9px;
-		font-size: 11px;
-	}
-	.film-duration {
-		display: none;
-	}
-	.film-transcript {
-		font-size: 11px;
+		padding: 12px;
 	}
 }

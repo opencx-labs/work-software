@@ -21,38 +21,9 @@ if (menu && navigation) {
 }
 
 const film = document.querySelector("#desktop-film");
-const filmToggle = document.querySelector(".film-toggle");
-if (film && filmToggle) {
-	filmToggle.hidden = false;
-	const syncPlayback = () => {
-		const playing = !film.paused && !film.ended;
-		filmToggle.querySelector("[data-film-icon]").textContent = playing
-			? "Ⅱ"
-			: "▶";
-		filmToggle.querySelector("[data-film-label]").textContent = playing
-			? "Pause film"
-			: film.ended
-				? "Replay film"
-				: "Watch the film";
-	};
-	filmToggle.addEventListener("click", async () => {
-		if (!film.paused) {
-			film.pause();
-			return;
-		}
-		if (film.ended) film.currentTime = 0;
-		try {
-			await film.play();
-		} catch {
-			film.focus();
-		}
-		syncPlayback();
-	});
-	for (const event of ["play", "pause", "ended"]) {
-		film.addEventListener(event, syncPlayback);
-	}
-	// Motion is opt-in for everyone, including reduced-motion and data-saving users.
-	// Preserve that choice when the page is backgrounded; never restart automatically.
+if (film) {
+	// Playback stays user-initiated through the video's own controls.
+	// Never resume automatically after the page returns to the foreground.
 	document.addEventListener("visibilitychange", () => {
 		if (document.hidden) film.pause();
 	});

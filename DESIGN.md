@@ -10,8 +10,9 @@ Make space for ambitious work. Large, quiet typography and generous space sit
 beside concrete examples of ordinary projects. One orange working surface is
 the homepage's focal point. The homepage and desktop heroes show a film captured from the real desktop app,
 with a prepared demo project. Other product diagrams remain clearly illustrative.
-Video starts only on request and includes native seeking, fullscreen, captions,
-and a text description. A real-app poster preserves a useful static first view.
+The orange frame contains only the video, with no separate heading or playback
+button. Video starts only on request and includes native seeking, fullscreen,
+and captions. A real-app poster preserves a useful static first view.
 
 ## Tokens
 
