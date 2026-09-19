@@ -1237,6 +1237,12 @@ h1 {
 .hero-simple h1 strong {
   font-weight: 750;
 }
+.hero-simple .hero-sub {
+  margin: 14px auto 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--muted);
+}
 .hero-simple .lede {
   max-width: 560px;
   margin: 20px auto 0;
@@ -1423,41 +1429,81 @@ h1 {
 }
 
 
-/* "Ask your agent about Work": one button, a short list of agents, each a
-   prefilled new chat. Plain details/summary; no script. */
+/* "Ask your agent about Work": one button and an anchored menu, the way
+   the app's menus open: a quick rise and settle over the page, nothing in
+   the flow moves. */
 .ask-agent {
-  margin: 18px auto 0;
-  text-align: center;
-}
-.ask-agent > summary {
-  display: inline-flex;
-  list-style: none;
-  cursor: pointer;
-}
-.ask-agent > summary::-webkit-details-marker {
-  display: none;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
 }
 .ask-agent-menu {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 12px;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  translate: -50% 0;
+  z-index: 5;
+  min-width: 236px;
+  padding: 4px;
+  border: 1px solid var(--strong);
+  border-radius: var(--radius-md);
+  background: var(--raised);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  transform-origin: top center;
+}
+.ask-agent-menu[data-state="open"] {
+  animation: pop-in 160ms var(--ease);
+}
+.ask-agent-menu[data-state="closing"] {
+  animation: pop-out 140ms var(--ease) forwards;
+  pointer-events: none;
 }
 .ask-agent-menu a {
-  padding: 8px 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
   color: var(--text);
-  font-size: 14px;
+  transition: background 0.12s var(--ease);
 }
-.ask-agent-menu a:hover {
-  border-color: var(--orange);
+.ask-agent-menu a:hover,
+.ask-agent-menu a:focus-visible {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  outline: none;
 }
 .ask-agent-note {
-  margin: 10px auto 0;
-  max-width: 560px;
-  font-size: 13px;
+  margin: 4px 0 0;
+  padding: 8px 10px 6px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.45;
   color: var(--muted);
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes pop-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ask-agent-menu[data-state="open"],
+  .ask-agent-menu[data-state="closing"] {
+    animation: none;
+  }
 }
