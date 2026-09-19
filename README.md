@@ -31,7 +31,7 @@ The homepage and desktop page share `site/assets/work-desktop-film.mp4`, a silen
 1920x1080 H.264 recording of the actual desktop app at 30 fps (duration in the
 production brief). It follows one scenario in the prepared project "Aster
 launch": read a reference page in Work's browser, open a chat beside it and ask
-for a Launch section in the sidebar plus the light theme, then ask for a small
+for a Launch section in the sidebar with the four docs, then ask for a small
 app that shows the person's own chats by day. The app is opened from the
 sidebar, Work asks once before it reads the chats, and the app is used.
 

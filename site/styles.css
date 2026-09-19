@@ -1200,6 +1200,8 @@ h1 {
 .film-showcase {
 	margin: 0;
 	padding: 32px;
+	border-radius: var(--radius-lg);
+	background: var(--orange);
 }
 .product-film {
 	display: block;
@@ -1246,23 +1248,28 @@ h1 {
   padding-bottom: 8px;
 }
 .film-frame {
-  position: relative;
   margin: 0;
-  border: 1px solid var(--line);
+}
+/* The film sits on the brand orange, as the first site did: the one place
+   the accent is a surface rather than an action. */
+.film-panel {
+  position: relative;
+  padding: 32px;
   border-radius: var(--radius-lg);
-  background: var(--surface);
-  overflow: hidden;
+  background: var(--orange);
 }
 .film-frame video {
   display: block;
   width: 100%;
   height: auto;
   background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--orange-fg) 35%, transparent);
 }
 .film-toggle {
   position: absolute;
-  right: 12px;
-  bottom: 52px;
+  right: 44px;
+  bottom: 44px;
   display: grid;
   place-items: center;
   width: 36px;
@@ -1292,11 +1299,18 @@ h1 {
   display: none;
 }
 .film-caption {
-  padding: 10px 14px 12px;
-  border-top: 1px solid var(--line);
+  padding: 12px 4px 0;
   font-size: 13px;
   color: var(--muted);
-  background: var(--surface);
+}
+@media (max-width: 600px) {
+  .film-panel {
+    padding: 12px;
+  }
+  .film-toggle {
+    right: 24px;
+    bottom: 24px;
+  }
 }
 .points {
   display: grid;
