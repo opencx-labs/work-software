@@ -1207,7 +1207,7 @@ h1 {
 	display: block;
 	width: 100%;
 	height: auto;
-	aspect-ratio: 16 / 9;
+	aspect-ratio: 16 / 10;
 	background: var(--bg);
 	border-radius: 8px;
 	border: 1px solid var(--strong);
