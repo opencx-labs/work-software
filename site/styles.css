@@ -2,16 +2,23 @@
 
 :root {
   color-scheme: dark;
+  /* The desktop app's Work Dark tokens, verbatim. */
   --bg: #0a0a0b;
   --surface: #101012;
   --raised: #16161a;
+  --inset: #060607;
   --line: #232329;
   --strong: #33333b;
   --text: #e6e6e9;
   --muted: #9a9aa3;
+  --faint: #5c5c66;
   --orange: #f95225;
+  --orange-fg: #1a0a05;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
   --ease: cubic-bezier(0.2, 0, 0, 1);
-  font-family: Inter, sans-serif;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
   font-synthesis: none;
 }
 * {
@@ -90,20 +97,32 @@ p {
   border-bottom: 1px solid var(--line);
 }
 .nav {
-  min-height: 100px;
+  min-height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 36px;
 }
-.wordmark {
-  font-size: 36px;
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
   line-height: 1;
-  font-weight: 750;
-  letter-spacing: -2.5px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
 }
-.wordmark span {
-  color: var(--orange);
+.brand img {
+  display: block;
+  border-radius: 7px;
+}
+.site-footer .brand {
+  font-size: 16px;
+  gap: 8px;
+}
+strong {
+  font-weight: 700;
 }
 .nav-links {
   display: flex;
@@ -120,14 +139,8 @@ p {
   color: var(--text);
 }
 .nav-cta {
-  padding: 10px 20px;
-  border: 1px solid var(--strong);
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 550;
-}
-.nav-cta:hover {
-  border-color: var(--text);
+  min-height: 36px;
+  padding: 8px 14px;
 }
 .menu-toggle {
   display: none;
@@ -164,30 +177,32 @@ h1 {
   gap: 14px;
   margin-top: 30px;
 }
+/* The app's button vocabulary: primary is the accent, secondary a hairline. */
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  min-height: 48px;
-  padding: 12px 23px;
+  gap: 8px;
+  min-height: 40px;
+  padding: 10px 16px;
   border: 1px solid var(--strong);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 14px;
-  line-height: 1.4;
-  font-weight: 600;
+  line-height: 1.2;
+  font-weight: 500;
+  white-space: nowrap;
   transition:
-    background 0.18s var(--ease),
-    border-color 0.18s var(--ease);
+    background 0.15s var(--ease),
+    border-color 0.15s var(--ease),
+    opacity 0.15s var(--ease);
 }
 .button.primary {
   background: var(--orange);
-  color: var(--bg);
-  border-color: var(--orange);
+  color: var(--orange-fg);
+  border-color: transparent;
 }
 .button.primary:hover {
-  background: var(--text);
-  border-color: var(--text);
+  opacity: 0.9;
 }
 .button.secondary:hover {
   background: var(--raised);
@@ -1200,3 +1215,196 @@ h1 {
 		padding: 12px;
 	}
 }
+
+/* --------------------------------------------------------------- home */
+/* The homepage is the app's own language: one line, the film, three
+   sentences, a download. Surfaces step (bg → surface → raised) with
+   hairline borders; the accent is reserved for the primary action. */
+.hero-simple {
+  padding: 72px 0 36px;
+  text-align: center;
+}
+.hero-simple h1 {
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 500;
+  max-width: 14ch;
+  margin-inline: auto;
+}
+.hero-simple h1 strong {
+  font-weight: 750;
+}
+.hero-simple .lede {
+  max-width: 560px;
+  margin: 20px auto 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.film {
+  padding-bottom: 8px;
+}
+.film-frame {
+  position: relative;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+.film-frame video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--bg);
+}
+.film-toggle {
+  position: absolute;
+  right: 12px;
+  bottom: 52px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--strong);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--raised) 85%, transparent);
+  color: var(--text);
+  opacity: 0;
+  transition: opacity 0.15s var(--ease);
+}
+.film-frame:hover .film-toggle,
+.film-toggle:focus-visible,
+.film-toggle[data-state="paused"],
+.film-toggle[data-state="paused-by-user"] {
+  opacity: 1;
+}
+.film-toggle .icon-play {
+  display: none;
+}
+.film-toggle[data-state="paused"] .icon-play,
+.film-toggle[data-state="paused-by-user"] .icon-play {
+  display: block;
+}
+.film-toggle[data-state="paused"] .icon-pause,
+.film-toggle[data-state="paused-by-user"] .icon-pause {
+  display: none;
+}
+.film-caption {
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--surface);
+}
+.points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 56px 0 24px;
+}
+.point {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+.point h2 {
+  font-size: 17px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.point p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.get {
+  padding: 40px 0 96px;
+}
+.get-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 28px 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.get-copy h2 {
+  font-size: 26px;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+}
+.get-copy h2 strong {
+  font-weight: 750;
+}
+.get-copy p {
+  margin-top: 8px;
+  font-size: 15px;
+  color: var(--text);
+}
+.get-copy .note {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.get-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex: none;
+}
+.footer-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 28px 0 40px;
+  border-top: 1px solid var(--line);
+}
+.footer-row .footer-links {
+  display: flex;
+  gap: 22px;
+  margin-left: auto;
+}
+.footer-row .footer-links a,
+.footer-note {
+  font-size: 13px;
+  color: var(--muted);
+}
+.footer-row .footer-links a:hover,
+.footer-note a:hover {
+  color: var(--text);
+}
+.footer-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .points {
+    grid-template-columns: 1fr;
+  }
+  .get-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .get-actions {
+    align-items: flex-start;
+  }
+  .hero-simple {
+    padding-top: 48px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-toggle,
+  .button {
+    transition: none;
+  }
+}
+

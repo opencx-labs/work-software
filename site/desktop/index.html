@@ -23,6 +23,7 @@
     <meta name="twitter:card" content="summary" />
     <link rel="canonical" href="https://work.software/desktop/" />
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="/styles.css" />
@@ -33,14 +34,15 @@
     <a class="skip" href="#main">Skip to content</a>
     <header class="site-header">
       <nav class="nav wrap" aria-label="Main navigation">
-        <a class="wordmark" href="/" aria-label="Work home"
-          >work<span>.</span></a
-        >
+        <a class="brand" href="/" aria-label="Work home">
+          <img src="/assets/mark.svg" alt="" width="28" height="28" />
+          <span>Work</span>
+        </a>
         <div class="nav-links" id="navigation">
           <a href="/desktop/" aria-current="page">Desktop</a
           ><a href="/brain/">Company brain</a><a href="/mobile/">Mobile</a>
         </div>
-        <a class="nav-cta" href="/desktop/#download">Get Work</a
+        <a class="button primary nav-cta" href="/#download">Get Work</a
         ><button
           class="menu-toggle"
           type="button"
@@ -277,12 +279,12 @@
           <div class="release-box">
             <h3>Desktop preview</h3>
             <p id="release-status" aria-live="polite">
-              Preview 0.1.0-alpha.6 for Mac with Apple silicon.
+              Preview 0.1.0-alpha.7 for Mac with Apple silicon.
             </p>
             <a
               class="button primary"
               id="desktop-download"
-              href="https://github.com/opencx-labs/catamorphic/releases/download/desktop-v0.1.0-alpha.6/Catamorphic-0.1.0-alpha.6-arm64.dmg"
+              href="https://github.com/opencx-labs/catamorphic/releases/download/desktop-v0.1.0-alpha.7/Work-0.1.0-alpha.7-arm64.dmg"
               >Get the Mac preview</a
             >
             <p class="note">
@@ -341,9 +343,10 @@
     <footer class="site-footer">
       <div class="wrap">
         <div class="footer-top">
-          <a class="wordmark" href="/" aria-label="Work home"
-            >work<span>.</span></a
-          >
+          <a class="brand" href="/" aria-label="Work home">
+            <img src="/assets/mark.svg" alt="" width="22" height="22" />
+            <span>Work</span>
+          </a>
           <nav class="footer-links" aria-label="Footer navigation">
             <a href="/desktop/">Desktop</a><a href="/brain/">Company brain</a
             ><a href="/mobile/">Mobile</a

@@ -37,8 +37,15 @@ class Page(HTMLParser):
         if tag == "link" and attrs.get("rel") == "canonical":
             self.canonical = attrs.get("href")
         if tag == "video":
-            assert "controls" in attrs, f"{self.path}: video needs playback controls"
-            assert "autoplay" not in attrs, f"{self.path}: video must start on request"
+            # Native controls, or a silent autoplaying film that the page
+            # pairs with its own pause control (the homepage hero).
+            silent = "muted" in attrs and "autoplay" in attrs
+            assert "controls" in attrs or silent, (
+                f"{self.path}: video needs playback controls"
+            )
+            assert silent or "autoplay" not in attrs, (
+                f"{self.path}: only a muted film may autoplay"
+            )
             assert attrs.get("aria-label"), f"{self.path}: video needs an accessible name"
 
     def handle_endtag(self, tag):
