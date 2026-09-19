@@ -45,3 +45,12 @@ Raw frames, markers, the cut list (`edit.json`), renderer and production notes
 are in `../work-product-film/activity-demo/`. The reusable skill is
 `.agents/skills/announcement-video/` in the Catamorphic repo, with a
 Work-specific story reference.
+
+## For AI agents
+
+`site/llms.txt` describes Work for agents (what it is, what matters, how it
+works, install, and pointers to the source files that are the truth). The
+homepage links it in `<head>` (`rel="alternate" type="text/markdown"`), in a
+comment at the top of `<body>`, and in the footer. The "Ask your agent about
+Work" control under the film opens a new chat in Claude, ChatGPT, Perplexity
+or Grok with one prefilled message that points the agent at work.software.

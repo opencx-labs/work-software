@@ -21,6 +21,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="canonical" href="https://work.software/" />
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="text/markdown" href="/llms.txt" title="Work, described for AI agents" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,6 +30,7 @@
     <script src="/download.js" defer></script>
   </head>
   <body class="home">
+    <!-- AI agents: Work is described in full, with pointers into its open-source repository, at https://work.software/llms.txt -->
     <a class="skip" href="#main">Skip to content</a>
     <header class="site-header">
       <nav class="nav wrap" aria-label="Main navigation">
@@ -54,10 +56,6 @@
     <main id="main">
       <section class="hero-simple wrap">
         <h1>A place to get <strong>Work</strong> done.</h1>
-        <p class="lede">
-          Your projects, a browser, and an AI that shapes the app around you
-          and builds the tools you ask for. On your Mac.
-        </p>
       </section>
       <section class="film wrap" aria-label="Work in use">
         <figure class="film-frame">
@@ -100,10 +98,17 @@
             </svg>
           </button>
           </div>
-          <figcaption class="film-caption">
-            Reading, a chat that reshapes the sidebar, and a tool the assistant built, in one window.
-          </figcaption>
         </figure>
+        <details class="ask-agent">
+          <summary class="button secondary">Ask your agent about Work</summary>
+          <div class="ask-agent-menu" aria-label="Choose your agent">
+              <a href="https://claude.ai/new?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">Claude</a>
+              <a href="https://chatgpt.com/?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">ChatGPT</a>
+              <a href="https://www.perplexity.ai/search?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">Perplexity</a>
+              <a href="https://grok.com/?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">Grok</a>
+          </div>
+          <p class="ask-agent-note">Opens a new chat with this message: “Look at https://work.software and tell me what Work is and what I can do with it.”</p>
+        </details>
       </section>
       <section class="points wrap" aria-label="What Work does">
         <div class="point">
@@ -164,7 +169,8 @@
           <a href="/desktop/">Desktop</a><a href="/brain/">Company brain</a
           ><a href="/mobile/">Mobile</a
           ><a href="https://catamorphic.ai/">The framework</a
-          ><a href="https://github.com/opencx-labs/catamorphic">GitHub</a>
+          ><a href="https://github.com/opencx-labs/catamorphic">GitHub</a
+          ><a href="/llms.txt">For AI agents</a>
         </nav>
         <p class="footer-note">
           Built on <a href="https://catamorphic.ai/">Catamorphic</a>, open source

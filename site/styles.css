@@ -1422,3 +1422,42 @@ h1 {
   }
 }
 
+
+/* "Ask your agent about Work": one button, a short list of agents, each a
+   prefilled new chat. Plain details/summary; no script. */
+.ask-agent {
+  margin: 18px auto 0;
+  text-align: center;
+}
+.ask-agent > summary {
+  display: inline-flex;
+  list-style: none;
+  cursor: pointer;
+}
+.ask-agent > summary::-webkit-details-marker {
+  display: none;
+}
+.ask-agent-menu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ask-agent-menu a {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+.ask-agent-menu a:hover {
+  border-color: var(--orange);
+}
+.ask-agent-note {
+  margin: 10px auto 0;
+  max-width: 560px;
+  font-size: 13px;
+  color: var(--muted);
+}
