@@ -22,14 +22,13 @@ Run `python3 scripts/check_site.py` and `node --check site/site.js` locally.
 The media check requires FFmpeg: `ffmpeg -v error -xerror -i
 site/assets/work-desktop-film.mp4 -f null -`.
 
-Product downloads currently retain the Catamorphic app name;
-the website does not rename binaries or promise unavailable platform releases.
+The website does not promise unavailable platform releases.
 
 ## Desktop film
 
 The homepage and desktop page share `site/assets/work-desktop-film.mp4`, a silent
-1920x1080 H.264 recording of the actual desktop app at 30 fps (duration in the
-production brief). It follows one scenario in the prepared project "Aster
+1920x1200 H.264 recording of the actual desktop app at 60 fps (a 16:10 frame,
+matching the `aspect-ratio` of the orange panel it sits in). It follows one scenario in the prepared project "Aster
 launch": read a reference page in Work's browser, open a chat beside it and ask
 for a Launch section in the sidebar with the four docs, then ask for a small
 app that shows the person's own chats by day. The app is opened from the

@@ -44,5 +44,5 @@ Work is the product; Catamorphic is the open-source framework it is built on. Bo
 
 - https://work.software/ (home, with a short film of the app in use)
 - https://work.software/desktop/
-- https://work.software/brain/
+- https://work.software/#brain (the company brain, and one message that sets one up with your agent)
 - https://work.software/mobile/

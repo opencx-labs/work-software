@@ -41,6 +41,6 @@ own tokens, so the site and the app read as one product.
 
 Lead with what people can accomplish, then explain the product. Keep availability
 accurate: Mac Apple silicon preview, self-hosted company brain, connected mobile
-web client. Current downloadable apps retain the Catamorphic name. AI accounts
+web client. AI accounts
 and provider charges are separate. Link to real releases and setup guidance;
 do not invent signups, customers, testimonials, or platform availability.

@@ -1,6 +1,7 @@
 // The existing release feed is the source of truth for the Mac preview.
 // The HTML keeps a verified download available if JavaScript or the feed fails.
 const download = document.querySelector("#desktop-download");
+const status = document.querySelector("#release-status");
 
 async function resolvePreview() {
   const controller = new AbortController();
@@ -19,6 +20,8 @@ async function resolvePreview() {
     if (!url || !version || !download) return;
     download.href = url;
     download.title = `Preview ${version} for Mac with Apple silicon`;
+    if (status)
+      status.textContent = `Preview ${version} for Mac with Apple silicon.`;
   } catch {
     // Network failures leave the known-good, version-labelled download intact.
   } finally {

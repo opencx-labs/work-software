@@ -56,6 +56,7 @@
             muted
             loop
             playsinline
+            controls
             preload="metadata"
             width="1920"
             height="1200"
@@ -75,7 +76,6 @@
             class="film-toggle"
             type="button"
             aria-label="Pause film"
-            aria-pressed="false"
             hidden
           >
             <svg class="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -103,15 +103,18 @@
             aria-haspopup="menu"
             aria-expanded="false"
             aria-controls="ask-agent-menu"
+            aria-describedby="ask-agent-note"
           >
             Ask your agent about Work
           </button>
-          <div class="ask-agent-menu" id="ask-agent-menu" role="menu" aria-label="Choose your agent" hidden>
-            <a role="menuitem" href="https://claude.ai/new?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">Claude</a>
-            <a role="menuitem" href="https://chatgpt.com/?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">ChatGPT</a>
-            <a role="menuitem" href="https://www.perplexity.ai/search?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">Perplexity</a>
-            <a role="menuitem" href="https://grok.com/?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">Grok</a>
-            <p class="ask-agent-note">Opens a new chat with one message: “Look at https://work.software and tell me what Work is and what I can do with it.”</p>
+          <div class="ask-agent-menu" id="ask-agent-menu" hidden>
+            <div role="menu" aria-label="Choose your agent">
+              <a role="menuitem" href="https://claude.ai/new?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">Claude</a>
+              <a role="menuitem" href="https://chatgpt.com/?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">ChatGPT</a>
+              <a role="menuitem" href="https://www.perplexity.ai/search?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">Perplexity</a>
+              <a role="menuitem" href="https://grok.com/?q=Look%20at%20https%3A%2F%2Fwork.software%20and%20tell%20me%20what%20Work%20is%20and%20what%20I%20can%20do%20with%20it." target="_blank" rel="noopener">Grok</a>
+            </div>
+            <p class="ask-agent-note" id="ask-agent-note">Opens a new chat with one message: “Look at https://work.software and tell me what Work is and what I can do with it.”</p>
           </div>
         </div>
       </section>
@@ -127,16 +130,19 @@
             aria-haspopup="menu"
             aria-expanded="false"
             aria-controls="brain-agent-menu"
+            aria-describedby="brain-agent-note"
           >
             Set up a brain with your agent
           </button>
-          <div class="ask-agent-menu" id="brain-agent-menu" role="menu" aria-label="Choose your agent" hidden>
-            <a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A%2F%2Fgithub.com%2Fopencx-labs%2Fcatamorphic%2Fblob%2Fmain%2Fskills%2Fsetup-catamorphic-server%2FSKILL.md%20and%20walk%20me%20through%20setting%20up%20a%20Work%20brain%3A%20a%20server%20I%20can%20connect%20to%20over%20MCP%2C%20on%20this%20machine%20or%20one%20I%20choose." target="_blank" rel="noopener">Claude</a>
-            <a role="menuitem" href="https://chatgpt.com/?q=Read%20https%3A%2F%2Fgithub.com%2Fopencx-labs%2Fcatamorphic%2Fblob%2Fmain%2Fskills%2Fsetup-catamorphic-server%2FSKILL.md%20and%20walk%20me%20through%20setting%20up%20a%20Work%20brain%3A%20a%20server%20I%20can%20connect%20to%20over%20MCP%2C%20on%20this%20machine%20or%20one%20I%20choose." target="_blank" rel="noopener">ChatGPT</a>
-            <a role="menuitem" href="https://www.perplexity.ai/search?q=Read%20https%3A%2F%2Fgithub.com%2Fopencx-labs%2Fcatamorphic%2Fblob%2Fmain%2Fskills%2Fsetup-catamorphic-server%2FSKILL.md%20and%20walk%20me%20through%20setting%20up%20a%20Work%20brain%3A%20a%20server%20I%20can%20connect%20to%20over%20MCP%2C%20on%20this%20machine%20or%20one%20I%20choose." target="_blank" rel="noopener">Perplexity</a>
-            <a role="menuitem" href="https://grok.com/?q=Read%20https%3A%2F%2Fgithub.com%2Fopencx-labs%2Fcatamorphic%2Fblob%2Fmain%2Fskills%2Fsetup-catamorphic-server%2FSKILL.md%20and%20walk%20me%20through%20setting%20up%20a%20Work%20brain%3A%20a%20server%20I%20can%20connect%20to%20over%20MCP%2C%20on%20this%20machine%20or%20one%20I%20choose." target="_blank" rel="noopener">Grok</a>
-            <button type="button" role="menuitem" class="ask-agent-copy" data-message="Read https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-catamorphic-server/SKILL.md and walk me through setting up a Work brain: a server I can connect to over MCP, on this machine or one I choose.">Copy for Claude Code, Codex or Work</button>
-            <p class="ask-agent-note">One message: “Read https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-catamorphic-server/SKILL.md and walk me through setting up a Work brain: a server I can connect to over MCP, on this machine or one I choose.”</p>
+          <div class="ask-agent-menu" id="brain-agent-menu" hidden>
+            <div role="menu" aria-label="Choose your agent">
+              <a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A%2F%2Fgithub.com%2Fopencx-labs%2Fcatamorphic%2Fblob%2Fmain%2Fskills%2Fsetup-catamorphic-server%2FSKILL.md%20and%20walk%20me%20through%20setting%20up%20a%20Work%20brain%3A%20a%20server%20I%20can%20connect%20to%20over%20MCP%2C%20on%20this%20machine%20or%20one%20I%20choose." target="_blank" rel="noopener">Claude</a>
+              <a role="menuitem" href="https://chatgpt.com/?q=Read%20https%3A%2F%2Fgithub.com%2Fopencx-labs%2Fcatamorphic%2Fblob%2Fmain%2Fskills%2Fsetup-catamorphic-server%2FSKILL.md%20and%20walk%20me%20through%20setting%20up%20a%20Work%20brain%3A%20a%20server%20I%20can%20connect%20to%20over%20MCP%2C%20on%20this%20machine%20or%20one%20I%20choose." target="_blank" rel="noopener">ChatGPT</a>
+              <a role="menuitem" href="https://www.perplexity.ai/search?q=Read%20https%3A%2F%2Fgithub.com%2Fopencx-labs%2Fcatamorphic%2Fblob%2Fmain%2Fskills%2Fsetup-catamorphic-server%2FSKILL.md%20and%20walk%20me%20through%20setting%20up%20a%20Work%20brain%3A%20a%20server%20I%20can%20connect%20to%20over%20MCP%2C%20on%20this%20machine%20or%20one%20I%20choose." target="_blank" rel="noopener">Perplexity</a>
+              <a role="menuitem" href="https://grok.com/?q=Read%20https%3A%2F%2Fgithub.com%2Fopencx-labs%2Fcatamorphic%2Fblob%2Fmain%2Fskills%2Fsetup-catamorphic-server%2FSKILL.md%20and%20walk%20me%20through%20setting%20up%20a%20Work%20brain%3A%20a%20server%20I%20can%20connect%20to%20over%20MCP%2C%20on%20this%20machine%20or%20one%20I%20choose." target="_blank" rel="noopener">Grok</a>
+              <button type="button" role="menuitem" class="ask-agent-copy" data-message="Read https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-catamorphic-server/SKILL.md and walk me through setting up a Work brain: a server I can connect to over MCP, on this machine or one I choose.">Copy for Claude Code, Codex or Work</button>
+            </div>
+            <p class="ask-agent-note" id="brain-agent-note">One message: “Read https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-catamorphic-server/SKILL.md and walk me through setting up a Work brain: a server I can connect to over MCP, on this machine or one I choose.”</p>
           </div>
         </div>
       </section>
