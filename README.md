@@ -54,3 +54,6 @@ homepage links it in `<head>` (`rel="alternate" type="text/markdown"`), in a
 comment at the top of `<body>`, and in the footer. The "Ask your agent about
 Work" control under the film opens a new chat in Claude, ChatGPT, Perplexity
 or Grok with one prefilled message that points the agent at work.software.
+The brain section's "Set up a brain with your agent" does the same with a
+message that points the agent at the repository's setup skill, plus a copy
+item for agents that run in a terminal or in Work itself.

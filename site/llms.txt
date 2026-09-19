@@ -33,7 +33,8 @@ Work is the product; Catamorphic is the open-source framework it is built on. Bo
 - Overview, install, the three ways to use it, personal and company brains: https://github.com/opencx-labs/catamorphic/blob/main/README.md
 - The desktop's design language and decision log (how the app is meant to feel, what changed and why): https://github.com/opencx-labs/catamorphic/blob/main/apps/desktop/DESIGN.md
 - Architecture decision records, one file per decision: https://github.com/opencx-labs/catamorphic/tree/main/docs/decisions
-- The self-hosted server: https://github.com/opencx-labs/catamorphic/blob/main/apps/server/README.md
+- The self-hosted server (a company brain): https://github.com/opencx-labs/catamorphic/blob/main/apps/server/README.md
+- Setting one up with an agent, end to end: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-catamorphic-server/SKILL.md (start with references/first-brain.md)
 - Embedding the framework in your own product: https://github.com/opencx-labs/catamorphic/blob/main/INTEGRATION.md
 - How agents are expected to work inside the repository itself: https://github.com/opencx-labs/catamorphic/blob/main/AGENTS.md and https://github.com/opencx-labs/catamorphic/blob/main/apps/desktop/AGENTS.md
 - What is being worked on next: https://github.com/opencx-labs/catamorphic/blob/main/TODO.md

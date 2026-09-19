@@ -1507,3 +1507,59 @@ h1 {
     animation: none;
   }
 }
+
+/* Under the film: the download, then the agent menu. Nothing else. */
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 26px 0 8px;
+}
+.actions .ask-agent {
+  margin-top: 14px;
+}
+
+/* The brain: one sentence and one button. */
+.brain {
+  padding: 96px 0 72px;
+  text-align: center;
+}
+.brain-line {
+  max-width: 22ch;
+  margin: 0 auto;
+  font-size: clamp(28px, 4.2vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+}
+.brain-line em {
+  font-style: normal;
+  font-weight: 750;
+}
+.brain .ask-agent {
+  margin-top: 28px;
+}
+.ask-agent-copy {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s var(--ease);
+}
+.ask-agent-copy:hover,
+.ask-agent-copy:focus-visible {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  outline: none;
+}
+.ask-agent-copy[data-copied="true"] {
+  color: var(--muted);
+}

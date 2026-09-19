@@ -1,25 +1,5 @@
 document.documentElement.classList.add("js");
 
-const menu = document.querySelector(".menu-toggle");
-const navigation = document.querySelector(".nav-links");
-if (menu && navigation) {
-	menu.addEventListener("click", () => {
-		const open = menu.getAttribute("aria-expanded") !== "true";
-		menu.setAttribute("aria-expanded", String(open));
-		navigation.classList.toggle("is-open", open);
-		menu.textContent = open ? "Close" : "Menu";
-	});
-	document.addEventListener("keydown", (event) => {
-		if (
-			event.key === "Escape" &&
-			menu.getAttribute("aria-expanded") === "true"
-		) {
-			menu.click();
-			menu.focus();
-		}
-	});
-}
-
 // The film plays on its own, silently, and stops when the tab is hidden or
 // the person prefers reduced motion. One button pauses and resumes it; it is
 // the film's only control, so the frame stays as clean as the app.
@@ -57,41 +37,44 @@ if (film instanceof HTMLVideoElement && toggle instanceof HTMLButtonElement) {
 	});
 }
 
-// "Ask your agent about Work": an anchored menu that opens and closes like
-// the app's, with Escape, outside clicks and arrow keys.
-const askTrigger = document.querySelector(".ask-agent-trigger");
-const askMenu = document.querySelector("#ask-agent-menu");
-if (askTrigger instanceof HTMLButtonElement && askMenu instanceof HTMLElement) {
+// "Ask your agent" menus: anchored menus that open and close like the app's,
+// with Escape, outside clicks and arrow keys. One message per menu; the last
+// item copies it for agents that run in a terminal or in Work itself.
+for (const root of document.querySelectorAll(".ask-agent")) {
+	const trigger = root.querySelector(".ask-agent-trigger");
+	const menu = root.querySelector(".ask-agent-menu");
+	if (!(trigger instanceof HTMLButtonElement) || !(menu instanceof HTMLElement))
+		continue;
 	const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-	const items = () => [...askMenu.querySelectorAll("a[role=menuitem]")];
-	const isOpen = () => askTrigger.getAttribute("aria-expanded") === "true";
+	const items = () => [...menu.querySelectorAll("[role=menuitem]")];
+	const isOpen = () => trigger.getAttribute("aria-expanded") === "true";
 	const open = () => {
-		askMenu.hidden = false;
-		askMenu.dataset.state = "open";
-		askTrigger.setAttribute("aria-expanded", "true");
+		menu.hidden = false;
+		menu.dataset.state = "open";
+		trigger.setAttribute("aria-expanded", "true");
 		items()[0]?.focus();
 	};
 	const close = ({ refocus = false } = {}) => {
 		if (!isOpen()) return;
-		askTrigger.setAttribute("aria-expanded", "false");
+		trigger.setAttribute("aria-expanded", "false");
 		const finish = () => {
-			askMenu.hidden = true;
-			delete askMenu.dataset.state;
+			menu.hidden = true;
+			delete menu.dataset.state;
 		};
 		if (reduce.matches) finish();
 		else {
-			askMenu.dataset.state = "closing";
-			askMenu.addEventListener("animationend", finish, { once: true });
+			menu.dataset.state = "closing";
+			menu.addEventListener("animationend", finish, { once: true });
 		}
-		if (refocus) askTrigger.focus();
+		if (refocus) trigger.focus();
 	};
-	askTrigger.addEventListener("click", () => (isOpen() ? close() : open()));
+	trigger.addEventListener("click", () => (isOpen() ? close() : open()));
 	document.addEventListener("pointerdown", (event) => {
 		if (
 			isOpen() &&
 			event.target instanceof Node &&
-			!askMenu.contains(event.target) &&
-			!askTrigger.contains(event.target)
+			!menu.contains(event.target) &&
+			!trigger.contains(event.target)
 		)
 			close();
 	});
@@ -113,7 +96,23 @@ if (askTrigger instanceof HTMLButtonElement && askMenu instanceof HTMLElement) {
 			next?.focus();
 		}
 	});
-	askMenu.addEventListener("click", (event) => {
-		if (event.target instanceof Element && event.target.closest("a")) close();
+	menu.addEventListener("click", (event) => {
+		if (!(event.target instanceof Element)) return;
+		const copy = event.target.closest(".ask-agent-copy");
+		if (copy instanceof HTMLButtonElement) {
+			const message = copy.dataset.message ?? "";
+			const label = copy.textContent;
+			navigator.clipboard?.writeText(message).then(() => {
+				copy.dataset.copied = "true";
+				copy.textContent = "Copied. Paste it into your agent.";
+				setTimeout(() => {
+					delete copy.dataset.copied;
+					copy.textContent = label;
+					close();
+				}, 1400);
+			});
+			return;
+		}
+		if (event.target.closest("a")) close();
 	});
 }
