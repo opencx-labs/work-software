@@ -148,3 +148,41 @@ function writeClipboard(text) {
 		done ? resolve() : reject(new Error("copy failed"));
 	});
 }
+
+// FAQ: a <details> opens and closes by animating its body's height, the
+// way the app's disclosures move; the browser's own toggle is instant.
+for (const details of document.querySelectorAll(".faq details")) {
+	const summary = details.querySelector("summary");
+	const body = details.querySelector(".faq-body");
+	if (!(summary instanceof HTMLElement) || !(body instanceof HTMLElement)) continue;
+	const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+	let running = null;
+	summary.addEventListener("click", (event) => {
+		event.preventDefault();
+		if (reduce.matches) {
+			details.open = !details.open;
+			return;
+		}
+		running?.cancel();
+		const from = details.open ? body.getBoundingClientRect().height : 0;
+		details.open = true;
+		const to = from === 0 ? body.scrollHeight : 0;
+		const opening = to > 0;
+		body.style.height = `${from}px`;
+		running = body.animate(
+			[
+				{ height: `${from}px`, opacity: opening ? 0 : 1 },
+				{ height: `${to}px`, opacity: opening ? 1 : 0 },
+			],
+			{ duration: opening ? 240 : 200, easing: "cubic-bezier(0.2, 0, 0, 1)" },
+		);
+		running.onfinish = () => {
+			running = null;
+			body.style.height = "";
+			if (!opening) details.open = false;
+		};
+		running.oncancel = () => {
+			body.style.height = "";
+		};
+	});
+}
