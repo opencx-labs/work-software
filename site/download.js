@@ -1,7 +1,7 @@
 // The existing release feed is the source of truth for the Mac preview.
 // The HTML keeps a verified download available if JavaScript or the feed fails.
 const download = document.querySelector("#desktop-download");
-const releaseStatus = document.querySelector("#release-status");
+const status = document.querySelector("#release-status");
 
 async function resolvePreview() {
   const controller = new AbortController();
@@ -17,9 +17,11 @@ async function resolvePreview() {
     const url = feed.match(
       /^\s*-?\s*url:\s*(https:\/\/github\.com\/opencx-labs\/catamorphic\/releases\/download\/[^\s]+-arm64\.dmg)\s*$/m,
     )?.[1];
-    if (!url || !version || !download || !releaseStatus) return;
+    if (!url || !version || !download) return;
     download.href = url;
-    releaseStatus.textContent = `Preview ${version} for Mac with Apple silicon.`;
+    download.title = `Preview ${version} for Mac with Apple silicon`;
+    if (status)
+      status.textContent = `Preview ${version} for Mac with Apple silicon.`;
   } catch {
     // Network failures leave the known-good, version-labelled download intact.
   } finally {
@@ -27,4 +29,4 @@ async function resolvePreview() {
   }
 }
 
-if (download && releaseStatus) resolvePreview();
+if (download) resolvePreview();

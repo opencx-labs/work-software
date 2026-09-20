@@ -22,31 +22,37 @@ Run `python3 scripts/check_site.py` and `node --check site/site.js` locally.
 The media check requires FFmpeg: `ffmpeg -v error -xerror -i
 site/assets/work-desktop-film.mp4 -f null -`.
 
-Product downloads currently retain the Catamorphic app name;
-the website does not rename binaries or promise unavailable platform releases.
+The website does not promise unavailable platform releases.
 
 ## Desktop film
 
-The homepage and desktop page share `site/assets/work-desktop-film.mp4`, a silent
-96.4-second 1920x1080 H.264 recording of the actual desktop app at 30 fps.
-It follows one task: browse Work, create a floating chat through the palette,
-send a question about launching a small product, expand with Cmd+Shift+M, send
-an app-building follow-up, and use the resulting launch checklist. Typing is
-human-paced. UI animations play at 1x; a labeled build interval is accelerated.
+The homepage plays `site/assets/work-desktop-film.mp4`, a silent
+1920x1200 H.264 recording of the actual desktop app at 60 fps (a 16:10 frame,
+matching the `aspect-ratio` of the orange panel it sits in). It follows one scenario in the prepared project "Aster
+launch": read a reference page in Work's browser, open a chat beside it and ask
+for a Launch section in the sidebar with the four docs, then ask for a small
+app that shows the person's own chats by day. The app is opened from the
+sidebar, Work asks once before it reads the chats, and the app is used.
 
-The safe prepared project is “A small launch”. The real locally authenticated
-Codex harness, named “Work partner”, generated both answers and the app. No test
-agent or synthetic responses are used. The app's progress changes from 0% to 20%
-and survives reopening. Preview compilation succeeded; a separate direct Vite
-build could not run because the local dependency registry was unavailable.
+Both agent turns are real (Claude Code, this machine's login); the app is built
+by the agent from the project skills and declares `catamorphic.access.sessions`.
+Typing, navigation and app use run at 1x; the agent's working time is
+accelerated with a visible "Sped up" label. The five earlier conversations in
+the project were seeded through the normal chat.
 
-The browser visits the public Work website as it existed at capture time; that
-page still contains its older title and film copy. Those are removed from this
-website revision. Web-mode activation and direct URL navigation are shown as
-separate actions: a Google CAPTCHA prevented recording a successful web search.
+Raw frames, markers, the cut list (`edit.json`), renderer and production notes
+are in `../work-product-film/activity-demo/`. The reusable skill is
+`.agents/skills/announcement-video/` in the Catamorphic repo, with a
+Work-specific story reference.
 
-Source: Catamorphic `62a341dd` in the dedicated git-change-monitor worktree.
-Raw frames, capture timestamps, cut list, renderer, and production notes are in
-`../work-product-film/purposeful-demo/`. Earlier takes are preserved alongside it.
-The updated reusable skill is in the `catamorphic-work-video` worktree under
-`.agents/skills/announcement-video/`, with a Work-specific story reference.
+## For AI agents
+
+`site/llms.txt` describes Work for agents (what it is, what matters, how it
+works, install, and pointers to the source files that are the truth). The
+homepage links it in `<head>` (`rel="alternate" type="text/markdown"`), in a
+comment at the top of `<body>`, and in the footer. The "Ask your agent about
+Work" control under the film opens a new chat in Claude, ChatGPT, Perplexity
+or Grok with one prefilled message that points the agent at work.software.
+The brain section's "Set up a brain with your agent" does the same with a
+message that points the agent at the repository's setup skill, plus a copy
+item for agents that run in a terminal or in Work itself.
