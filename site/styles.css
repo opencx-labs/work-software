@@ -125,11 +125,6 @@ strong {
   font-weight: 700;
 }
 
-.nav-cta {
-  min-height: 36px;
-  padding: 8px 14px;
-}
-
 .hero {
   padding: 100px 0 68px;
 }
@@ -158,6 +153,9 @@ h1 {
   padding: 10px 16px;
   border: 1px solid var(--strong);
   border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
   font-size: 14px;
   line-height: 1.2;
   font-weight: 500;
@@ -285,9 +283,7 @@ h1 {
     gap: 20px;
   }
   
-  .nav-cta {
-    padding: 9px 13px;
-  }
+  
   .hero {
     padding: 65px 0 48px;
   }
@@ -336,11 +332,7 @@ h1 {
     padding: 22px 0;
   }
   
-  .nav-cta {
-    margin-left: auto;
-    font-size: 12px;
-    padding: 8px 13px;
-  }
+  
   
   
   
@@ -581,7 +573,9 @@ h1 {
   left: 50%;
   translate: -50% 0;
   z-index: 5;
+  width: max-content;
   min-width: 236px;
+  max-width: min(320px, calc(100vw - 32px));
   padding: 4px;
   border: 1px solid var(--strong);
   border-radius: var(--radius-md);
@@ -676,6 +670,38 @@ h1 {
 }
 .brain .ask-agent {
   margin-top: 28px;
+}
+/* The last menu on the page opens upward, so it never hangs off the end. */
+.brain .ask-agent-menu {
+  top: auto;
+  bottom: calc(100% + 6px);
+  transform-origin: bottom center;
+}
+.brain .ask-agent-menu[data-state="open"] {
+  animation-name: pop-in-up;
+}
+.brain .ask-agent-menu[data-state="closing"] {
+  animation-name: pop-out-up;
+}
+@keyframes pop-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes pop-out-up {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
 }
 .ask-agent-copy {
   display: flex;
