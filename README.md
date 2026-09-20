@@ -26,7 +26,7 @@ The website does not promise unavailable platform releases.
 
 ## Desktop film
 
-The homepage and desktop page share `site/assets/work-desktop-film.mp4`, a silent
+The homepage plays `site/assets/work-desktop-film.mp4`, a silent
 1920x1200 H.264 recording of the actual desktop app at 60 fps (a 16:10 frame,
 matching the `aspect-ratio` of the orange panel it sits in). It follows one scenario in the prepared project "Aster
 launch": read a reference page in Work's browser, open a chat beside it and ask

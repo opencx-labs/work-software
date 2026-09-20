@@ -11,7 +11,7 @@ beside concrete examples of ordinary projects. The homepage is one line, the fil
 sentences and the download. The film, captured from the real desktop app with
 a prepared demo project, plays on its own, silently and looped, inside a
 hairline frame; one hover control pauses it, and reduced motion shows the
-poster instead. The desktop page keeps native controls for the same film.
+poster instead.
 
 ## Tokens
 

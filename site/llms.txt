@@ -25,7 +25,7 @@ Work is the product; Catamorphic is the open-source framework it is built on. Bo
 ## Install
 
 - Mac with Apple silicon, macOS 12 or newer. Preview channel: `brew install --cask opencx-labs/tap/work@alpha`, or download the signed DMG from https://github.com/opencx-labs/catamorphic/releases.
-- Downloads and release notes: https://work.software/desktop/
+- Downloads and release notes: https://github.com/opencx-labs/catamorphic/releases
 
 ## Where to read more (source of truth)
 
@@ -43,6 +43,4 @@ Work is the product; Catamorphic is the open-source framework it is built on. Bo
 ## Pages on this site
 
 - https://work.software/ (home, with a short film of the app in use)
-- https://work.software/desktop/
 - https://work.software/#brain (the company brain, and one message that sets one up with your agent)
-- https://work.software/mobile/
