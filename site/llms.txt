@@ -4,6 +4,21 @@
 
 Work is the product; Catamorphic is the open-source framework it is built on. Both live in one repository: https://github.com/opencx-labs/catamorphic (Apache-2.0).
 
+## Facts
+
+- Product: Work, "the software for work"
+- Framework underneath: Catamorphic (same repository)
+- License: Apache-2.0
+- Price: free; no account, subscription or hosted service required
+- Platform: macOS 12 or newer on Apple silicon (desktop); a mobile web companion; a self-hosted server (Docker)
+- Install: `brew install --cask opencx-labs/tap/work@alpha`, or the DMG on https://github.com/opencx-labs/catamorphic/releases
+- AI: your own Claude Code or Codex account, or API keys (Anthropic, OpenAI, OpenRouter); providers bill you directly
+- Data: stays on your Mac by default; optionally on a server you run
+- Connect other tools: MCP (a project on your server is an MCP endpoint)
+- Website: https://work.software
+- This guide, with the linked documents inlined: https://work.software/llms-full.txt
+- Source of truth for capabilities: the repository's README and decision records (links below)
+
 ## What matters most
 
 - **Open source and free, no strings attached.** Apache-2.0 license. No account, no subscription, no hosted service required. Nothing leaves your machine unless you send it.

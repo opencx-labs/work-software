@@ -1,0 +1,2120 @@
+# Work
+
+> Work is a free, open-source desktop app for getting work done with AI agents: your projects, a real browser, terminals and editors, and agents that reshape the app and build tools for you. It runs on your Mac, uses the AI accounts you already pay for, and keeps your work on your machine unless you choose to run your own server.
+
+Work is the product; Catamorphic is the open-source framework it is built on. Both live in one repository: https://github.com/opencx-labs/catamorphic (Apache-2.0).
+
+## Facts
+
+- Product: Work, "the software for work"
+- Framework underneath: Catamorphic (same repository)
+- License: Apache-2.0
+- Price: free; no account, subscription or hosted service required
+- Platform: macOS 12 or newer on Apple silicon (desktop); a mobile web companion; a self-hosted server (Docker)
+- Install: `brew install --cask opencx-labs/tap/work@alpha`, or the DMG on https://github.com/opencx-labs/catamorphic/releases
+- AI: your own Claude Code or Codex account, or API keys (Anthropic, OpenAI, OpenRouter); providers bill you directly
+- Data: stays on your Mac by default; optionally on a server you run
+- Connect other tools: MCP (a project on your server is an MCP endpoint)
+- Website: https://work.software
+- This guide, with the linked documents inlined: https://work.software/llms-full.txt
+- Source of truth for capabilities: the repository's README and decision records (links below)
+
+## What matters most
+
+- **Open source and free, no strings attached.** Apache-2.0 license. No account, no subscription, no hosted service required. Nothing leaves your machine unless you send it.
+- **It is a browser.** Work embeds a real Chromium browser: tabs, Chrome-style profiles, bookmarks (pinned tiles and lists, per project too), history, a password vault unlocked with Touch ID. You can use it as a clean browser and nothing more.
+- **It uses your existing AI subscriptions.** Sign in with the Claude Code or Codex account you already have, or add API keys (Anthropic, OpenAI, OpenRouter). Providers charge you directly; Work adds nothing.
+- **Completely local, or your own server.** The desktop app runs with an embedded database and local sandboxes; no cloud. When you want your work and agents available from your phone or while the Mac sleeps, run the stock server yourself (one Docker container, `apps/server`) and keep everything on hardware you control.
+- **Completely customizable.** The sidebar, theme, shortcuts, tabs, notifications and terminal macros are plain files (`sidebar.js`, `theme.json`, settings). Ask the assistant to change them and it edits the files; the app updates live. Agents build apps and workflows inside a project that look and behave like built-in parts of the app.
+- **Three ways to use it.** A coding workspace (worktrees, terminals, editors, diffs, pull requests, several coding harnesses side by side). A company brain (shared projects, roles and memberships, automations, apps, tuned agent roles, reachable from desktop, mobile PWA or any MCP client). Or just a nice, clean browser with an assistant a keystroke away.
+
+## Why it exists
+
+We built Work because we believe one well-built piece of software can replace most productivity and collaboration tools. Software is now cheap; as humans, we just need to find the optimal form for it, make it open source, and let it build itself afterwards.
+
+## How it works
+
+- A project is an ordinary folder and a git repository. Every agent turn that changes files becomes a checkpoint commit; you can inspect diffs or trust routine work to continue.
+- Chats float over whatever you are doing (a page, a document, a terminal) and can be minimized to a dock. Agents see the workspace context you give them: the page, the file, the terminal.
+- Agents can be Claude Code, Codex, or API models (multi-harness), with per-agent mode, memory, skills, instructions and effort. Connectors (MCP) attach to profiles and agents.
+- Agents write durable workflows (TypeScript, run in sandboxes, resumable) and apps (small React screens built from Work's component kit). An app can read your own chats in a project after you allow it once; it never sees anyone else's.
+- The mobile companion (a PWA) pairs with the desktop by QR code over your LAN, or connects to your server, so a chat can continue from your phone.
+- Privacy: incognito chats stay on the device and are never mirrored; a project's private working files are separate from shared project source.
+
+## Install
+
+- Mac with Apple silicon, macOS 12 or newer. Preview channel: `brew install --cask opencx-labs/tap/work@alpha`, or download the signed DMG from https://github.com/opencx-labs/catamorphic/releases.
+- Downloads and release notes: https://github.com/opencx-labs/catamorphic/releases
+
+## Where to read more (source of truth)
+
+- Repository: https://github.com/opencx-labs/catamorphic
+- Overview, install, the three ways to use it, personal and company brains: https://github.com/opencx-labs/catamorphic/blob/main/README.md
+- The desktop's design language and decision log (how the app is meant to feel, what changed and why): https://github.com/opencx-labs/catamorphic/blob/main/apps/desktop/DESIGN.md
+- Architecture decision records, one file per decision: https://github.com/opencx-labs/catamorphic/tree/main/docs/decisions
+- The self-hosted server (a company brain): https://github.com/opencx-labs/catamorphic/blob/main/apps/server/README.md
+- Setting one up with an agent, end to end: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-catamorphic-server/SKILL.md (start with references/first-brain.md)
+- Embedding the framework in your own product: https://github.com/opencx-labs/catamorphic/blob/main/INTEGRATION.md
+- How agents are expected to work inside the repository itself: https://github.com/opencx-labs/catamorphic/blob/main/AGENTS.md and https://github.com/opencx-labs/catamorphic/blob/main/apps/desktop/AGENTS.md
+- What is being worked on next: https://github.com/opencx-labs/catamorphic/blob/main/TODO.md
+- The skills agents receive inside a project (how apps, workflows and sidebars are authored): https://github.com/opencx-labs/catamorphic/blob/main/packages/core/src/seeds.ts
+
+## Pages on this site
+
+- https://work.software/ (home, with a short film of the app in use)
+- https://work.software/#brain (the company brain, and one message that sets one up with your agent)
+
+---
+
+# Linked documents, inlined
+
+Each section below is a file from https://github.com/opencx-labs/catamorphic at the time this guide was built. The repository is the source of truth.
+
+## The repository README: what Work and Catamorphic are, install, the three ways to use it
+
+Source: https://github.com/opencx-labs/catamorphic/blob/main/README.md
+
+<p align="center">
+  <img src=".github/readme-banner.png" alt="Catamorphic: a really good place to get work done" width="100%">
+</p>
+
+# Catamorphic
+
+**The open-source core for agentic work environments.** Catamorphic brings
+projects, agents, documents, browser tabs, terminals, apps, and automations
+into products whose identity and deployment belong to their host.
+
+[Work](https://work.software) is the desktop, company brain, and mobile product
+built on Catamorphic. It is designed for anyone with work to do. This repository
+contains the framework and Work's reference applications.
+
+## Install Work
+
+Work supports Apple silicon Macs running macOS 12 or newer. The current
+preview is the download on [work.software](https://work.software/), or:
+
+```bash
+brew install --cask opencx-labs/tap/work@alpha
+```
+
+After the first Work Stable is published:
+
+```bash
+brew install --cask opencx-labs/tap/work
+```
+
+You can also download the signed and notarized DMG from
+[GitHub Releases](https://github.com/opencx-labs/catamorphic/releases) and drag
+Work into Applications. Installed builds let you choose when to download and
+restart. Switch channels under **Help > Update Channel**, or use `brew upgrade`
+with the same cask you installed. Work keeps a pre-migration database backup.
+
+Work uses a fresh application identity and storage directory. Alpha data and
+credentials from the previous app are not migrated automatically. Project
+folders remain ordinary files you can import.
+
+## One system, three ways to use it
+
+### Desktop app
+
+The desktop app ([`apps/desktop`](apps/desktop)) is a local-first workspace and
+the framework's reference implementation. Claude Code, Codex, and API models
+can work side by side in durable sessions. Agents use the browser, terminals,
+editors, project files, apps, and connectors you can also use yourself. You can
+take over a surface at any moment, inspect diffs when a change deserves your
+eyes, or trust routine work to continue.
+
+Projects are ordinary folders and git repositories. Every agent turn that
+changes files creates a checkpoint commit. Local execution uses an embedded
+database and local sandboxes, so the desktop does not depend on a hosted
+Catamorphic service.
+
+### Self-hosted server
+
+The stock server ([`apps/server`](apps/server)) gives a personal or company
+brain an always-on home. It serves the mobile PWA, remote agents, project apps,
+and MCP endpoints. Desktop and mobile clients sign in through OAuth with PKCE;
+the stock host supports local credentials and configured OAuth or OIDC
+providers. Invitations grant admission after sign-in, and committed project
+roles decide what each member and agent may do.
+
+The zero-service setup keeps PGlite, git origins, credentials, and project data
+under one data directory. A deployment can opt into real Postgres as it grows.
+The accepted multi-machine architecture uses server instances sharing one
+Postgres and one authority, with machines exposed as permitted Environments.
+Postgres mode shares origins, artifacts, credentials, auth, and leased execution. See
+[the machine setup and recovery model](skills/setup-catamorphic-server/references/cluster-deployment.md).
+The stock host is single-tenant because its local-process execution can access
+the host machine. Run one trusted organization or household per deployment.
+See [the server guide](apps/server/README.md) or give an agent
+[`skills/setup-catamorphic-server`](skills/setup-catamorphic-server/SKILL.md)
+to provision it.
+
+### Embeddable framework
+
+The packages under [`packages/`](packages) let a host application mount
+Catamorphic in-process without adopting Catamorphic's identity, deployment, or
+design choices. A host supplies auth, users and organizations, database,
+storage, execution providers, credentials, telemetry, skills, and doctrine.
+The framework supplies general-purpose projects, git-native work tracking,
+multi-harness coding agents, durable TypeScript workflows, sandboxed
+user-built apps, generated API clients, headless React state, and composable
+UI. See [`INTEGRATION.md`](INTEGRATION.md).
+
+## Personal and company brains
+
+- **A personal brain.** Keep notes, research, code, recurring work, and small
+  tools in projects on your Mac. Add a stock server when you want the same
+  projects and conversations from your phone or while the Mac is asleep.
+- **A company brain.** Put shared knowledge, automations, apps, and tuned agent
+  roles in one reviewable project program. Members sign in with their own
+  identity and receive only the roles and project store paths they need. The
+  same brain is available from desktop, the hosted PWA, an MCP client, or an
+  embedded product surface.
+- **A daily-driver dev shell.** Import a monorepo with its existing agent
+  instructions. Worktrees, terminals, browser tabs, diffs, pull requests, and
+  multiple coding harnesses live in one window.
+- **An embedded copilot.** Mount the libraries in a SaaS backend, add the
+  React surfaces you want, and give the agent the host's skills, tools,
+  trigger kinds, look, and doctrine.
+- **Per-customer tools over MCP.** Give each customer a project where agents
+  build typed workflows and apps, then serve the approved tools to the MCP
+  client they already use.
+
+Desktop and server are designed to compose. A linked project's files sync over
+git after settled turns. Desktop conversations mirror to the server, so the
+mobile PWA can open the same chat and continue with the server's always-on
+agent. If someone continues remotely, the server owns that conversation fork
+instead of pretending two writers have one history. Incognito desktop chats
+stay local and are never mirrored.
+
+Projects can shape the shared experience without hard-coding company personas
+into the app. Committed role files grant scoped artifacts and namespaced
+capabilities; the shared sidebar and up to six New Tab starting actions can
+target the caller's resolved builder state and permissions. If a project does
+not configure an action, the desktop adds no placeholder or empty surface.
+(ADR [0092](docs/decisions/0092-project-owned-capability-experiences.md))
+
+**Code is the source of truth.** Everything is stored as plain files
+(TypeScript, markdown, whatever the work is) in a git repository, never a
+proprietary DSL or an opaque store. When a project holds workflows, the
+parser renders the workflow code as an intuitive visual graph for
+non-technical users, while technical users and AI agents work directly with
+the code. A project is just a git repo.
+
+---
+
+# What's inside
+
+Six capabilities, co-equal. Each is shipped and verifiable in this repo;
+the ADR column is the settled design record.
+
+## Projects hold any work
+
+A project is a folder that can hold documents, notes, data, plans, code,
+automations, and apps, in any mix. A blank project is a git repository, a
+`.catamorphic/project.json` manifest, and hidden seed skills; nothing in
+the visible tree claims the project is about code. The workflow/app
+workspace (an independent Bun workspace under `.catamorphic/`: `contracts/`, `workflows/`, `apps/*`) is
+scaffolded on demand, the first time someone asks for an automation or
+app. Imported repositories are adopted as-is; existing files are never
+overwritten. (ADRs [0032](docs/decisions/0032-projects-are-bun-workspaces.md),
+[0043](docs/decisions/0043-general-purpose-projects.md))
+
+## Git-native work tracking
+
+Work is tracked without anyone performing git. Every agent turn that
+changed files ends in a **checkpoint commit**, its sha stamped on the chat
+message, so every reply's diff is addressable forever. Linked projects
+sync with their remote automatically (fetch, fast-forward, merge, push);
+a conflicting divergence lands on a **rescue branch** instead of a stuck
+state, so no work is ever stranded. Everything provider-specific sits
+behind one `CodeHost` interface; GitHub is the first implementation
+(connect, repo import, pull requests). Agents get explicit git verbs
+(`sync_project`, `create_pull_request`) rather than raw git.
+(ADR [0044](docs/decisions/0044-checkpoint-commits-and-remote-sync.md))
+
+## Coding agents, multi-harness
+
+One agent-session engine over pluggable harnesses: the built-in
+`@catamorphic/ai-sdk` tool loop (any API model), Claude Code
+(`@catamorphic/claude-code`), and Codex (`@catamorphic/codex`), selectable
+per session and switchable mid-session, with a normalized effort scale.
+Agents run either in a sandbox or directly on the host filesystem.
+`ask_user` questions, durable sessions that survive restarts, and
+per-profile agent rosters work across harnesses. MCP goes both directions:
+agents consume MCP connectors (registry search, plugin marketplaces,
+elicitation via `@catamorphic/mcp`), and a project's workflows are served
+*as* MCP tools to any MCP client. In the desktop, agents also drive the
+workspace itself: browser tabs, terminals, `open_surface`, `point_at`.
+(ADRs [0038](docs/decisions/0038-coding-agent-registry-and-host-execution.md),
+[0042](docs/decisions/0042-parameterized-trigger-kinds-and-workflow-tools-mcp.md))
+
+Concurrent sessions start in the same visible project checkout. Before a
+turn, each agent sees the other active sessions in that project and can read
+their bounded transcripts. It can keep sharing the folder, wait, or use the
+same harness-neutral tools to create or adopt a Git worktree. Per-agent
+coordination doctrine ranges from `shared-first` to `isolation-required`, so
+non-technical roles can stay in one familiar folder while engineering agents
+isolate only when needed. Shared sessions deliberately share files, Git
+state, checkpoint commits, and rollback; Catamorphic does not pretend those
+changes belong to one agent. (ADR
+[0063](docs/decisions/0063-agent-checkout-coordination.md))
+
+**Project agent definitions**: an agent can be a work product. Committed
+`.catamorphic/agents/<slug>.json` files (plus an optional `.catamorphic/agents/<slug>.md` persona)
+version with the project and appear in every collaborator's picker. A
+committed definition never runs on your personal credentials until you
+consent, and consent is bound to a hash of what you approved; definitions
+using a project secret need no personal consent and work headlessly.
+(ADR [0050](docs/decisions/0050-project-agent-definitions.md))
+
+Delegation is also first-class. A subagent works in an ordinary durable child
+session with explicit delegation authority, its own transcript, and the same
+message, interrupt, attention, and policy machinery as any other session.
+Archive recursively stops active work only after reporting its impact, while
+keeping the session tree restorable and searchable. Session source records
+whether a conversation began on desktop, mobile, Slack, Claude, MCP, or API.
+(ADRs [0089](docs/decisions/0089-project-shaped-member-shell.md),
+[0090](docs/decisions/0090-first-class-subsessions-and-delegation.md))
+
+## Durable workflows
+
+TypeScript automations in git, rendered as a visual graph for
+non-technical users, executed durably on Postgres. One model: every
+workflow is an exported `defineWorkflow` value, every run executes a
+deployed commit. Boundaries (atomic retry scopes), batch scopes, pauses
+and signals, correlation keys, shared rate budgets, retention, and
+triggers, including host-defined trigger kinds with typed payloads and
+sync-until-first-wait firing. Full authoring model below.
+
+Role access is separate from unattended consent. Each member previews and
+enables an exact deployed workflow with its trigger, Environment, agent, and
+connection requirements. Connecting an account may complete that chosen flow;
+it never silently enables every compatible automation.
+
+## Apps
+
+Real frontends users (and agents) build on top of workflows: sandboxed
+React bundles wired through a typed contract that cannot drift from the
+workflows it calls (same repo, same commit). An app's callable workflow
+set is frozen per published version and re-authorized on every call. Apps
+interoperate with **MCP Apps** in both directions: the desktop renders MCP
+Apps from connectors, and `/projects/:id/apps-mcp` serves your apps to MCP
+hosts like Claude, unchanged. Apps get persistent app-local storage per
+(app, user), and the `@catamorphic/app/ui` kit gives agent-built apps
+polished, accessible components with zero CSS.
+(ADRs [0035](docs/decisions/0035-app-entity-and-build-pipeline.md) through
+[0037](docs/decisions/0037-app-guest-runtime-and-mount.md),
+[0048](docs/decisions/0048-app-feel-is-the-embedders.md))
+
+## The dev shell (desktop)
+
+Import a real monorepo and use the desktop as your daily driver. The
+Claude Code harness runs at full fidelity: the SDK's own preset system
+prompt, and the repo's CLAUDE.md, `.claude/` skills, agents, commands, and
+settings load exactly as in the CLI. Worktrees are first-class: discovered,
+listed, diffed, and assignable by agents when concurrent work needs
+isolation. Checkout management is harness-neutral, so Claude Code, Codex,
+and the built-in agent follow the same policy. Diff tabs render in Monaco;
+the sidebar has Changes and Pull Requests sections; PR review opens per-file
+diffs through the CodeHost seam. Terminals are real PTYs with shell
+integration (OSC 133); the embedded browser and the command palette round
+out the shell. All of it degrades quietly for non-technical users.
+(ADRs [0045](docs/decisions/0045-desktop-as-dev-shell.md),
+[0063](docs/decisions/0063-agent-checkout-coordination.md))
+
+The signed app ships the audited Claude Code and Codex adapters, then downloads
+each large, platform-specific executable only on first use. Every component is
+versioned and SHA-512 pinned by the app release, installed atomically, and
+reused offline. (ADR
+[0091](docs/decisions/0091-on-demand-desktop-harness-components.md))
+
+## Your product, your feel and doctrine (embedding)
+
+Apps and agents inside an embedder's product are unmistakably the
+embedder's. **Feel**: the app kit ships structure and behavior only; every
+aesthetic decision flows from host theme tokens with neutral defaults,
+plus `hostCss` and `kit: false` for total control. **Doctrine**: two
+`createCatamorphic` hooks (`projectSeeds`, `standingAgentPrompt`) receive
+the framework defaults and return the host-final set, so seeded skills
+and the agents' standing prompt are both replaceable. The desktop
+consumes the same hooks and passes nothing: the proof the defaults are
+real defaults.
+(ADRs [0048](docs/decisions/0048-app-feel-is-the-embedders.md),
+[0049](docs/decisions/0049-doctrine-is-the-embedders.md))
+
+# The framework
+
+Catamorphic's engine ships as libraries a host application mounts
+in-process. The desktop app is itself such a host. The host provides auth,
+the user/org model, the database, and the deployment surface. There is no
+default identity or tenant: every request carries identity from the host's
+auth context. See [`INTEGRATION.md`](INTEGRATION.md) for the host
+integration flow.
+
+## Runs anywhere
+
+Durable agent-and-workflow infrastructure that does **not** assume an external
+server.
+Every dependency is an axis with a heavy and a light end. Pick per axis:
+
+| Axis | Heavy end | Light end |
+| --- | --- | --- |
+| Database | Network Postgres (`{ pool }` / `{ connectionString }`) | **Embedded pglite** (Kysely `PGliteDialect` via `database: { db }`; migrations run statement-by-statement so single-connection dialects just work) |
+| Execution | Cloud sandboxes: `@catamorphic/cloudflare`, `@catamorphic/daytona` | **Local sandboxes** (`@catamorphic/microsandbox`), plain local processes (`@catamorphic/local-process`, trusted single-tenant hosts only), or none (read-only embed) |
+| Code storage | S3-compatible bucket (`@catamorphic/s3`) or Cloudflare Artifacts | Two writable directories |
+| Identity | Host org/user per request | One fixed tenant/user |
+| Surface | HTTP API + React UI | In-process SDK calls, or migrations-only |
+
+**The desktop app is the proof**: it runs the lightest column end to end
+(pglite, local sandboxes, filesystem storage, no external server) by design
+([`apps/desktop/src/main/server/boot.ts`](apps/desktop/src/main/server/boot.ts)).
+No durable-execution vendor can run entirely inside a desktop app; this one
+does, and the same substrate is what offline-first agents need. Full matrix
+and host shapes: [`INTEGRATION.md`](INTEGRATION.md#host-shapes-catamorphic-runs-wherever-typescript-runs).
+
+Also worth knowing, because it's easy to miss from the package list:
+
+- **The product teaches agents from the inside.** Every project is seeded
+  with hidden skills (`.catamorphic/skills/`): the project model and on-demand
+  workspace scaffold (`catamorphic-projects`), workflow authoring
+  (`writing-workflows`, `batch-workflows`, `durable-workflows`), and app
+  building split into mechanics (`building-apps`) and replaceable design
+  doctrine (`designing-apps`). Coding agents learn Catamorphic's authoring
+  model at the moment they need it. The public
+  [`skills/setup-catamorphic-server`](skills/setup-catamorphic-server/SKILL.md)
+  skill extends the same idea to stock-server setup and integrating
+  Catamorphic into an existing app without replacing its auth or deployment.
+- **One Run model.** Boundary and batch workflows all share the same Runs
+  API, hooks, and UI: capabilities, not categories. Every run executes a
+  deployed commit.
+- **Observability is free for hosts.** Everything instruments against
+  `@opentelemetry/api`; register your SDK and Catamorphic's spans appear in
+  your traces.
+
+## The developer surface
+
+| Package | What it is |
+| --- | --- |
+| `@catamorphic/server-sdk` | The core SDK for your Node/Bun backend. Takes a Postgres connection (or `pg.Pool`), manages its own schema-scoped tables and migrations, and exposes projects, workflows, files, runs, triggers, agent sessions, and GitHub. |
+| `@catamorphic/fastify-plugin` | A mountable Fastify plugin (`app.register(catamorphicPlugin, { core, prefix: "/api" })`) exposing the standard HTTP API for frontends, plus the per-project MCP endpoints. Also exports a standalone `createApp` factory for sidecar deployments. |
+| `@catamorphic/react` | Headless React bindings: `CatamorphicProvider`, TanStack Query hooks, and jotai atoms. Build a fully custom UI on top of these. |
+| `@catamorphic/ui` | Ready-made components: the React Flow workflow canvas, detail panel, Runs panel, AI bar, and `AppMount` (the sandboxed app iframe host). Every piece is opt-in. |
+| `@catamorphic/registry` | shadcn-style copy-paste components for hosts that want to own and customize the component source (project browser, git panel, runs panel, agent chat, Monaco editor). |
+| `@catamorphic/api-client` | Generated OpenAPI types + `openapi-fetch` client for the HTTP API. |
+| `@catamorphic/workflow` | Typed workflow-authoring primitives. Projects opt in directly, or a SaaS can wrap it and re-export only its approved surface. |
+| `@catamorphic/app` | The guest-side app runtime bundled into every user-built app: typed workflow client, persistent app-local storage shim, dual-dialect MCP Apps support, and the `@catamorphic/app/ui` component kit styled entirely by host theme tokens. |
+
+Supporting packages (consumed through the surface above, importable directly for advanced wiring):
+
+| Package | What it is |
+| --- | --- |
+| `@catamorphic/core` | Framework-agnostic service layer: projects, workflows, runs, deployments, triggers, apps, app storage, plugins, secrets, agent sessions, agent definitions, remote sync, and the CodeHost seam. The kernel behind `server-sdk` and `fastify-plugin`. |
+| `@catamorphic/db` | Kysely + Postgres. Schema-scoped (default schema `catamorphic`), raw SQL migrations, programmatic `migrateToLatest`. |
+| `@catamorphic/git` | Git-backed project storage (`isomorphic-git`): per-user working copies, pluggable origin remotes (`RemoteBackend`), and the remote sync engine (`syncWithNetworkRemote`: fetch, fast-forward, merge, push, rescue branches). |
+| `@catamorphic/github` | GitHub as a code host: OAuth + device-flow auth helpers, the REST API client, token stores. Feeds core's `GithubService` and its `CodeHost` implementation. |
+| `@catamorphic/parser` | ts-morph AST → `WorkflowGraph` parser + dagre layout; also powers the seeded project `check` script. |
+| `@catamorphic/sandbox` | Vendor-neutral sandbox + coding-agent contracts (`SandboxProvider`, `SandboxManager`, `RunExecutor`, `CodingAgentProvider`), the stdio supervisor transport, OTel instrumentation. |
+| `@catamorphic/microsandbox` | Local sandbox provider over the microsandbox SDK: the desktop's default execution. |
+| `@catamorphic/local-process` | Sandboxless execution as plain subprocesses with an explicit env. Trusted single-tenant hosts only (ADR 0047). |
+| `@catamorphic/cloudflare` | Cloudflare backend plugin: `CloudflareSandboxProvider` (execution via Bridge Worker) + `ArtifactsRemoteBackend` (Cloudflare-native code storage when available). |
+| `@catamorphic/s3` | S3-compatible git origin backend for Cloudflare R2, AWS S3, MinIO, and similar stores. |
+| `@catamorphic/daytona` | Daytona backend plugin: `DaytonaSandboxProvider` + experimental Daytona git storage. |
+| `@catamorphic/ai-sdk` | Built-in coding-agent harness: Vercel AI SDK tool loop on any API model, running in the host and driving the dev sandbox remotely. |
+| `@catamorphic/claude-code` | Coding-agent harness backed by the Claude Code (Claude Agent SDK) CLI, with per-session MCP servers and full settings-source fidelity. |
+| `@catamorphic/codex` | Coding-agent harness backed by the OpenAI Codex SDK. |
+| `@catamorphic/mcp` | MCP client infrastructure: both protocol generations with auto-negotiation, elicitation, the official MCP registry search, and plugin-marketplace install. |
+| `@catamorphic/otel` | Tiny OpenTelemetry helpers (`@opentelemetry/api` only: the host owns the SDK/exporters). |
+| `@catamorphic/runtime` | Execution harness that runs *inside* the sandbox and reports step results. |
+| `@catamorphic/plugins` | Plugin manifest contract + resolvers for host-provided packages and secrets. |
+| `@catamorphic/cloudflare-sandbox-bridge` | Deployable Cloudflare Worker exposing Cloudflare Sandbox over HTTP. |
+
+The in-repo reference host is the Catamorphic desktop app ([`apps/desktop`](apps/desktop)): an Electron app that embeds the server in-process (`src/main/server/boot.ts`).
+
+## Design principles
+
+- **Workflows are regular code.** User-defined workflows run like normal apps: full IO, real npm dependencies, no crippled JS runtime. Execution happens inside a sandbox (or a local process, where the host shape allows it) using **Bun** to run and bundle.
+- **Code stays simple.** Both AI agents and humans must be able to write, edit, and understand workflows, and the parser must render them intuitively for non-technical users. See the code format below.
+- **Host-injectable everything.** Database connections, storage backends, sandbox credentials, LLM credentials, telemetry, trigger kinds, seeds, and doctrine are all injected by the host: nothing is hard-coded.
+- **Postgres is authoritative** for runs, retries, pauses, batch-item state, queues, and scheduling via `SKIP LOCKED`. Cloudflare Sandbox is the default cloud execution provider; backends ship as vendor plugin packages so hosts install only what they use.
+- **OpenTelemetry throughout.** Libraries instrument against `@opentelemetry/api` only; the host registers the SDK and exporters and gets full traces for free.
+
+Settled design decisions are recorded as ADRs in [`docs/decisions/`](docs/decisions/README.md).
+
+## Quick start (embedding)
+
+```ts
+import { CloudflareSandboxProvider } from "@catamorphic/cloudflare";
+import {
+  createCatamorphic,
+  defineStaticEnvironments,
+} from "@catamorphic/server-sdk";
+
+const sandboxProvider = new CloudflareSandboxProvider({
+  apiUrl: process.env.CLOUDFLARE_SANDBOX_API_URL!,
+  apiKey: process.env.CLOUDFLARE_SANDBOX_API_KEY,
+});
+const environmentProvider = defineStaticEnvironments([
+  {
+    descriptor: {
+      id: "local",
+      label: "Managed execution",
+      trust: "managed",
+      isolation: "sandbox",
+      workloads: ["agent", "workflow"],
+      agentTopologies: ["controller"],
+      capabilities: ["network.egress"],
+      resources: {},
+    },
+    sandboxProvider,
+  },
+]);
+
+// Boot once per process
+const catamorphic = createCatamorphic({
+  database: { connectionString: process.env.DATABASE_URL! }, // or { pool }
+  storage: {
+    projectsPath: process.env.CATAMORPHIC_PROJECTS_PATH!,
+    remotesPath: process.env.CATAMORPHIC_REMOTES_PATH!,
+  },
+  // Backend plugins: @catamorphic/cloudflare, @catamorphic/daytona,
+  // @catamorphic/microsandbox, or @catamorphic/local-process
+  sandboxProvider,
+  environmentProvider,
+});
+await catamorphic.migrate(); // idempotent, schema-scoped
+
+// Worker startup is explicit and host-owned.
+const executionWorker = catamorphic.startExecutionWorker({ concurrency: 4 });
+
+// Per request: bind the host's org + user
+const client = catamorphic
+  .forTenant({ tenantId: orgId })
+  .forUser({ externalUserId: userId });
+const project = await client.projects.create({ name: "Onboarding" });
+const run = await client.runs.triggerProduction({
+  projectId: project.id,
+  workflowName: "welcomeUser",
+  input: { email: "ada@example.com" },
+});
+```
+
+To expose the HTTP API to your frontend:
+
+```ts
+import { catamorphicPlugin } from "@catamorphic/fastify-plugin";
+
+app.register(catamorphicPlugin, { core: catamorphic.core, prefix: "/api" });
+```
+
+And on the frontend, wrap your tree with `CatamorphicProvider` from `@catamorphic/react` and drop in `WorkflowEditor` from `@catamorphic/ui` (or build your own UI from the hooks). See [`INTEGRATION.md`](INTEGRATION.md).
+
+## Workflow code format
+
+There is one public Workflow model and one public Run model: every workflow is
+an exported `defineWorkflow(({ defineBoundary, defineBatch }) => ({ steps:
+[...] }))` value from `@catamorphic/workflow`, and every run executes a
+deployed commit.
+
+### Boundaries and steps
+
+A boundary is one atomic retry scope: if its callback fails, all operations in
+that callback retry together. Orchestration code lives in boundary `run`
+bodies; IO and business operations live in `"use step"` functions: plain
+async functions with the exact `"use step"` directive, called from boundary
+bodies. All functions take one destructured object parameter and carry JSDoc
+display metadata.
+
+```typescript
+import { type BoundaryContext, defineWorkflow } from "@catamorphic/workflow";
+
+/**
+ * @displayname Welcome New User
+ * @description Onboard a new user
+ */
+export const welcomeUser = defineWorkflow(({ defineBoundary }) => ({
+  steps: [
+    defineBoundary({
+      run: async ({
+        input,
+      }: BoundaryContext<{ email: string; name: string }>) => {
+        const user = await createUser({ email: input.email, name: input.name });
+        await sendWelcomeEmail({ to: user.email, name: user.name });
+
+        if (user.plan === "premium") {
+          await assignPremiumBenefits({ userId: user.id });
+        }
+
+        await sendFollowUpEmail({ to: user.email });
+
+        return { status: "complete", userId: user.id };
+      },
+    }),
+  ],
+}));
+```
+
+### Batch scopes
+
+A batch scope is paged per-item processing with an optional sink. `defineBatchStep` is a
+physical coalescing primitive for compatible calls inside `defineBatch.process`;
+it does not define a Workflow or a separate logical step scope.
+
+```typescript
+import { defineWorkflow } from "@catamorphic/workflow";
+
+export const processAccount = defineWorkflow(
+  ({ defineBoundary, defineBatch }) => ({
+    steps: [
+      defineBoundary<{ accountId: string }, { accountId: string }>({
+        retry: { maxAttempts: 3 },
+        run: async ({ input }) => prepareAccount({ accountId: input.accountId }),
+      }),
+      defineBatch({
+        source: async ({ input }: { input: { accountId: string } }) => ({
+          source: recordsSource,
+          config: { accountId: input.accountId },
+        }),
+        process: async ({ item }: { item: AccountRecord }) =>
+          processRecord({ record: item }),
+        sink: resultSink,
+      }),
+    ],
+  }),
+);
+```
+
+The parser and UI expose capabilities such as batch processing and
+cancellation. There is no public stage concept, category switch, or separate
+Run family for these capabilities. A workflow with no pause, retry backoff,
+rate limit, batch, or child call settles inline when triggered synchronously:
+inline request-response is a property of execution, not a separate authoring
+form.
+
+### Triggers
+
+Workflows subscribe to trigger kinds in code (`triggers:
+[trigger("kind", config)]`). Hosts define their own kinds with
+`defineTriggerKind` (typed payloads and configs via zod, generated
+`catamorphic-triggers.d.ts` per project) and fire them sync or async; a kind
+whose payload varies per workflow uses typed holes, and kinds declared via
+`mcpToolKinds` are served as MCP tools from `POST /projects/:id/mcp`. See
+[`INTEGRATION.md`](INTEGRATION.md) and ADRs
+[0039](docs/decisions/0039-custom-trigger-kinds.md) /
+[0042](docs/decisions/0042-parameterized-trigger-kinds-and-workflow-tools-mcp.md).
+
+### Long-lived journeys: correlation keys, signals, shared rate budgets
+
+A run may carry a **correlation key**: a host-meaningful identity for its
+subject (a contact, an account, a subscription). It is unique among live runs of
+the same workflow, which makes it at once an enrollment idempotency key and the
+address external events use to reach the run. A boundary declares the shared
+third-party budgets it draws on; buckets are keyed per tenant, so every workflow
+naming the same `globalKey` draws on one budget.
+
+```typescript
+export const nurtureContact = defineWorkflow(({ defineBoundary }) => ({
+  controls: { cancel: true },
+  steps: [
+    defineBoundary({
+      rateLimits: [
+        { globalKey: "email", capacity: 500, refillRatePerSecond: 100 },
+      ],
+      run: async ({ input, pause }: BoundaryContext<{ contactId: string }>) => {
+        await sendWelcomeEmail({ contactId: input.contactId });
+        return pause<{ clicked: boolean }, { contactId: string }>({
+          signal: "reply",
+          timeout: "72h",
+          state: { contactId: input.contactId },
+        });
+      },
+    }),
+    defineBoundary({
+      // A different step, a different provider, a different budget.
+      rateLimits: [
+        { globalKey: "whatsapp", partitionKey: "sender-1", capacity: 80, refillRatePerSecond: 20 },
+      ],
+      run: async ({ input }) => sendWhatsApp({ contactId: input.state.contactId }),
+    }),
+  ],
+}));
+```
+
+```ts
+// Enrolling twice for the same contact is a no-op, so webhook redelivery is safe.
+await client.runs.triggerProduction({
+  projectId, workflowName: "nurtureContact",
+  input: { contactId: "contact-42" },
+  correlationKey: "contact-42",           // onConflict: "ignore" | "error" | "restart"
+});
+
+// External events address the contact, not a run id.
+await client.runs.signalByKey({
+  projectId, workflowName: "nurtureContact",
+  correlationKey: "contact-42",
+  signal: "reply", idempotencyKey: replyEventId, value: { clicked: true },
+});
+
+// Opting out ends the journey wherever it sits. Resolves null if none was live.
+await client.runs.cancelByKey({
+  projectId, workflowName: "nurtureContact",
+  correlationKey: "contact-42", reason: "unsubscribed",
+});
+```
+
+Waiting for capacity is not failure: a boundary that cannot reserve is
+rescheduled without consuming a retry and without holding a sandbox. When a
+provider answers with a 429, report it with `rateLimited({ retryAfterMs })`:
+that blocks every workflow sharing the account, not just the run that hit it.
+
+Hosts bound what any one tenant may consume from these shared resources via
+`catamorphic.tenantPolicies`. It is SDK-only and never exposed over HTTP, so a
+tenant cannot raise its own limits:
+
+```ts
+await catamorphic.tenantPolicies.upsert({
+  tenantId,
+  maxConcurrentJobs: 32,     // ceiling on simultaneously leased jobs
+  maxActiveRuns: 50_000,     // ceiling on live runs; bounds enrollment fan-out
+  queueWeight: 4,            // relative share of each claim batch
+  retentionDays: 365,        // overrides the installation retention window
+  rateLimitOverrides: {      // can tighten an author's bucket, never loosen it
+    whatsapp: { capacity: 40, refillRatePerSecond: 10 },
+  },
+});
+```
+
+### Retention
+
+Finished runs are purged after **90 days by default**, along with everything
+hanging off them: jobs, events, step attempts, batch items and their steps.
+Without this, a daily 100k-item batch adds on the order of 1.5M rows a day and
+never gives any back.
+
+The sweep runs inside the execution worker, so it needs no wiring. Change the
+window, or turn it off entirely, at construction:
+
+```ts
+const catamorphic = createCatamorphic({
+  database,
+  storage,
+  environmentProvider,
+  retention: { runRetentionDays: 30 }, // or { enabled: false } to keep forever
+});
+```
+
+Individual tenants can be given a longer or shorter window with
+`retentionDays` above.
+
+See [ADR 0027](docs/decisions/0027-correlation-keys-and-external-signals.md),
+[ADR 0028](docs/decisions/0028-shared-rate-budgets-and-tenant-execution-policy.md),
+and [ADR 0030](docs/decisions/0030-run-retention.md).
+
+## Contributing
+
+Catamorphic is issue-first. If you do not have repository write access, open a
+[GitHub issue](https://github.com/opencx-labs/catamorphic/issues/new/choose)
+with the problem, concrete use case, constraints, and desired outcome. Public
+pull request creation is restricted to the core team and collaborators with
+write access.
+
+AI makes producing code cheap, but it does not make a large generated change
+cheap to review. We review the compact source of intent first, then maintainers
+own the implementation with the repository's full context. Read
+[CONTRIBUTING.md](CONTRIBUTING.md) for the reasoning and issue guidance.
+
+## Local development
+
+```bash
+bun install
+
+# Only for an explicitly provisioned host database. These are not part of the
+# normal local app workflow; never point them at a database another session uses.
+DATABASE_URL="<host-owned database URL>" bun run db:migrate
+DATABASE_URL="<host-owned database URL>" bun run db:codegen
+
+# Build everything
+bun run build
+
+# Regenerate the OpenAPI spec + typed api-client after route/DTO changes
+cd packages/fastify-plugin && bun run generate-spec
+cd ../api-client && bun run generate
+```
+
+Optional shared OTel, ClickHouse, and sandbox-bridge services run
+persistently. Start them in a separate terminal only when you need them:
+
+```bash
+bun run dev:infra
+```
+
+The framework packages are embed-only. In production, run either the stock
+server host or an application that boots Catamorphic in-process. For local
+development, `bun run dev` starts the combined desktop and stock-server manual
+environment. `bun run dev:desktop` and `bun run dev:server` are focused
+variants of the same orchestrator, which assigns each worktree its own data
+directories and loopback ports. To iterate on Catamorphic alongside your own
+host, link the packages via `file:` (see
+`.agents/skills/using-catamorphic/SKILL.md` and its "Local dev linking"
+section).
+
+## Scripts
+
+```bash
+bun install         # Install dependencies in this worktree
+bun run dev         # Combined desktop and stock-server manual environment
+bun run dev:desktop # Desktop-focused development environment
+bun run dev:server  # Stock-server-focused development environment
+bun run dev:infra   # Optional OTel, ClickHouse, and sandbox-bridge services
+bun run build       # Build all packages
+bun run test        # Deterministic root and Postgres-complete workspace tests
+bun run test:external # Explicit opt-in for credentialed external integrations
+bun run check       # 11-phase merge gate
+bun run typecheck   # Typecheck all packages with tsgo
+bun run lint        # Lint with Biome
+bun run lint:fix    # Auto-fix lint issues
+bun run db:migrate  # Apply migrations to the DB pointed at by DATABASE_URL
+bun run db:codegen  # Regenerate Kysely types from the `catamorphic` schema
+bun run db:reset    # Drop + recreate the catamorphic schema (dev only)
+bun run db:status   # Show applied / pending migrations
+```
+
+Manual development profiles live under `~/.catamorphic/dev/<worktree-instance>`.
+The runner assigns separate desktop/server profiles and ports per worktree.
+Legacy temporary profiles are copied on first launch, with the originals retained.
+Do not put manual project databases in the operating system temporary directory.
+
+## Testing
+
+Tests use **Vitest**, orchestrated by Turborepo. Docker must be running:
+`bun run test` and `bun run check` create an isolated disposable Postgres
+database for every invocation. They do not need `bun run dev:infra`; that
+command is optional shared observability and sandbox-bridge infrastructure,
+not test infrastructure.
+
+```bash
+bun run test                                   # deterministic root and Postgres-complete workspace tests
+bun run check                                  # 11 phases: lint, root/workspace types, build, migrations, root/workspace tests, and E2E
+bun run test:external                          # explicit authority for credentialed integrations
+bun run --filter @catamorphic/parser test      # one package through repository Node
+bun run --cwd packages/parser test src/__tests__/parser.test.ts  # one file through repository Node
+```
+
+Each test file uses fresh temporary state and every root test invocation gets
+its own Postgres database and temporary caches, so parallel worktrees do not
+share test output. Install dependencies in each worktree and never copy a
+credentialed `.env` wholesale. Add only the individual settings a task needs.
+Root orchestration tests under `scripts/**/*.test.ts` run before the package
+graph. Package-local Vitest commands also select the repository-pinned Node,
+including when the ambient `node` is Node 20.
+
+External integration tests never run merely because credentials are present.
+They require the explicit `bun run test:external` authority, which sets
+`CATAMORPHIC_EXTERNAL_INTEGRATIONS=1`, and skip when their service-specific
+configuration is absent:
+
+- **Daytona** (`packages/daytona`): needs `DAYTONA_API_KEY`.
+- **Cloudflare Sandbox** (`packages/cloudflare`, `packages/core`): needs `CLOUDFLARE_SANDBOX_API_URL`, `CLOUDFLARE_SANDBOX_API_KEY`, and `CF_SANDBOX_INTEGRATION=1`. Start the sandbox bridge separately if the test needs it.
+- **Cloudflare Artifacts** (`packages/cloudflare`): needs `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, and `CLOUDFLARE_ARTIFACTS_NAMESPACE`; it skips with a warning while feature-gated.
+- **S3-compatible storage** (`packages/s3`): needs `S3_BUCKET`, `S3_ACCESS_KEY_ID`, and `S3_SECRET_ACCESS_KEY`. Set `S3_REGION` when the provider requires it, `S3_ENDPOINT` for R2, MinIO, or another non-AWS endpoint, and `S3_FORCE_PATH_STYLE=true` when that endpoint requires path-style requests.
+
+Unit tests run with no setup. `bun run --cwd apps/desktop test:e2e` runs the
+complete desktop suite in Docker, using real Electron on a private Xvfb display
+with Openbox and a deterministic fake agent. Windows use normal focus and
+rendering without reaching your desktop. The first run builds a cached Linux
+image; subsequent runs reuse dependencies. File filters and Vitest shard flags
+pass through. Logs, screenshots, and JUnit results go to `test-results/`.
+`bun run check` includes this isolated suite. Native macOS coverage runs in CI.
+See [desktop testing](docs/desktop-testing.md) for runner and sharding details.
+
+PR checks reuse successful package and shard tasks by content hash. Changing a
+package invalidates its downstream consumers; local commands and main still
+execute tests fresh. See [test caching and selective execution](docs/test-caching.md)
+for cache inputs, failure handling, and execution summaries.
+
+The local development runner uses POSIX process groups and supports macOS and
+Linux. Windows development orchestration is not supported.
+
+## Tech stack
+
+- **Bun**: runtime, package manager, bundler (also inside sandboxes)
+- **TypeScript**: tsgo for typechecking
+- **Postgres**: all state, schema-scoped; run queues, retries, pauses, and scheduling use the same DB
+- **Electron + electron-vite**: the desktop reference implementation
+- **Fastify**: HTTP surface with Zod + OpenAPI (mounted by the host)
+- **React Flow**: workflow visualization; **Jotai** + **TanStack Query**: frontend state
+- **ts-morph**: TypeScript AST parsing
+- **Kysely**: type-safe SQL
+- **isomorphic-git**: portable git, no native CLI dependency (system git is a soft dependency for the desktop's read surfaces)
+- **OpenTelemetry**: `@opentelemetry/api` instrumentation throughout
+- **Turborepo**: build orchestration
+
+## Roadmap
+
+Direction, not shipped. Tracked in [`TODO.md`](TODO.md):
+
+- **More desktop platforms**: Intel Mac validation, then signed Windows and
+  Linux packages.
+- **ACP harness**: project agent definitions already accept `kind: "acp"`;
+  the Agent Client Protocol client (local command and remote endpoint
+  transports) is the planned harness behind it.
+- **TS `defineAgent`**: a typed authoring layer that compiles to the
+  committed `.catamorphic/agents/<slug>.json` substrate.
+- **Review-mode collaboration**: PR-first sync for shared projects, invites,
+  native PR review depth (comments, approvals, merge).
+- **Remote blob storage**: user-connected stores (S3/R2/Drive-style) for
+  large binaries beside git-tracked text.
+
+## The self-hosted server (a company brain)
+
+Source: https://github.com/opencx-labs/catamorphic/blob/main/apps/server/README.md
+
+# Catamorphic stock server
+
+For GitHub-backed company proposals, configure `CATAMORPHIC_GITHUB_CLIENT_ID`
+and `CATAMORPHIC_GITHUB_TOKEN` on the server. Use a service account with access
+only to the company repositories, separate from the builders who review its
+PRs. Members never receive this token. The stock host validates the account at
+boot and supplies the existing `GithubService` and proposal bot identity.
+Tokens that need rotation are replaced in the deployment environment.
+
+The machine-local project setup operation accepts `githubRepository` as
+`owner/repository` alongside the explicit roles and admission policy. It imports
+that repository and publishes the requested role definitions. Ongoing source
+changes use ordinary proposals and repository review. Members can list and read
+proposals through their company sign-in only when their document scope permits
+every changed path, including the old path of renamed files.
+
+## Machines and execution Environments
+
+The accepted managed deployment model uses multiple Catamorphic server instances
+sharing one authority and network Postgres. Operators enroll machines; project
+roles and agent policy determine which Environments members may use. The
+desktop's **This machine** option uses the member's project connection and does
+not require direct database access. PGlite remains available for standalone use.
+
+Postgres mode shares origin objects, bundles, encrypted vault records, auth,
+approvals, and worker leases. Each machine owns its runtime and local caches.
+Configure a common public origin and deployment secret before enrollment. See
+[ADR 0099](../../docs/decisions/0099-shared-postgres-server-environments.md) and
+the [setup reference](../../skills/setup-catamorphic-server/references/cluster-deployment.md)
+for enrollment, session recovery, and required verification.
+
+## First brain
+
+For the shortest path from nothing to a running brain an MCP client can
+connect to (build, run, provision a project and a person, connect), follow
+[`../../skills/setup-catamorphic-server/references/first-brain.md`](../../skills/setup-catamorphic-server/references/first-brain.md).
+
+## Authentication setup
+
+Use [`../../skills/setup-catamorphic-server/SKILL.md`](../../skills/setup-catamorphic-server/SKILL.md)
+for agent-guided stock setup or custom-host embedding. The guidance first
+inspects existing auth and deployment. The stock host uses Better Auth; a
+custom host keeps its own verified session model.
+
+The built-in local fallback is provisioned through the running server, never
+by writing auth rows. A setup agent inspects the schemas in `src/setup` and
+uses the machine-local operator operations in `src/server.ts` to create the
+project, commit explicit roles, configure admission, and create an ordinary
+local user when requested. There is no human setup command or first-run UI.
+The owner-only operational credential under `CATAMORPHIC_DATA_DIR` is machine
+authority, not a Catamorphic identity or super-admin account.
+
+After initial provisioning, the company brain is configured through its
+ordinary reviewed project files. `.catamorphic/roles/*.json` grants artifacts,
+Environments, connection aliases, document paths, and namespaced permissions;
+`.catamorphic/agents/*` defines the project agents; `.catamorphic/sidebar.js` and
+`.catamorphic/project.json` can shape the desktop sidebar and starting actions
+from resolved builder state and permissions. There is no parallel stock-server
+bootstrap config.
+
+Invitations are credential-free project locators. Desktop, PWA, and MCP clients
+discover the server's OAuth endpoints, sign in as the same user, and redeem the
+same admission policy. Access tokens identify the person and carry no role or
+project grant. Each request resolves current membership, so revocation and role
+changes apply immediately.
+
+Workflow access is not unattended-run consent. Members preview and enable an
+exact deployed workflow with its trigger, Environment, agent, and connection
+requirements. Account authorization can finish that selected flow but never
+enables every compatible workflow automatically.
+
+## Credential vault and provider setup
+
+Standalone PGlite installs create an AES-256-GCM credential vault under
+`CATAMORPHIC_DATA_DIR/credentials`, with owner-only key and record permissions.
+Postgres installs store encrypted records in shared object storage and derive the
+vault key from `BETTER_AUTH_SECRET`. Back up the database and protect the key
+separately. Losing the key makes provider connections unrecoverable.
+
+Rotate a service credential with the authenticated
+`PUT /connections/:connectionId/credential` endpoint. Rotation writes a new
+encrypted record, atomically advances the connection revision, deletes the old
+record, and wakes workflow calls parked on that connection. Keep old vault
+wrapping keys available until all stored records have been re-encrypted.
+
+Provider drivers and OAuth application details are deployment configuration.
+The stock image does not ship a shared Slack or Google OAuth identity. Register
+your own provider applications, configure their HTTPS callback URLs, and inject
+their connection providers when embedding `buildStockServer`. Service accounts
+are explicit project or tenant service connections and are never inferred from
+a member login. Unattended workflows use the connections authorized by their
+explicit enablement, including member connections for member-owned enablements.
+
+## Remote development resources
+
+Choose `CATAMORPHIC_SANDBOX=microsandbox` for per-agent CPU/memory isolation and
+configure each server's workspace budget. Full servers reject new allocations;
+idle development workspaces retain their reservation until archived or closed.
+See the [capacity and recovery setup](../../skills/setup-catamorphic-server/references/cluster-deployment.md#capacity-and-isolated-development)
+for configuration, agent requirements, machine inventory, and cleanup recovery.
+
+Agent context and deferred capabilities are documented in
+[AGENT-CAPABILITIES.md](../../AGENT-CAPABILITIES.md). The stock host supplies the
+current user's display name and a paginated project-member directory for ordinary
+membership managers. `StockServerOptions.agentCapabilities` customizes profiles,
+capabilities, approvals, and activity reporting; host access remains authoritative.
+
+## Observability
+
+Configure `OTEL_EXPORTER_OTLP_ENDPOINT` to export traces, metrics, and logs.
+Standard OTEL variables select protocols, headers, sampling, and signal-specific
+settings. `OTEL_SDK_DISABLED=true` disables export. See
+[OBSERVABILITY.md](../../OBSERVABILITY.md) for examples and coverage.
+
+## Setting up a server with an agent
+
+Source: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-catamorphic-server/SKILL.md
+
+---
+name: setup-catamorphic-server
+description: Use when installing the stock Catamorphic server, adding machines or execution Environments, setting up a shared-Postgres cluster or multiple server instances, embedding Catamorphic in an existing application, connecting host authentication and identity, configuring Postgres or PGlite, or provisioning initial users and project access.
+---
+
+# Setting Up Catamorphic
+
+## Core principle
+
+Adapt Catamorphic to the application that is actually present. Inspect before
+asking questions or choosing infrastructure. Existing auth, users,
+organizations, databases, deployment, code hosts, and design systems are
+inputs, not obstacles to replace.
+
+## Start with evidence
+
+Inspect the repository and runtime for:
+
+- an existing application and HTTP framework;
+- auth middleware, session verification, users, organizations, and roles;
+- database clients, migrations, storage, and deployment manifests;
+- whether this is `apps/server`, a stock image, or a custom host;
+- execution trust, code-host integration, and user-facing surfaces.
+
+Summarize what is already decided. Ask only about choices the visible setup
+does not answer. If auth exists, first offer to preserve and map it. For the
+stock server, ask whether the operator wants a configured provider before
+offering local username/password.
+
+## Route to the relevant reference
+
+| Observed need | Read |
+| --- | --- |
+| Nothing installed yet; "a brain on this machine" that an MCP client can reach | [A first brain on one machine](references/first-brain.md) |
+| Stock image or `apps/server` | [Stock server](references/stock-server.md) |
+| New execution machine, Environment enrollment, multiple instances | [Managed machines and clusters](references/cluster-deployment.md) |
+| Existing or custom application | [Custom host](references/custom-host.md) |
+| Sessions, OAuth/OIDC, users, invitations, roles | [Auth and identity](references/auth-and-identity.md) |
+| PGlite, Postgres, migrations, backup | [Database and migrations](references/database-and-migrations.md) |
+
+Read `INTEGRATION.md` and the relevant package READMEs for mechanics. Read the
+current source when documentation and the installed version differ.
+
+## Invariants
+
+- Catamorphic libraries receive verified host identity per request. They do
+  not own a default user, organization, or authentication provider.
+- The stock server is one host implementation. Its auth choices do not become
+  framework contracts.
+- Authentication identifies a person. Committed project roles and
+  memberships authorize them.
+- Roles grant provider-neutral workflow, project-agent, Environment, and
+  connection references, document paths, and namespaced project permissions.
+  Catamorphic reserves `memberships:manage` and `roles:manage`; host-specific
+  permissions remain inert unless that host or its UI explicitly interprets
+  them. Each member separately enables unattended workflows after reviewing
+  the deployed commit and authenticating every required member connection.
+  Never make this Google Workspace-specific.
+- MCP authorization is sufficient for a workflow or project agent when its
+  server exposes the declared connection actions. Configure providers through
+  the host-injected connection registry and credential vault.
+- A member-owned workflow may call `catamorphic.sessions.wake` to create or
+  reuse a stable agent session and request attention after the turn settles.
+  Clients poll the ordinary session list, pulse rows with
+  `attentionRequired`, and acknowledge on open. Web Push is an optional
+  transport to that session, not a second notification inbox.
+- A deployment operator is not a server-owner or super-admin user.
+- A project has at most one Catamorphic remote. Execution targets beneath it
+  are Environments.
+- Managed machines are server instances of one authority sharing network
+  Postgres and accessible authoritative storage. A member's **This machine**
+  execution uses their authenticated project connection, not database access.
+  Distinguish the accepted architecture from installed capabilities: setting
+  `DATABASE_URL` alone does not establish a working cluster.
+- For remote development, configure microsandbox and explicit machine resource
+  budgets. Agent Environment requirements become sandbox limits. Read the cluster
+  reference for capacity inventory, workspace retirement, and uncertain cleanup
+  recovery; do not treat a live heartbeat as spare capacity.
+- Initial machine provisioning is an operator operation. Ongoing role, agent,
+  sidebar, and starting-action configuration belongs in normal reviewed
+  project files; do not create a parallel stock-server bootstrap config.
+- Keep one behavioral path after credentials are acquired. For example, a
+  GitHub CLI token may feed the regular GitHub service; it does not create a
+  second `gh api` or clone implementation.
+
+## Common mistakes
+
+- Replacing working host auth with stock auth.
+- Asking the user to repeat facts visible in code or deployment files.
+- Inventing provider environment variables, routes, or commands without
+  checking the installed version.
+- Treating login as project access or assigning a silent default role.
+- Treating account authentication as consent to enable every compatible
+  workflow, or allowing a service-owned enablement to target a personal
+  session.
+- Targeting project presentation by role slug instead of resolved builder
+  state and namespaced permissions.
+- Writing Better Auth password hashes or rows directly.
+- Turning setup guidance into a rigid stack recipe.
+
+For agent self-context, permitted people/assignment inspection, and deferred host
+tools, read [references/agent-context-and-capabilities.md](references/agent-context-and-capabilities.md).
+
+## The first brain, step by step
+
+Source: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-catamorphic-server/references/first-brain.md
+
+# A first brain on one machine
+
+The shortest honest path from nothing to a Work brain an MCP client can
+connect to, verified end to end on 2026-09-20. Use it when the person wants
+"a brain on this machine" and nothing exists yet. Adapt to what is present
+(read [Stock server](stock-server.md) first); never print the operator
+secret or a password.
+
+## 1. Build and run the stock image
+
+From a checkout of the repository:
+
+```bash
+docker build -f apps/server/Dockerfile -t catamorphic-server .
+docker run -d --name work-brain -v work-brain-data:/data -p 4700:4700 \
+  -e ANTHROPIC_API_KEY=... catamorphic-server
+curl -s http://127.0.0.1:4700/healthz
+```
+
+One of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` or `OPENROUTER_API_KEY` gives
+the brain's agent a model; `CATAMORPHIC_FAKE_AGENT=1` runs a deterministic
+echo agent for a dry run. Everything lives in the `/data` volume. Boot logs
+print the API, docs, sign-in and setup locations, never a credential.
+
+`CATAMORPHIC_PUBLIC_URL` must be HTTPS unless it is a loopback address; a
+loopback default of `http://127.0.0.1:4700` is fine for a first brain on one
+machine.
+
+## 2. Provision the project and the first person
+
+The setup listener is bound to loopback inside the container (port 4701),
+so run these from inside it. The image has bun and git, not curl; `bun -e`
+with `fetch` is the request tool. The operator secret is
+`/data/operator-secret` (owner-only). Read it into a variable; do not echo it.
+
+Project with one explicit role and invitation-only admission. `environments:
+["local"]` is what lets the role run agents on the server itself; builder
+status alone grants no execution.
+
+```bash
+docker exec work-brain bun -e '
+const secret = require("fs").readFileSync("/data/operator-secret", "utf8").trim();
+const r = await fetch("http://127.0.0.1:4701/_catamorphic/operator/projects", {
+  method: "POST",
+  headers: { authorization: "Bearer " + secret, "content-type": "application/json" },
+  body: JSON.stringify({
+    name: "Company brain",
+    roles: [{ slug: "member", definition: { version: 1, name: "Member", builder: true, environments: ["local"] } }],
+    admission: { mode: "invitation_only", defaultRole: "member" },
+  }),
+});
+console.log(r.status, await r.text());'
+```
+
+The response carries the project id. Then the first ordinary user, bound to
+that role (local username and password; offer a configured OAuth provider
+first when one exists):
+
+```bash
+docker exec work-brain bun -e '
+const secret = require("fs").readFileSync("/data/operator-secret", "utf8").trim();
+const r = await fetch("http://127.0.0.1:4701/_catamorphic/operator/users", {
+  method: "POST",
+  headers: { authorization: "Bearer " + secret, "content-type": "application/json" },
+  body: JSON.stringify({
+    username: "USERNAME", name: "Full Name", password: "PASSWORD",
+    memberships: [{ projectId: "PROJECT_ID", roles: ["member"] }],
+  }),
+});
+console.log(r.status, await r.text());'
+```
+
+Ask the person for the username and password rather than inventing them,
+and pass them without writing them into shell history or a file.
+
+## 3. Verify sign-in and connect an MCP client
+
+- Sign-in page: `http://127.0.0.1:4700/login` (local form when local auth is
+  on; provider buttons when providers are configured).
+- The project's MCP door is `http://127.0.0.1:4700/api/projects/PROJECT_ID/mcp`
+  (stateless Streamable HTTP). Unauthenticated requests answer 401 with
+  `WWW-Authenticate: Bearer resource_metadata=…/.well-known/oauth-protected-resource`;
+  clients discover the authorization server from there, register
+  dynamically, and use authorization code with PKCE. The person signs in on
+  the server's login page during that flow. Access tokens identify the
+  person; project roles authorize each call.
+- Claude Code: `claude mcp add --transport http work-brain http://127.0.0.1:4700/api/projects/PROJECT_ID/mcp`,
+  then `/mcp` to sign in. Other MCP clients: add the same URL as a remote
+  (HTTP) server.
+- `tools/list` after sign-in returns the project's documents, sessions,
+  skills, publication and `ask_agent` tools, plus one tool per AI-callable
+  workflow the project declares.
+
+## 4. Hand over
+
+Report the project id, the sign-in address, and the MCP URL. Invitations for
+more people are created with the signed-in user's own identity through
+`POST /api/projects/PROJECT_ID/admission/invitations`; they are
+credential-free locators that desktop, PWA and MCP clients redeem after
+signing in. Ongoing configuration (roles, agents, sidebar, starting actions)
+is project code under `.catamorphic/`, changed through ordinary review.
+
+## What went wrong on the first run, so it does not again
+
+- The image build failed before any Work code ran: a pinned `node` helper
+  package tried to run npm during `bun install`. The Dockerfile now installs
+  with `--ignore-scripts`; every build in the image runs under bun.
+- `curl` is not in the image; requests to the loopback setup listener go
+  through `bun -e` inside the container.
+- The login form and the OAuth consent form are browser pages: they expect
+  an `Origin` header. Scripts that drive them (a test, not a person) must
+  send one; the token endpoint itself accepts requests without it, as MCP
+  clients send them.
+
+## Embedding the framework in your own product
+
+Source: https://github.com/opencx-labs/catamorphic/blob/main/INTEGRATION.md
+
+# Catamorphic Integration Guide
+
+Catamorphic is an **embeddable framework for agentic work environments**. A host mounts it in-process and gets the whole environment: general-purpose projects (git repos that hold docs, data, code, automations, and apps — ADR 0043), git-native work tracking (per-turn checkpoint commits, remote sync, the CodeHost seam — ADR 0044), multi-harness coding agents with durable sessions (ADR 0038), durable TypeScript workflows, sandboxed user-built apps (ADRs 0035–0037), and hooks that make the result look and behave like the *host's* product (ADRs 0048–0049). Workflows are one capability among these, not the frame.
+
+A host application runs catamorphic services in-process against its own Postgres instance: all catamorphic tables live in one schema (default: `catamorphic`). Three integration surfaces are available, in increasing order of coupling:
+
+1. **`@catamorphic/db` only**: run the migrations, let the host join against `catamorphic.projects` / `catamorphic.workflow_runs`. Read-only relationship. Useful for reporting / BI.
+2. **`@catamorphic/server-sdk` (library-direct, recommended)**: host imports `createCatamorphic(...)` and calls resources in-process. Identity is bound per request via `cat.forTenant({ tenantId }).forUser({ externalUserId })`. No sidecar process.
+3. **`@catamorphic/fastify-plugin` + `@catamorphic/api-client`**: host registers the Fastify plugin on its own server (or runs `createApp` as a sidecar) and frontends talk to it over HTTP. Same backing services; required for the React UI, and useful when the host is non-Node or wants a network boundary.
+
+Most hosts use 2 + 3 together: the server-sdk boots the core once, the fastify plugin exposes it to the frontend.
+
+For agent-guided setup, start with
+[`skills/setup-catamorphic-server`](skills/setup-catamorphic-server/SKILL.md).
+It inspects an existing application, auth, database, and deployment before
+asking questions, then routes to stock-host or custom-host guidance.
+
+## Host shapes: Catamorphic runs wherever TypeScript runs
+
+Do not assume the host is a multi-tenant SaaS server. Every infrastructure
+dependency is an axis with a lightweight end, and the combinations are all
+supported: **Catamorphic Desktop is the existence proof for the lightest
+column**: it embeds this same framework inside an Electron app with pglite
+and local sandboxes, no server, no network Postgres, by design.
+
+| Axis | Heavy end | Light end |
+| --- | --- | --- |
+| Database | Network Postgres (`{ pool }` / `{ connectionString }`) | **Embedded pglite**: build a Kysely instance on `PGliteDialect` and pass `database: { db }`. Migrations run statement-by-statement specifically so single-connection dialects work. |
+| Execution | Cloud sandboxes (`@catamorphic/cloudflare`, `@catamorphic/daytona`) | **Local sandboxes** (`@catamorphic/microsandbox`), **plain local processes** (`@catamorphic/local-process`, trusted single-tenant hosts only — ADR 0047), or omit `sandboxProvider` entirely for read-only embeds |
+| Code storage | S3-compatible bucket (`@catamorphic/s3`: R2, S3, MinIO) or Cloudflare Artifacts | Two writable directories (`projectsPath`, `remotesPath`) |
+| Identity | Host org/user per request (`forTenant({ tenantId }).forUser({ externalUserId })`) | A single fixed tenant/user for single-user apps |
+| Surface | HTTP API + React UI | In-process SDK calls only, or migrations-only (`@catamorphic/db`) |
+
+Common host shapes, composed from those axes:
+
+- **Multi-tenant SaaS**: network Postgres, cloud sandboxes, S3-compatible
+  storage, identity from the host's auth. The rest of this guide's examples
+  use this shape.
+- **Desktop / local-first app**: pglite, local sandboxes, filesystem
+  storage, fixed identity. Reference implementation:
+  [`apps/desktop/src/main/server/boot.ts`](apps/desktop/src/main/server/boot.ts).
+- **Single-tenant internal tool**: network Postgres the team already has
+  (or pglite), **`@catamorphic/local-process` execution** — plain
+  subprocesses, no cloud sandbox account, and workflows reach host-local
+  services (internal APIs, a loopback database gateway) with no tunnels.
+  Sound because every production run executes an immutable deployed commit
+  (ADR 0040): the trust statement attaches to a reviewed deploy, not to
+  whatever an agent typed five minutes ago. Never use this provider for
+  multi-tenant hosts — the only isolation is a process boundary and an
+  explicit env. **This shape ships ready-made as the stock server**
+  (`apps/server`, ADRs 0059, 0071, 0072): `docker run` with everything on
+  disk, stock Better Auth with local or configured provider sign-in,
+  OAuth/PKCE remote clients, credential-free admission links, mDNS LAN
+  discovery, and `DATABASE_URL` to swap PGlite for real Postgres. Read it as the
+  reference for this shape before writing a host from scratch.
+- **Read-only embed / reporting**: `@catamorphic/db` migrations plus SQL
+  joins, or the SDK without a sandbox provider.
+
+## Library-direct SDK: `@catamorphic/server-sdk`
+
+See [`packages/server-sdk/README.md`](packages/server-sdk/README.md) for the full usage guide. The short version:
+
+```ts
+// Boot, once per process
+import { CloudflareSandboxProvider } from "@catamorphic/cloudflare";
+import {
+  createCatamorphic,
+  defineStaticEnvironments,
+} from "@catamorphic/server-sdk";
+
+const sandboxProvider = new CloudflareSandboxProvider({
+  apiUrl: process.env.CLOUDFLARE_SANDBOX_API_URL!,
+  apiKey: process.env.CLOUDFLARE_SANDBOX_API_KEY,
+});
+const environmentProvider = defineStaticEnvironments([
+  {
+    descriptor: {
+      id: "local",
+      label: "Managed execution",
+      trust: "managed",
+      isolation: "sandbox",
+      workloads: ["agent", "workflow"],
+      agentTopologies: ["controller"],
+      capabilities: ["network.egress"],
+      resources: {},
+    },
+    sandboxProvider,
+  },
+]);
+
+export const catamorphic = createCatamorphic({
+  // Pass a pg.Pool the host already owns, or a connection string catamorphic
+  // manages itself. Tables live in the `catamorphic` schema either way.
+  database: { pool: hostPgPool },
+  storage: {
+    projectsPath: process.env.CATAMORPHIC_PROJECTS_PATH!,
+    remotesPath: process.env.CATAMORPHIC_REMOTES_PATH!,
+  },
+  // Sandbox backends are vendor plugin packages: @catamorphic/cloudflare
+  // (default) or @catamorphic/daytona. Omit for read-only embeds.
+  sandboxProvider,
+  environmentProvider,
+});
+
+// Apply pending migrations (idempotent, schema-scoped). Run from a deploy
+// step or at boot. It never touches the host's own tables.
+await catamorphic.migrate();
+
+// Worker startup is explicit. Start it once when this host process should
+// process queued production runs.
+const executionWorker = catamorphic.startExecutionWorker({ concurrency: 4 });
+// When coding agents are configured, recover queued turns and retries too.
+// Defaults to current project memberships; inject resolveIdentity for host auth.
+const agentWorker = catamorphic.startAgentWorker();
+
+// Per request
+const scoped = catamorphic
+  .forTenant({ tenantId: req.org.id })
+  .forUser({ externalUserId: req.user.id });
+const project = await scoped.projects.create({ name: "onboarding" });
+await scoped.files.write({
+  projectId: project.id,
+  path: "src/welcome.ts",
+  content: welcomeTs,
+  commitMessage: "Add welcome workflow",
+});
+
+const run = await scoped.runs.triggerProduction({
+  projectId: project.id,
+  workflowName: "welcomeUser",
+  input: { email: "ada@example.com" },
+});
+```
+
+Advanced hosts can inject their own wiring instead: `database: { db }` with a pre-built Kysely instance, `storage: { projectManager }` with custom git backends, or a custom `sandboxProvider`. Every injected sandbox provider is automatically wrapped with OpenTelemetry instrumentation.
+
+### Identity mapping
+
+- `tenantId` = host's org id. Maps 1:1 to `catamorphic.tenants(id)` and is upserted on first use: hosts never need to pre-register orgs with catamorphic.
+- `externalUserId` = host's stable user id. Catamorphic stores it where durable ownership, membership, or audit attribution requires it, but never references the host's user table.
+- The host can freely `JOIN host.orgs.id = catamorphic.projects.tenant_id` for reports, analytics, cascading deletes, etc. Catamorphic never references host tables.
+
+### Scoped-client surface
+
+The scoped client exposes project CRUD, workflow listing/fetching, file I/O,
+the complete identity-bound Runs resource, the Triggers resource, and — when
+`github` is configured on `createCatamorphic` — a `scoped.github` resource
+(connection status, repo listing, repo import; token acquisition uses the
+OAuth/device-flow helpers exported from `@catamorphic/github`). Every public
+method takes one keyed object parameter, for example
+`scoped.projects.get({ projectId })`,
+`scoped.workflows.get({ projectId, workflowName })`, and
+`scoped.runs.get({ runId })`. Hosts do not pass tenant or user IDs into
+individual calls. Plugin, secret, git, agent-session, and remote-sync
+operations remain available through `catamorphic.core.*` and the HTTP
+surface.
+
+`scoped.runs` is the one SDK family for all Workflows. It includes run
+triggering, list/detail, cancellation, operator processing pause/resume,
+input submission, and item inspection. Capabilities on a Workflow or Run decide
+which controls apply; there is no separate batch or persisted-continuation Run
+resource.
+
+`scoped.triggers` is the custom-trigger surface: hosts register domain trigger
+kinds at boot (`defineTriggerKind` + `createCatamorphic({ triggerKinds })`),
+workflows subscribe in code with `triggers: [trigger("kind", config)]`, and
+the host fires a kind with a typed payload (`fire`, sync or async — sync runs
+inline until the workflow's first durable wait, then detaches with an honest
+`suspended` outcome), lists subscribed workflows with their constant configs
+(`list`), and projects the generated `catamorphic-triggers.d.ts` into a
+workspace (`syncTypes`). A trigger firing starts ordinary Runs — no new run
+family. See `docs/decisions/0039-custom-trigger-kinds.md`.
+
+### Observability
+
+Catamorphic libraries use only the OpenTelemetry APIs (`@opentelemetry/api`
+and `@opentelemetry/api-logs`). Register your own tracer, meter, and logger
+providers and choose any exporters, processors, samplers, resources, or views.
+Libraries do not initialize SDKs, read exporter environment variables, or take
+ownership of your providers. Without providers, instrumentation is a no-op.
+The optional `@catamorphic/otel/node` entry point provides the shipped hosts'
+NodeSDK bootstrap and accepts the complete `NodeSDKConfiguration` for embedders
+who want it. SDK/exporter dependencies are optional peers, required only by that
+entry point. See [OBSERVABILITY.md](OBSERVABILITY.md) for configuration, coverage,
+project routing, signal conventions, and the local collector.
+
+
+## Database-only setup (just run the migrations)
+
+Use the DB-only path when the host just wants to reach into catamorphic's schema (reporting, BI) without running catamorphic services.
+
+Install `@catamorphic/db` in the host and run migrations as a deploy step:
+
+```bash
+DATABASE_URL=postgres://<user>:<password>@<host>:5432/<hostdb> \
+CATAMORPHIC_DB_SCHEMA=catamorphic \
+npx catamorphic-db migrate     # or: catamorphic-db status
+```
+
+Or programmatically:
+
+```ts
+import { createDatabase, migrateToLatest } from "@catamorphic/db";
+
+const db = createDatabase({ pool: hostPgPool });
+await migrateToLatest({ db, schema: "catamorphic" });
+```
+
+For local development against a catamorphic checkout, install via `file:` links and rebuild after changes: see `.agents/skills/using-catamorphic/SKILL.md` → "Local dev linking".
+
+## HTTP path: `@catamorphic/fastify-plugin`
+
+Register the plugin on the host's Fastify server, telling it who is calling:
+
+```ts
+import { catamorphicPlugin } from "@catamorphic/fastify-plugin";
+
+app.register(catamorphicPlugin, {
+  core: catamorphic.core,
+  prefix: "/api", // the generated api-client expects /api
+  // The one identity mechanism. Runs on every request (including iframe
+  // navigations to served app documents, which carry your session cookie).
+  identity: async (request) => {
+    const session = await verifySession(request); // your auth
+    if (!session) return null;                     // → 401
+    return { tenantId: session.orgId, externalUserId: session.userId };
+  },
+});
+```
+
+The plugin is fully encapsulated (its Zod compilers and error handler don't leak into the host app) and registers no CORS: the host owns cross-origin policy. For a sidecar process or spec generation, `createApp({ core, identity })` returns a complete Fastify app with CORS + Swagger UI at `/docs` and the plugin mounted at `/api`.
+
+**There is no default identity.** The `identity` resolver is required and the plugin reads no headers on its own. Hosts whose auth terminates *in front of* the plugin (a gateway or proxy route that already verified the session) can pass the stock header resolver, `identityFromHeaders()`, which reads `X-Catamorphic-Tenant-Id` (host org id) and `X-External-User-Id` (host user id) — but a plugin mounted with it must never be reachable by browsers directly, since anyone could then claim any identity.
+
+### Root, builders and viewers: identity scope
+
+An identity is either **root** (`scope` absent: every project of the tenant, every surface — the desktop's own local projects, a host's service identity) or **scoped** (exactly the listed artifact refs and nothing else). Refs name artifacts by `(projectId, name|path)`:
+
+| Ref | Grants |
+| --- | --- |
+| `{ kind: "project", projectId }` | **Builder** of that project: files, deploys, secrets, agent definitions, every workflow, app and agent — the whole program surface (not the store, see below). |
+| `{ kind: "app", projectId, name }` | The app's served document plus, transitively, the workflows frozen into its *active published* version. |
+| `{ kind: "workflow", projectId, name }` | One workflow directly (a per-customer MCP tool, a host-triggered action). |
+| `{ kind: "agent", projectId, name, toolPolicies? }` | Chat sessions on the committed project agent `.catamorphic/agents/<name>.json` (ADR 0050). Inside those sessions the caller's scope intersects the agent's tool policy: the project's tools server is narrowed to the caller's workflow refs, and `toolPolicies` (per connector server key, ADR 0054's shape) is one more narrowing layer. Own sessions only. |
+| `{ kind: "document", projectId, path, access? }` | A file (`docs/handbook.md`) or subtree (`store/customers/acme/**`) of the project's path namespace; `access` defaults to `read`, `write` implies read. Git paths are read-only through this ref; `store/…` paths are the project store, reachable ONLY through document refs — builders included. |
+
+```ts
+identity: async (request) => {
+  const session = await verifySession(request);
+  if (!session) return null;
+  const base = { tenantId: session.orgId, externalUserId: session.userId };
+  if (session.isAdmin) return { ...base, scope: [{ kind: "project", projectId: BRAIN }] };
+  // A CSM: the CSM agent, its workflows, and their own customers' subtree.
+  return {
+    ...base,
+    scope: [
+      { kind: "agent", projectId: BRAIN, name: "csm-assistant" },
+      { kind: "workflow", projectId: BRAIN, name: "crm.lookup" },
+      ...session.customers.map((c) => ({ kind: "document", projectId: BRAIN, path: `store/customers/${c}/**`, access: "write" })),
+    ],
+  };
+}
+```
+
+Which users are builders and which artifacts each viewer gets is host policy (a role file, an entitlement table); catamorphic only enforces the result. Enforcement lives in core, so `server-sdk` callers get it too: `catamorphic.forTenant({ tenantId }).forUser({ externalUserId, scope })`. Scoped agent sessions hand the harness the caller (`StartSessionOpts.caller`, forwarded on `ExtraToolContext.caller`) and the caller's policy layers (`StartSessionOpts.toolPolicies`, refreshed on every `TurnOptions.toolPolicies`) — a hosting backend uses `caller` in `mcpServersForSession` to mint the project MCP endpoint's credentials for that user, so the endpoint enforces the same scope structurally. See [`docs/decisions/0053-identity-scope-and-app-routes.md`](docs/decisions/0053-identity-scope-and-app-routes.md) and [`0055`](docs/decisions/0055-company-brain-roles-store-and-change-loop.md).
+
+### Roles as files, memberships as the stock source (ADR 0055)
+
+Most hosts do not want to hand-write scopes. Commit roles into the project — `.catamorphic/roles/<slug>.json`, next to `.catamorphic/agents/` — and let core expand them:
+
+```jsonc
+// .catamorphic/roles/csm.json
+{
+  "version": 1,
+  "name": "CSM",
+  "agents": ["csm-assistant"],                       // or { "name", "toolPolicies": { "slack": { "default": "ask" } } }
+  "workflows": ["crm.lookup", "docs.search"],
+  "apps": ["customer-tracker"],
+  "documents": ["docs/**", { "path": "store/customers/{customer}/**", "access": "write" }]
+}
+// .catamorphic/roles/admin.json
+{ "version": 1, "name": "Admin", "builder": true, "documents": ["store/**"] }
+// .catamorphic/roles/brain-maintainer.json
+{ "version": 1, "name": "Brain Maintainer", "permissions": ["brain:maintain"], "agents": ["brain-maintainer"] }
+```
+
+`{param}` placeholders are filled from per-user **grants** (`{ customer: ["acme", "globex"] }`), one ref per value; an entry whose placeholder has no grant yields nothing. `builder: true` emits the `project` ref; an admin who may not see the whole store simply lists less. Role files are read from the shared origin `main` (a project without a remote reads its working tree), cached briefly (`rolesCacheTtlMs`, default 10s), and never throw: a broken file is reported by `GET /projects/:id/roles` and contributes nothing.
+
+Two ways to turn a verified user into an identity:
+
+```ts
+// 1. You keep roles/grants yourself (a table, an SSO claim):
+identity: async (req) => {
+  const u = await verifySession(req);
+  return u && resolveRoles(catamorphic.core, { tenantId: ORG, projectId: BRAIN, externalUserId: u.id, roles: u.roles, grants: u.grants });
+}
+// 2. The stock memberships table (core.memberships) keeps them:
+identity: async (req) => {
+  const u = await verifySession(req);
+  return u && catamorphic.core.memberships.identityFor({ tenantId: ORG, projectId: BRAIN, externalUserId: u.id });  // null = not a member
+}
+// An invite is one call (builder-only), plus whatever link you send:
+await catamorphic.core.memberships.grant({ identity: adminIdentity, projectId: BRAIN, externalUserId: "alice", roles: ["csm"], grants: { customer: ["acme"] } });
+```
+
+The plugin serves the same as HTTP for project administration: `GET /projects/:id/roles`, `GET|PUT|DELETE /projects/:id/memberships[/:externalUserId]` (`PUT` body `{ roles, grants? }`). Members arriving with a bearer credential from the host's login flow use `identityFromBearer(verify)`: the host's `verify(token)` returns the identity (typically via `memberships.identityFor`) or `null`. Every request re-resolves membership, so revocation is immediate.
+
+Role `permissions` are an extensible, namespaced capability vocabulary. Core
+reserves and enforces the documented names (`memberships:manage` and
+`roles:manage`); an embedder may define and enforce names such as
+`acme:approve_deals`. Unknown names do not grant framework authority by
+themselves, but are preserved in identity and `GET /me` for host services and
+project-owned presentation. Desktop projects can target sidebar sections,
+custom items, and New Tab starting actions with
+`when: { builder?: boolean, permissions?: string[] }`; all declared conditions
+must match. Omit `when` to show an item to everyone.
+
+In the desktop reference host, shared navigation lives in
+`.catamorphic/sidebar.js`. New Tab actions live in the ordinary project
+manifest and remain visually absent when omitted:
+
+```json
+{
+  "startingActions": [
+    {
+      "label": "Review onboarding",
+      "prompt": "Review the onboarding system and propose improvements.",
+      "agent": "brain-maintainer",
+      "when": { "permissions": ["brain:maintain"] }
+    }
+  ]
+}
+```
+
+The desktop accepts at most six valid actions. `label`, `prompt`, and optional
+`agent` are presentation/input only; `when` is evaluated against trusted
+`GET /me` authority. This is a desktop host contract, not workflow logic or a
+stock-server bootstrap file.
+
+### Feature switches and introspection
+
+Scope is how a host says "may not"; a few coarse switches say what the whole instance offers: `app.register(catamorphicPlugin, { …, features: { publications: "public" | "members" | false, proposals, mcp, storeUploadMaxBytes } })`. They are enforced by the routes concerned (403 / 404 / 413) *and* advertised on **`GET /me`**, together with the caller's own summary — `{ version: 1, identity: { externalUserId, root }, projects: [{ projectId, builder, source, permissions, agents, workflows, apps, documents: [{ path, access }] }], features: { publications, proposals, proposalsOpenPullRequests, mcp, agentSessions, storeUploadMaxBytes } }` — so a client (the desktop, a member's own agent) shows what is possible instead of discovering it by 403. `source` contains the Git remote and default branch for builders and is `null` for other members.
+
+**Remote login.** Connect links are credential-free locators: `work://connect?server=…&project=…&invitation=…`. A compatible host publishes OAuth protected-resource and authorization-server metadata. The desktop and PWA dynamically register public clients, use authorization code with S256 PKCE, keep refreshable credentials in local protected storage, and redeem admission after sign-in. A 401 changes the connection state to "Sign in again" and reruns the same OAuth path. Embedders may implement that contract with their existing identity system; Catamorphic's framework packages remain auth-neutral.
+
+### Agent session lifecycle and delegation
+
+Agent sessions carry source provenance, hierarchy, fork lineage, presentation,
+archive, attention, activity, todo, and authority state in one generated
+schema. `parentSessionId` is immediate hierarchy;
+`forkedFromSessionId` is transcript lineage. First-class subsessions are
+ordinary child sessions created through explicit delegation routes, with
+create/list/wait/interrupt endpoints under the parent session. A native
+harness subagent is only an execution optimization when it preserves these
+durable identities and policies.
+
+Archive is a recursive server operation, not a local hidden flag. It reports
+the session ids, running work, Watchers, and processes that would stop and
+returns `409 archive_confirmation_required` until the caller confirms when
+necessary. Unarchive restores navigation; later work re-anchors the chosen
+provider. React hosts use `useArchiveAgentSession`,
+`useUnarchiveAgentSession`, and
+`useAcknowledgeAgentSessionAttention` instead of hand-written state.
+
+### The project MCP endpoint: bring your own agent
+
+`POST /api/projects/:id/mcp` serves the caller's whole scope as one MCP server: the project's `mcpToolKinds` workflow tools (roster filtered to the caller's workflow refs), `documents_list/read/search/write/delete/history` (the documents surface, per the caller's document refs; `documents_write` takes `text` or `base64` for binaries), `publish_document/revoke_publication/list_publications`, `propose_change`, `list_skills/read_skill`, and `ask_agent` (a synchronous turn with a project agent the caller may open sessions on). Claude Code, Cursor, or the host's own assistant connect with a host-issued token through `identityFromBearer`; the desktop's harnesses mount the same URL per session (`mcpServersForSession`). Being invited *is* receiving this URL.
+
+The generated HTTP client lives in `@catamorphic/api-client`; construct it with `createApiClient({ baseUrl, fetch })`.
+
+All execution uses one Runs route family:
+
+- `POST /api/projects/:projectId/workflows/:name/runs` triggers a Run (async; returns the Run).
+- `POST /api/projects/:projectId/workflows/:name/calls` **calls** a workflow synchronously: the run is driven inline until it settles or reaches a durable wait, and the response is `{ status: "completed", output } | { status: "failed", error } | { status: "suspended", runId, suspendedOn }` — poll `runId` in the last case. Sync is a calling mode, not a workflow kind: same durable run record, same deployed commit.
+- `GET /api/projects/:projectId/workflows/:name/runs` lists Runs.
+- `GET /api/runs/:runId` and `/api/runs/:runId/*` expose detail and capability-specific controls.
+
+Apps have their own execution routes — `POST /api/projects/:id/apps/:name/calls/:workflow`, `POST …/apps/:name/runs/:workflow`, `GET …/apps/:name/runs/:runId` — which the `AppMount` component uses. The URL names the app, so the plugin narrows whoever arrives to that app structurally (a builder is confined to the app while inside it; a viewer must be entitled to it) before the server re-authorizes against the frozen workflow set. Nothing is claimed by the client.
+
+Every Run executes an immutable deployed commit and retains that provenance;
+there is no mutable-source or test mode.
+
+## React bindings: `@catamorphic/react`
+
+`@catamorphic/react` is the headless UI layer: a `CatamorphicProvider`, jotai atoms, and TanStack Query data hooks over `@catamorphic/api-client`. It has zero smart components: wire it up once and call the hooks from your own screens (or from `@catamorphic/ui`).
+
+Peer deps: `react ^18.2 || ^19`, `react-dom ^18.2 || ^19`, `@tanstack/react-query ^5`.
+
+```tsx
+import { createApiClient } from "@catamorphic/api-client";
+import { CatamorphicProvider } from "@catamorphic/react";
+import { QueryClient } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+const apiClient = createApiClient({
+  baseUrl: process.env.NEXT_PUBLIC_CATAMORPHIC_URL!,
+  fetch: async (input, init) => {
+    // Same origin as your API: the session cookie rides along and the
+    // plugin's `identity` resolver turns it into a catamorphic identity.
+    return fetch(input, { ...init, credentials: "include" });
+  },
+});
+
+export function Root({ children }) {
+  return (
+    <CatamorphicProvider apiClient={apiClient} queryClient={queryClient}>
+      {children}
+    </CatamorphicProvider>
+  );
+}
+```
+
+Then anywhere under the provider:
+
+```tsx
+import {
+  useCreateProject,
+  useProject,
+  useProjects,
+  useWorkflow,
+  useWriteProjectFile,
+} from "@catamorphic/react";
+
+function ProjectList() {
+  const { data } = useProjects();
+  const createProject = useCreateProject();
+  // …
+}
+```
+
+Hooks shipped:
+
+- **Projects + workflows + files**: `useProjects`, `useProject`, `useCreateProject`, `useUpdateProject`, `useDeleteProject`, `useProjectFiles`, `useProjectFile`, `useWriteProjectFile`, `useWorkflows`, `useWorkflow`.
+- **Runs**: `useRuns`, `useRun`, `useTriggerRun`, `useCancelRun`, `usePauseRunProcessing`, `useResumeRunProcessing`, `useSubmitRunInput`, `useRunItems`, `useRunItemSteps`.
+- **Git**: `useProjectGit`, `useProjectBranches`, `useProjectCommits`, `useProjectConflicts`, `useCreateBranch`, `useCheckoutBranch`, `useCommitChanges`, `useDeployProject`, plus the composite `useProjectGitState({ projectId, baselineFiles })` for multi-branch draft persistence.
+- **Plugins + secrets**: `usePluginCatalog`, `useProjectPlugins`, `useAttachPlugin`, `useDetachPlugin`, `useProjectSecrets`, `useUpsertProjectSecret`, `useDeleteProjectSecret`.
+- **Agent sessions**: `useAgentSessions`, `useAgentSession`, `useCreateAgentSession`, `useSendAgentMessage`, `useAcknowledgeAgentSessionAttention`, `useArchiveAgentSession`, `useUnarchiveAgentSession`.
+- **Workflow enablement**: `useWorkflowEnablements`, `usePreviewWorkflowEnablement`, `useCreateWorkflowEnablement`, `useUpdateWorkflowEnablement`.
+
+All hooks reject with the typed `CatamorphicError` envelope (discriminated by `code`: `unauthorized`, `not_found`, `validation`, `conflict`, `server_error`, `network`, `unknown`). Use `isCatamorphicError(err)` and switch on `err.code`; never branch on `err.message`. Shared OpenAPI-derived domain types (`Project`, `Run`, `RepoStatus`, `BranchInfo`, `ConflictEntry`, `PluginInfo`, `Secret`, `AgentSession`, …) live behind a single `@catamorphic/react/types` barrel.
+
+## Agent tool permissions for hosts (ADR 0054)
+
+Coding-agent harnesses gate every MCP tool call through a permission policy
+(`allow` / `ask` / `deny`; `auto` = read-only tools run, others ask). A host
+supplies two things:
+
+- **Policies** — per server key, as layers that intersect (strictest wins).
+  Pass `mcpPolicies` (a value or a getter) to `AiSdkCodingAgent` /
+  `ClaudeCodeAgent` / `CodexAgent`; a shared org credential's ceiling is
+  simply the first layer, the user's own policy the second, the agent's the
+  third. Codex has no per-call approval channel: `deny` and `ask` become
+  `disabled_tools` there.
+- **The answer to `ask`** — `onToolPermission`. Hosts with their own consent
+  UI implement it directly. Browser-served hosts use the broker: create a
+  `ToolPermissionBroker` (from `@catamorphic/core`), pass it as
+  `toolPermissions` on the core config and hand `broker.handlerFor(agentName)`
+  to each provider. The plugin then serves
+  `GET /projects/:id/agent/sessions/:sid/permissions` and
+  `POST …/permissions/:pid` (`{decision: "allow" | "deny", remember?:
+  "always"}`); `useToolPermissions()` in `@catamorphic/react` polls them
+  while a turn runs and the registry's `tool-permission-card` (already inside
+  `agent-chat`) renders the consent. Unanswered asks deny after five minutes.
+  Persisting an "always allow" is the host's job — it knows where the
+  connection's policy lives.
+
+## Ready-made components: `@catamorphic/ui`
+
+`@catamorphic/ui` ships the workflow canvas (`WorkflowEditor`, `WorkflowCanvas`), member workflow review and consent, Runs panel, toolbar, AI bar, and `AppMount` as composable React components built on `@catamorphic/react`. Everything is opt-in: use `WorkflowEditor` for the full experience, or compose `WorkflowCanvas` + your own chrome. Code editors are plugged in via render props (bring your own Monaco/CodeMirror). Import `@catamorphic/ui/styles.css` once.
+
+`AppMount` also accepts `display={{ mode: "compact", visible }}` and
+`viewportHeight={320}` for sidebar/widget slots. The same app bundle, storage,
+theme tokens and authorization apply. Visibility changes are sent without
+reloading the iframe. Guests import `subscribeDisplay` from `@catamorphic/app`
+to adapt their presentation and suspend optional refresh work while hidden;
+the returned function unsubscribes. Layout and default widget choices belong
+to the host. Compact mounting never grants workspace or Electron access.
+
+
+For Tailwind hosts, import the UI stylesheet from the **same CSS entry** as
+Tailwind so its packaged component classes are included:
+
+```css
+@import "tailwindcss";
+@import "@catamorphic/ui/styles.css";
+```
+
+A separate JavaScript stylesheet import does not register these class sources
+with the host's Tailwind compilation. Shared controls use the host's theme tokens;
+headless hooks remain independent of Tailwind.
+
+## Component registry: `@catamorphic/registry`
+
+`@catamorphic/registry` is a shadcn-style copy-paste registry for hosts that want to own the component source. Items are JSON manifests that inline a single React component file; consumers run `npx shadcn add <path-or-url>/r/<item>.json` and the component drops into `components/catamorphic/`. The component then imports hooks from `@catamorphic/react` and primitives from `@catamorphic/ui` only: there's no runtime dependency on the registry itself.
+
+Items shipped: `catamorphic-provider`, `project-editor`, `file-explorer`,
+`git-panel`, `diff-drawer`, `runs-panel`, `plugins-settings`, `monaco-editor`,
+`agent-chat`, `chat-timeline`, `sessions-list`, `todo-progress`, and
+`tool-permission-card`.
+
+Catamorphic doesn't host the registry itself. After `bun run build`, the built manifests live at `packages/registry/dist/r/<name>.json`; hosts install them from `./node_modules/@catamorphic/registry/dist/r/<name>.json` or from a URL the host serves. To add a new item: drop a `src/<name>/<name>.tsx` + `registry-item.json` under `packages/registry/src/`, run `bun run build`, and re-install it in the host.
+
+## Plugin packages (workflow SDKs)
+
+Catamorphic can attach external packages (for example workflow SDKs) to a project so workflows can `import` plugin exports.
+
+In v1, plugins are resolved from a local directory configured via env:
+
+```bash
+CATAMORPHIC_LOCAL_PLUGINS_DIR=/path/to/host/plugin/packages
+```
+
+Runtime summary:
+
+1. Server loads attached plugins and secret values for the project.
+2. Plugin files are mirrored into sandbox `node_modules/<packageName>/`.
+3. Secrets are injected into the harness env for plugin runtime usage.
+4. Agent and workflow-builder context include plugin README + d.ts.
+
+For full details (manifest contract, REST API, service internals, runtime flow, troubleshooting, and resolver roadmap), use [`packages/plugins/README.md`](packages/plugins/README.md) as the canonical source.
+
+## Capabilities, lifecycle hooks, and plugin host halves (ADR 0046)
+
+A plugin has **two activation planes**. Its *sandbox half* (client library,
+manifest, docs) is attached per project through the catalog — a UI action.
+Its *host half* (code that runs in the host process) activates **only by
+boot registration** in `createCatamorphic`. A UI click can never execute
+code in the host process.
+
+Run-time env resolves through one bindings chain:
+**capability provider → stored secret → manifest default.**
+
+- A plugin manifest declares `requires: [{ "name": "acme.database" }]`.
+- The host registers a **capability provider** for that name. At run
+  launch, `resolve(...)` returns env values that are merged into the run's
+  environment and never persisted — mint short-lived, per-project
+  credentials here.
+- Attaching a plugin whose non-optional requirement has no registered
+  provider fails closed with a 400 at attach time.
+- **Project lifecycle hooks** provision per-project infrastructure:
+  `onProjectCreated` failures roll the create back; `onProjectDeleted` runs
+  before deletion and a failure aborts it (retryable, nothing leaks). Hooks
+  must be idempotent.
+
+```ts
+import {
+  createCatamorphic,
+  defineCapability,
+  definePlugin,
+} from "@catamorphic/server-sdk";
+
+// Ships in the same npm package as the plugin's sandbox half.
+const acmeDbPlugin = (cfg: { apiKey: string }) =>
+  definePlugin({
+    name: "@acme/catamorphic-db",
+    capabilities: [
+      defineCapability({
+        name: "acme.database",
+        resolve: async ({ projectId, environment }) => ({
+          DATABASE_URL: await mintScopedUrl(cfg.apiKey, projectId, environment),
+        }),
+      }),
+    ],
+    projectHooks: {
+      onProjectCreated: ({ project }) => provisionDb(cfg.apiKey, project.id),
+      onProjectDeleted: ({ project }) => dropDb(cfg.apiKey, project.id),
+    },
+  });
+
+export const catamorphic = createCatamorphic({
+  database: { pool: hostPgPool },
+  storage: { projectsPath, remotesPath },
+  environmentProvider,
+  plugins: [acmeDbPlugin({ apiKey: process.env.ACME_KEY! })],
+  // Loose providers/hooks can also be passed directly:
+  // capabilityProviders: [...], projectHooks: [...],
+});
+```
+
+Workflow code stays vendor-blind — it imports the plugin's client and reads
+`process.env.DATABASE_URL`. Providers must not return `CATAMORPHIC_`-prefixed
+names, and duplicate capability or trigger-kind names across plugins fail at
+boot.
+
+### Caller-bound host functions and the documents surface (ADR 0055)
+
+A capability provider may also expose **calls** — host functions a workflow
+reaches as `context.host.<capability>.<fn>(args)`. Runs are stamped with the
+identity that triggered them (`workflow_runs.caller_scope`); a boundary that
+returns a host call ends there, core executes the function **as that
+caller** (`{ caller, projectId, runId, workflowName }` is the first
+argument — a workflow cannot claim to be anyone), and the result is the next
+step's input, exactly like `callWorkflow`. A throw fails the step; the
+step's retry policy re-runs the call (at-least-once, like any step IO).
+
+```ts
+defineCapability({
+  name: "acme.crm",
+  calls: {
+    lookupAccount: async ({ caller }, args: { id: string }) =>
+      crm.accounts.get(args.id, { asUser: caller.externalUserId }),
+  },
+});
+// in a workflow:
+defineBoundary({ run: ({ input, host }: BoundaryContext<{ id: string }>) => host.acme.crm.lookupAccount({ id: input.id }) }),
+defineBoundary({ run: ({ input }: BoundaryContext<{ name: string }>) => ... }),
+```
+
+`context.documents` is the first built-in such capability: `list`, `read`,
+`write`, `delete`, `history`, `search` over the project's one path
+namespace — the program (git, read-only) and the project store (`store/…`,
+versioned, caller-stamped) — every operation narrowed to the caller's
+document refs. That is what makes project-authored search safe by
+construction: an indexer or ranker that reads through `context.documents`
+cannot leak what the caller may not see. `context.caller` (`{
+externalUserId, scope? }`) is available for anything else that needs to
+know who asked. The same surface is served over HTTP at
+`/projects/:id/documents` (list, `content` JSON, `raw` bytes, `PUT` text or
+base64 with `ifVersion`, `history`, `search?q=&mode=grep|text&prefix=`).
+Store bytes live inline in Postgres unless `documentBlobStore` (a
+filesystem or S3-compatible store) is configured; metadata, versions, text
+and the search index always stay in the database. On a hosting backend,
+agents' `store/` writes in their working folder are **pulled before and
+shipped after every turn as the caller** (`storeSyncAroundTurns`, default
+on; the turn's message metadata carries `storeSync` with what shipped, was
+refused, or conflicted) — a member's agent can only land what the member
+may write. Hosts whose folders are the truth (the desktop's local projects)
+set it `false` and sync explicitly. The framework's
+`searching-documents` host skill carries the recipe agents follow.
+
+### Local checkouts and document storage (ADR 0104)
+
+A desktop-style host opts into native Git with
+`storage: { projectsPath, remotesPath, projectPathResolver, localCheckouts: true }`.
+Register a canonical checkout path before creating its project, passing the
+reserved `id` and `importExisting: true`. Import only attaches an existing Git
+repository. Initialize a plain folder separately with the user's consent.
+No files, seeds, commits, dependency installs, or history copies occur at import.
+The host controls automatic checkpoints through `nativeAgentCheckout.checkpoint`;
+attached checkouts should return `null` unless a commit was explicitly requested.
+
+On local checkouts, `store/` files and the documents API share one working folder.
+Outside edits are indexed on document reads, listing, or search. Binary bytes are
+preserved, version reads remain available, and `ifVersion` detects newer edits.
+Root-local program reads see current files; scoped program reads use the published
+commit. Never expose a root-local bearer token as a scoped remote connection.
+
+`GET /projects/:id/documents/storage` and the `documents_storage` MCP tool describe
+whether writes land on the device or the server and whether a blob backend is
+configured. A remote MCP write saves on that server. To keep a draft on a device,
+use its local connection. Saving, selected document upload, and a Git commit are
+separate actions. `shipRemoteProject(root, client, { paths })` uploads only those
+paths; a conflict also requires `resolveConflicts` naming the chosen local versions.
+Desktop per-turn store upload remains disabled.
+
+Provide `documentBlobStore: new FsBundleStore(documentBlobDirectory)` for disk
+storage, or an `S3ObjectStore` constructed by the host for S3-compatible storage.
+Both implement `get`, `put`, and `deletePrefix`. Store metadata, version history,
+small text, and search indexes remain in Postgres; binary payloads go to that
+backend. Omitting it keeps bytes in Postgres. The desktop and stock server configure filesystem blob storage automatically
+under their own data directories. Back up the database and blob directory/bucket together.
+Changing backends requires migrating existing blob keys; missing objects produce
+an explicit load failure, never an empty document. Keep bucket credentials on the
+host, outside project files. Scoped document access is enforced before blob reads.
+For large binary reads use the authenticated `/documents/raw` endpoint; MCP base64
+responses are capped at 1 MB. Writes accept up to 64 MB, with host route limits
+allowed to be lower. Text editing is limited to valid UTF-8 files up to 2 MB; other
+files remain available as original bytes through the documents surface or on disk.
+
+### Proposals and publications (ADR 0055)
+
+Two more members' surfaces, both enforced by core and served by the plugin:
+
+- **Propose a change** — `POST /projects/:id/proposals` `{ title, body?, changes: [{ path, content } | { path, delete: true }] }` (also the MCP tool `propose_change`). Program paths only (store paths ship directly). Core commits the files on a fresh `proposals/<member>/<title>-<stamp>` branch from the shared `main`, authored as the member, and — when the project is linked to a code host and you configured `proposalBot` (the identity whose GitHub connection acts for members) — pushes it and opens a pull request "Proposed by <member> via Catamorphic". Without a bot the branch lands on the project origin, where builders see it. Anyone who may use the project may propose.
+- **Publications** — `POST /projects/:id/publications` `{ path, audience: "public" | "members", slug? }` → `{ slug, url, … }`; `GET` lists (builders all, members their own), `DELETE …/:slug` revokes. Builders publish what they may read; members what they may write (their own store documents). Serving: `GET /projects/:id/publications/:slug` for members (host auth) and `GET /public/:id/:slug` for `public` — the one route the identity hook lets through unauthenticated (route config `public: true`); it reads the document as an anonymous identity scoped to exactly that document, so nothing else is reachable. Unknown, revoked and not-for-you are one uniform 404.
+
+### Reference architecture: a database per project
+
+The capability seam is how embedders give every project real database
+storage without Catamorphic knowing any vendor:
+
+- **Internal tools / single server**: run a fleet of server-side PGlite
+  instances (one datadir per project, hibernated when idle) behind a
+  Postgres wire-protocol gateway such as `pg-gateway` on loopback. The
+  provider resolves to `postgres://…@127.0.0.1` with per-project
+  credentials; with `@catamorphic/local-process` execution, workflows reach
+  it with no ingress or tunnels. Snapshot datadirs to S3 for backup.
+- **Embedded SaaS at scale**: provision a managed Postgres per project
+  (Neon-style database-per-tenant with scale-to-zero, or an equivalent
+  service) from `onProjectCreated`, deprovision in `onProjectDeleted`, and
+  mint short-lived pooled connection URLs in the provider. No long-lived
+  credential is ever at rest in Catamorphic.
+
+Both tiers are Postgres and both arrive as "a URL in env," so promoting a
+project from the PGlite fleet to a managed database is a data migration,
+not an app change.
+
+## Bring your own doctrine (ADR 0049)
+
+The framework ships mechanism plus good defaults; what work should *look
+like* in your product is yours. Two `createCatamorphic` hooks receive the
+framework defaults and return the host-final set — replacing or removing
+entries is legitimate:
+
+- `projectSeeds` — the per-project seed files (`.catamorphic/skills/…`). The
+  seeded `building-apps` skill is mechanics (framework contracts — keep it);
+  `designing-apps` is design doctrine, the seed you most likely swap for
+  your own. These defaults also supply the host skill tier; agent turns never
+  restore missing or deliberately deleted project skill files.
+- `standingAgentPrompt` — the standing system prompt for coding-agent
+  sessions: omit for the workflow-authoring default, a string to replace,
+  `false` for none.
+
+```ts
+export const catamorphic = createCatamorphic({
+  database: { pool: hostPgPool },
+  storage: { projectsPath, remotesPath },
+  environmentProvider,
+  projectSeeds: (defaults) => {
+    const seeds = { ...defaults };
+    delete seeds[".catamorphic/skills/designing-apps/SKILL.md"];
+    seeds[".catamorphic/skills/acme-design/SKILL.md"] = ACME_DESIGN_SKILL;
+    return seeds;
+  },
+});
+```
+
+Everything resolves once at boot; the desktop app passes none of these and
+runs on the defaults.
+
+## Validating projects in CI or a local editor
+
+Capability scaffolding includes `.catamorphic/scripts/check.ts` (project-owned;
+the logic lives in the `@catamorphic/parser` devDependency).
+`bun run --cwd .catamorphic check` parses the workspace,
+validates trigger bindings (add `--host <url>` to check against a live
+host's kind catalog), and fails on stale generated types; `--write`
+regenerates the app-api types. Sandbox installs strip the tooling
+dependency automatically, so it never reaches execution or app builds.
+
+## Workflow authoring model
+
+All exports are Workflows and every invocation is a Run. Every workflow is an
+exported `defineWorkflow(({ defineBoundary, defineBatch }) => ({ steps: [...] }))`
+value from `@catamorphic/workflow` (or a host wrapper):
+
+- `defineBoundary` is an atomic retry scope whose callback operations retry together.
+- `defineBatch` is a finite paged per-item processing scope with an optional sink.
+- `defineBatchStep` physically coalesces compatible calls made inside `defineBatch.process`.
+- `"use step"` functions hold IO and business operations, called from boundary
+  run bodies and batch process callbacks.
+
+These capabilities share workflow discovery, graph APIs, Runs routes, SDK
+resources, React hooks, and UI. Do not introduce a public stage, category
+selector, or capability-specific Run family. Apps consume workflows through a
+single `Workflow<T>` contract from `@catamorphic/app`: the client exposes
+`.call(input)` (waits for the terminal output; a workflow with no pause,
+retry, rate limit, batch, or child call settles inline) and `.start(input)`
+(returns a pollable run handle).
+
+## Operational Notes
+
+- `catamorphic.migrate()` / `catamorphic-db migrate` are idempotent and schema-scoped; run them in CI/deploy (preferred) or at boot.
+- Catamorphic uses strict schema scoping on its own DB access: connection strings get `search_path = "catamorphic"`, host-provided pools get Kysely's `WithSchemaPlugin`. Unqualified names cannot fall through to `public`.
+- Host-owned pools and Kysely instances are never destroyed by catamorphic; `catamorphic.close()` only closes what catamorphic created.
+- Stop handles returned by `catamorphic.startExecutionWorker(...)` during host shutdown. Constructing the SDK or Fastify plugin never starts workers implicitly.
+- Start `catamorphic.startAgentWorker({ resolveIdentity? })` after migrations when using coding agents. It restores due queue entries and persisted retries only for this host. Resolve current user authority through your auth model; the default uses Catamorphic memberships. `catamorphic.close()` stops both kinds of worker. Expired agent executions with uncertain outcomes require an explicit retry, not automatic side-effect replay (ADR 0094).
+- Client reconnection does not restart execution. Automatic turn retries require a provider-confirmed rejection before execution began. Reconnecting to the same native provider attempt after an ambiguous disconnect is not yet implemented; the long-lived runtime cutover in ADR 0067 remains separate from this durable queue and progress model.
+
+## Execution Environments and credential connections
+
+Hosts own physical execution and provider credentials. Projects name logical
+Environments in `.catamorphic/project.json`; the host maps each binding id to
+an actual provider with `defineStaticEnvironments`. An Environment is
+project-visible policy, a binding is its host-owned realization, and an
+Allocation is the immutable decision for one root session or workflow run.
+WorkerNode selection is a later placement concern and is never a project
+choice.
+
+The managed multi-machine target is multiple Catamorphic server instances of
+one logical authority, sharing network Postgres and accessible authoritative
+storage ([ADR 0099](docs/decisions/0099-shared-postgres-server-environments.md)).
+Project-facing Environments can bind to a named machine or a compatible pool;
+hosts own the physical registration. Instance identity and execution ownership
+must remain distinct from authority identity. Member-device execution appears
+as **This machine** and does not require database credentials (ADR 0098).
+The stock Postgres host implements shared objects, machine leases, auth, and
+durable approvals. Custom hosts register `WorkerNodesService` leases, inject
+`workerNode: { id, token }`, and renew/release them with their host lifecycle.
+Enable `clientExecution: true` to accept authenticated member sandbox runners;
+`startClientRunner` supplies the transport-independent client loop. See the
+[cluster setup reference](skills/setup-catamorphic-server/references/cluster-deployment.md)
+for the current limitations and required evidence. Custom hosts continue to
+inject their own infrastructure and auth.
+
+Pass `credentialVault` and `connectionProviders` to `createCatamorphic` when
+external systems are enabled. The host vault stores opaque encrypted material using an injected store and key.
+`EncryptedCredentialVault` can use `PostgresObjectStore` or a host store; the
+wrapping key remains outside the database. Provider code runs in the control plane. Workflows call
+`context.connections.<alias>.<action>(args)` and agents use allocation-bound
+Catamorphic MCP grants. Neither receives upstream credentials.
+Connection aliases use letters, numbers, underscores, and hyphens only. Core
+does not perform lossy alias normalization, so one alias always maps to one MCP
+server and policy key.
+
+Roles grant Environments and logical connection aliases separately. Project
+builder access does not imply managed-compute or connection access. Projects
+cannot declare physical endpoints, OAuth clients, credential values, or
+service identities.
+
+Member connections use the authorization flow supported by the provider.
+Project and tenant service connections are created only by a host identity
+with `connections:manage_service`. An Environment binding chooses allowed
+principal kinds, capabilities, and any assigned service connection. A trigger
+scan is the unattended enablement boundary: it must resolve every required
+alias to an assigned service connection, then freezes those ids for dispatch.
+Member connections are never eligible for schedules or webhooks. To prevent a
+privileged service action from running in a local Environment, do not create
+that alias binding there and grant it only in the managed Environment.
+
+Long-lived API keys and service-account material use service connections, not
+project secrets. The service-credential API accepts provider-defined opaque
+text. For `defineMcpConnectionProvider`, that text is a JSON
+`McpConnectionCredential`, for example
+`{"headers":{"Authorization":"Bearer ..."}}`. The broker opens it only for
+the provider call. A workflow step that will later invoke an agent inherits the
+workflow's Environment, Allocation, and narrowed grants; it must not create a
+second credential selection path.
+
+Vault backup and rotation are host responsibilities. Back up encrypted records
+and their wrapping key together, restrict both to the server account, rotate
+service material through the connection API, and retain the old wrapping key
+until every record has been re-encrypted. Public OAuth redirects require TLS, a
+stable callback URL, and trusted proxy headers. MCP servers may support dynamic
+client registration; Slack, Google, and providers that require pre-registration
+still need deployment-owned client ids and secrets configured in the provider.
+
+OAuth registries and MCP discovery do not remove deployment setup. Slack still
+requires a Slack app with approved scopes. Google Workspace still requires a
+Google Cloud OAuth client or a service account with administrator-approved
+domain-wide delegation. Remote deployments need stable HTTPS callback URLs,
+correct proxy headers, a backed-up vault key, and a documented rotation plan.
+
+
+### Managed workspace resources
+
+Hosts that enroll multiple workers can import `WorkerNodesService`,
+`WorkerCapacity`, and `cleanupWorkerAllocations` from `@catamorphic/server-sdk`.
+Supply a workspace budget and CPU/memory defaults when registering a node, and
+pass its lease to `createCatamorphic({ workerNode, ... })`. Return its physical
+id and local lease token with the injected Environment runtime binding. Keep
+heartbeats and cleanup independent; call cleanup only on the sandbox's physical
+owner. Stock provisioning is an example, not a library dependency.
+
+Managed Allocations reserve resources atomically in the host's schema-scoped
+Postgres. A session holds its workspace between turns. Retiring it does not free
+capacity until sandbox destruction succeeds. Every Allocation owns at most one
+sandbox, keeping workflow runtime reuse within that workspace and resource limit.
+Providers advertise `resourceLimits` and enforce `CreateSandboxOpts.resources`;
+unsupported limits fail rather than falling back to unbounded execution. Native
+host CLI execution does not inherit controller-sandbox resource guarantees.
+See [ADR 0100](docs/decisions/0100-workspace-resource-admission.md) and the
+[stock setup example](skills/setup-catamorphic-server/references/cluster-deployment.md#capacity-and-isolated-development).
+
+### Agent context and deferred host capabilities
+
+[AGENT-CAPABILITIES.md](AGENT-CAPABILITIES.md) describes compact per-turn user and
+execution context, the typed capability registry, permission-filtered discovery,
+MCP/HTTP transports, and host directory/approval integration. Use these existing
+seams when agents need environment or assignment awareness.
+
+## Maintained host examples
+
+The [React host examples](packages/registry/src/examples/embedding.tsx) compile with
+the registry on every check. They demonstrate controlled chat selection and a
+host-owned workflow inspector. [Chat delivery responsibilities](apps/desktop/docs/chat-state.md)
+separate reusable mechanics from the desktop reference presentation.
+
+### Contained project workspace and local data
+
+Catamorphic source lives in an independent `.catamorphic/` Bun workspace.
+Run `bun install --cwd .catamorphic` and `bun run --cwd .catamorphic check`.
+Imports and ordinary agent work leave existing repository files untouched.
+The workspace is created when workflows, apps, or other capabilities need it.
+
+Local-process and microsandbox hosts can inject `projectDataDirectory` into
+their provider, an async callback receiving `{ projectId }` and returning
+an absolute persistent directory or `undefined`. For a project attached to a
+local folder, core's `projectDataDirectory({ root })` prepares
+`.catamorphic/app-data/` and creates `.catamorphic/.gitignore` only if absent.
+Deployment runtimes expose this storage as `CATAMORPHIC_APP_DATA_DIR`;
+workflow code should create its own named subdirectory there. Microsandbox
+bind-mounts the folder; local-process uses its absolute host path. The data
+outlives a runtime or deployment. Build and agent sandboxes do not receive it.
+Cloud providers retain their existing storage contracts.
+
+The scoped ignore file excludes app data by default. Owners can edit it to
+track ordinary data deliberately. Mutable data is excluded from immutable
+execution snapshots and the shared program/document surface. Documents retain
+logical `store/...` API addresses, backed locally by
+`.catamorphic/app-data/store/...`. Personal artifact privacy remains separately
+enforced. Per-user app view preferences, credentials, and conversation state
+remain in the host's database or private data directory. Database export and
+restore are not provided.
+

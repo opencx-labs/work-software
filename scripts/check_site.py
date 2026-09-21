@@ -1,5 +1,6 @@
 """Validate the static Pages artifact without network or package dependencies."""
-from html.parser import HTMLParser
+from html.parser import re
+import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urljoin, urlsplit
 import xml.etree.ElementTree as ET
@@ -91,4 +92,15 @@ expected = {ORIGIN + route(path) for path in pages if path.name != "404.html"}
 assert locations == expected, "Sitemap must list every public page, excluding the 404 page"
 assert (SITE / "CNAME").read_text().strip() == "work.software", "Incorrect Pages domain"
 assert "Sitemap: https://work.software/sitemap.xml" in (SITE / "robots.txt").read_text()
-print(f"Validated {len(pages)} pages, {link_count} local references, ARIA targets, sitemap, and domain.")
+# The agent guides: every work.software URL they name must exist on the site,
+# the full guide must have been built, and the homepage must link the guide.
+guide_count = 0
+for name in ("llms.txt", "llms-full.txt"):
+    guide = SITE / name
+    assert guide.is_file(), f"{name} is missing (run scripts/build_llms_full.py)"
+    for url in re.findall(r"https://work\.software(?:/[^\s)>\"'`]*)?", guide.read_text(encoding="utf-8")):
+        target = local_target(url)
+        assert target.is_file(), f"{name}: {url} does not exist on the site"
+        guide_count += 1
+assert "/llms.txt" in (SITE / "index.html").read_text(encoding="utf-8"), "index.html must link /llms.txt"
+print(f"Validated {len(pages)} pages, {link_count} local references, {guide_count} guide URLs, ARIA targets, sitemap, and domain.")
