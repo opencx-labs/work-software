@@ -13,6 +13,10 @@ Work is the product; Catamorphic is the open-source framework it is built on. Bo
 - **Completely customizable.** The sidebar, theme, shortcuts, tabs, notifications and terminal macros are plain files (`sidebar.js`, `theme.json`, settings). Ask the assistant to change them and it edits the files; the app updates live. Agents build apps and workflows inside a project that look and behave like built-in parts of the app.
 - **Three ways to use it.** A coding workspace (worktrees, terminals, editors, diffs, pull requests, several coding harnesses side by side). A company brain (shared projects, roles and memberships, automations, apps, tuned agent roles, reachable from desktop, mobile PWA or any MCP client). Or just a nice, clean browser with an assistant a keystroke away.
 
+## Why it exists
+
+We built Work because we believe one well-built piece of software can replace most productivity and collaboration tools. Software is now cheap; as humans, we just need to find the optimal form for it, make it open source, and let it build itself afterwards.
+
 ## How it works
 
 - A project is an ordinary folder and a git repository. Every agent turn that changes files becomes a checkpoint commit; you can inspect diffs or trust routine work to continue.

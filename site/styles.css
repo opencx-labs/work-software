@@ -664,6 +664,24 @@ h1 {
   letter-spacing: -0.03em;
   font-weight: 500;
 }
+/* Why Work exists: read like the first paragraph of a post, not a pitch. */
+.philosophy {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 8px 0 104px;
+}
+.philosophy p {
+  margin: 0;
+  padding-top: 40px;
+  border-top: 1px solid var(--line);
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.philosophy em {
+  font-style: normal;
+  font-weight: 600;
+}
 .brain-line em {
   font-style: normal;
   font-weight: 750;
