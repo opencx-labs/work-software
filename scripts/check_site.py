@@ -1,6 +1,6 @@
 """Validate the static Pages artifact without network or package dependencies."""
-from html.parser import re
-import HTMLParser
+import re
+from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urljoin, urlsplit
 import xml.etree.ElementTree as ET
