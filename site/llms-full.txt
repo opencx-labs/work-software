@@ -42,9 +42,9 @@ We built Work because we believe one well-built piece of software can replace mo
 - Automations run for you or for the whole project. A workflow starts from a schedule, a chat event, GitHub, or a webhook sent to your server, and can message your chat or a shared project chat that anyone in the project can continue (one per pull request review, one per inbound request).
 - Agents run long commands in the background and can watch a command (a deploy, a file, a status page); the chat wakes when it finishes, succeeds or changes, including after the computer sleeps.
 - The mobile companion (a PWA) pairs with the desktop by QR code over your LAN, or connects to your server, so a chat can continue from your phone.
-- The Work server is a company brain in one image. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys; guards (a model reviewer, a person's approval, or both) review each action, and database access is read-only with cost and row limits. Project secrets are sealed in an encrypted vault. Enrolled workers add execution capacity holding only a machine credential, never the database or secrets; a single machine stays one `docker run`.
+- The Work server is a company brain in one image. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys; guards (a model reviewer, a person's approval, or both) review each action, and database access is read-only with cost and row limits. Project secrets are sealed in an encrypted vault. Enrolled workers add execution capacity holding only a machine credential, never the database or secrets; each worker serves everyone or named people and groups, so a person's agents run on their own machine first, and machine rules can give every member of a directory group a machine of their own. A single machine stays one `docker run`.
 - Shares send customers or partners a sign-in link to one document, folder or live app. They sign in with their own account (for example your product's own sign-in over OpenID Connect) and see only what was shared.
-- A company adds its own code (guards, directories, connection providers, routes) by extending the image with `@catamorphic/work-server` hooks instead of forking. Anyone can ask their coding agent to set up a Work server with the setup skill, and members can work from Claude Code or any MCP client connected to the project's MCP endpoint.
+- A company adds its own code (guards, directories, connection providers, routes) by extending the image with `@catamorphic/work-server` hooks instead of forking. Anyone can ask their coding agent to set up a Work server with the setup skill, and members work from Claude Code or any MCP client connected to the project's MCP endpoint with their own roles: read and search the project, draft, check and deploy workflows and apps, run workflows and read their runs, ask the project's agents, and share with customers.
 - Privacy: incognito chats stay on the device and are never mirrored; a project's private working files are separate from shared project source.
 
 ## Install
@@ -61,6 +61,7 @@ We built Work because we believe one well-built piece of software can replace mo
 - The self-hosted server (a company brain): https://github.com/opencx-labs/catamorphic/blob/main/apps/server/README.md
 - Setting one up with an agent, end to end: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/SKILL.md (start with references/first-brain.md; company identity, secrets and the gateway, machines, and sharing each have a reference beside it)
 - Extending the Work server with your own code: https://github.com/opencx-labs/catamorphic/blob/main/packages/work-server/README.md
+- Working on a Work server project from Claude Code or any MCP client: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/members-over-mcp.md
 - Embedding the framework in your own product: https://github.com/opencx-labs/catamorphic/blob/main/INTEGRATION.md
 - How agents are expected to work inside the repository itself: https://github.com/opencx-labs/catamorphic/blob/main/AGENTS.md and https://github.com/opencx-labs/catamorphic/blob/main/apps/desktop/AGENTS.md
 - What is being worked on next: https://github.com/opencx-labs/catamorphic/blob/main/TODO.md
@@ -923,6 +924,9 @@ and every credential stay on the control plane. For availability, run
 control-plane replicas on shared Postgres with the same `WORK_SECRET`,
 `WORK_VAULT_KEY`, public origin, and sign-in and gateway configuration.
 `WORK_CONTROL_PLANE_WORKLOADS=workflow` keeps agent code off the control plane.
+Each worker takes work for everyone or for named people and directory groups,
+so a person's agents run on their own machine first; machine rules and a
+provisioner hook give every member of a group a machine of their own (ADR 0167).
 See [ADR 0164](../../docs/decisions/0164-control-plane-and-enrolled-workers.md)
 and the [machines reference](../../skills/setup-work-server/references/cluster-deployment.md).
 
@@ -1086,7 +1090,9 @@ Start small and add only what the situation needs:
   production ([secrets and the gateway](references/secrets-and-gateway.md));
   agent sandboxes on enrolled workers with `WORK_CONTROL_PLANE_WORKLOADS=workflow`
   on the control plane ([machines](references/cluster-deployment.md)); and
-  shares for customer material ([sharing](references/sharing.md)).
+  shares for customer material ([sharing](references/sharing.md)). Members
+  then work from the Work app or from their own agents over the project MCP
+  ([working from your own agent](references/members-over-mcp.md)).
 - **High availability:** control-plane replicas on shared Postgres, only on
   machines trusted with every secret.
 
@@ -1100,7 +1106,8 @@ Start small and add only what the situation needs:
 | Credentials, API keys, a production database, query review, vault keys | [Secrets and the gateway](references/secrets-and-gateway.md) |
 | More execution capacity, workers, replicas for availability | [Machines: control plane, replicas, and workers](references/cluster-deployment.md) |
 | Sharing documents, folders, or apps with customers behind a sign-in | [Sharing outside the company](references/sharing.md) |
-| Work server plus company code (a custom sign-in, classifier, connection provider, or route) | [`@catamorphic/work-server`](../../packages/work-server/README.md): extend the published image with hooks; never fork the server |
+| Members working from Claude Code, Codex, or another MCP client | [Working from your own agent](references/members-over-mcp.md) |
+| Work server plus company code (a guard or classifier, a directory, a connection provider, seeds, or a route) | [`@catamorphic/work-server`](../../packages/work-server/README.md): extend the published image with hooks; never fork the server |
 | Existing or custom application | [Custom host](references/custom-host.md) |
 | Sign-in, OIDC, invitations, roles, permissions | [Auth and identity](references/auth-and-identity.md) |
 | PGlite, Postgres, migrations, backup | [Database and migrations](references/database-and-migrations.md) |
@@ -1168,7 +1175,7 @@ Source: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-s
 # A first brain on one machine
 
 The shortest path from nothing to a Work brain an MCP client can connect
-to, last verified end to end on 2026-09-20. Use it when the person wants
+to and run work on, last verified end to end on 2026-09-25. Use it when the person wants
 "a brain on this machine" and nothing exists yet. Adapt to what is present
 (read [Work server](stock-server.md) first). Never print the operator
 secret or a password.
@@ -1210,7 +1217,7 @@ Project with two roles and invitation-only admission. `admin` is for the
 owner: every agent, workflow, and app plus every project permission (`"*"`).
 `member` is the admission default: it chats with the project's agents and
 nothing more, so a later invitation never hands out administration.
-`environments: ["local"]` is what lets a role run agents on the server
+`environments: ["default"]` is what lets a role run agents on the server
 itself; permissions alone grant no execution.
 
 ```bash
@@ -1222,8 +1229,8 @@ const r = await fetch("http://127.0.0.1:4701/_work/operator/projects", {
   body: JSON.stringify({
     name: "Company brain",
     roles: [
-      { slug: "admin", definition: { version: 1, name: "Admin", agents: ["*"], workflows: ["*"], apps: ["*"], permissions: ["*"], environments: ["local"] } },
-      { slug: "member", definition: { version: 1, name: "Member", agents: ["*"], environments: ["local"] } },
+      { slug: "admin", definition: { version: 1, name: "Admin", agents: ["*"], workflows: ["*"], apps: ["*"], permissions: ["*"], environments: ["default"] } },
+      { slug: "member", definition: { version: 1, name: "Member", agents: ["*"], environments: ["default"] } },
     ],
     admission: { mode: "invitation_only", defaultRole: "member" },
   }),
@@ -1266,12 +1273,29 @@ and pass them without writing them into shell history or a file.
 - Claude Code: `claude mcp add --transport http work-brain http://127.0.0.1:4700/api/projects/PROJECT_ID/mcp`,
   then `/mcp` to sign in. Other MCP clients: add the same URL as a remote
   (HTTP) server.
-- `tools/list` after sign-in returns the project's document, skill,
-  publication, proposal, agent (`ask_agent`, `send_agent_message`) and
-  watcher tools the caller's role allows, plus one tool per AI-callable
-  workflow.
+- `initialize` returns instructions naming the tools this person has, and
+  `project_overview` shows their roles, agents, Environments, workflows, and
+  apps. An admin sees the whole builder's loop: `program_write`,
+  `program_check`, `program_deploy`, `workflow_run`, and `run_details`, plus
+  documents, skills, `ask_agent`, shares, and one tool per deployed
+  `ai.tool-call` workflow.
 
-## 4. Hand over
+## 4. Run a first workload
+
+Prove the brain works before handing it over. From the connected client, as
+the admin:
+
+1. `ask_agent` with `agent: "assistant"` and a short message; the reply
+   proves agents run (on a worker when the server runs agents only there).
+2. Ask the client to add a small workflow with an `ai.tool-call` trigger,
+   following the project's `catamorphic-projects` and `writing-workflows`
+   skills, then `program_check`, `program_deploy`, and `workflow_run` it.
+   The workflow then appears as its own tool.
+
+[Working from your own agent](members-over-mcp.md) covers the loop and each
+role's tools.
+
+## 5. Hand over
 
 Report the project id, the sign-in address, and the MCP URL. Invitations for
 more people are created by a signed-in member holding `memberships:write`
@@ -1461,6 +1485,8 @@ reviewed and audited, and the key never enters a sandbox.
 - Rotation: set the new key as `WORK_VAULT_KEY` and the old one in
   `WORK_VAULT_PREVIOUS_KEYS` (comma-separated). New records use the new key;
   keep the old key until every credential has been re-entered or rotated.
+  Roll the change to every instance: an instance must hold at least one key
+  the deployment already uses, or it refuses to start.
 - A custom server can fetch keys from a key management service at boot with
   the `vaultKeys` hook of `@catamorphic/work-server`.
 
@@ -1492,7 +1518,7 @@ print them, or pass them to agents.
 ```
 
 Connection kinds become connection providers. Commit the project's aliases,
-Environment bindings, and role capability grants through ordinary reviewed
+Environment connection bindings, and role capability grants through ordinary reviewed
 project files; the file above is host policy, not project logic. The first
 person to authorize a connection enters its credential through the
 connection's form (an API key or a read-only connection string); it goes
@@ -1504,7 +1530,7 @@ chat to approve; a workflow's escalation is refused because nobody is there to
 answer. A model guard's key comes from the provider's usual variable
 (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`) or the variable
 named in `apiKeyEnv`. Use `"provider": "openai-compatible"` with `baseUrl` for
-a self-hosted classifier. Every decision is in the connection audit.
+a self-hosted classifier; its `apiKeyEnv` is optional. Every decision is in the connection audit.
 
 ## A production database, safely
 
@@ -1605,6 +1631,450 @@ Shared apps cannot use member connections, and markdown renders without raw
 HTML. Keep anything sensitive out of shared folders; everything under a shared
 folder is visible to its audience, including files added later.
 
+## Working on a project from Claude Code or any MCP client
+
+Source: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/members-over-mcp.md
+
+# Working from your own agent
+
+Use this when a member wants to work on a Work server project from Claude
+Code, Codex, or any other MCP client instead of (or beside) the Work app
+(ADR 0166). Everything runs as the member, with their project roles.
+
+## Connect
+
+The project's MCP address is `<server>/api/projects/<projectId>/mcp`
+(stateless Streamable HTTP). A member finds the project id in the Work app,
+in an invitation link (`project=`), or from whoever set the project up.
+
+- Claude Code: `claude mcp add --transport http work <server>/api/projects/<projectId>/mcp`,
+  then `/mcp` and sign in. Add `--scope project` to share the entry with a
+  repository's collaborators; each person still signs in as themselves.
+- Other clients: add the same address as a remote HTTP server.
+
+The client discovers sign-in from the server's 401, registers itself, and
+opens the server's sign-in page (company sign-in or local password). Access
+tokens last 15 minutes and refresh while the member stays active and in the
+company; a member removed from the directory loses access within minutes.
+Never paste a token into a configuration file.
+
+At `initialize` the server sends instructions that name the tools this
+member has. `project_overview` answers the rest: roles, permissions, agents,
+Environments, workflows, apps, and the member's draft.
+
+## What each role can do
+
+The same address serves everyone. Some tools are listed only to roles that
+can use them; the rest are listed to every member and refuse what the role
+does not allow:
+
+| Member holds | Tools |
+| --- | --- |
+| Any role | `project_overview`, `documents_*` (reads what the role may read; writes and deletes only the `store/` paths it may write), `list_skills` / `read_skill`, `ask_agent` for their agents, `workflow_run` / `workflow_runs` / `run_details` for their workflows, every deployed `ai.tool-call` workflow as its own tool, `propose_change`, and the share tools (which need `publications:write`, or `publications:read` for `shares_list`) |
+| `program:write` | `program_files`, `program_write`, `program_check` (their private draft) |
+| `program:write` and `program:publish` | `program_deploy` |
+
+## The builder's loop
+
+1. Read `catamorphic-projects`, `writing-workflows`, and `building-apps` with
+   `read_skill`. A project with no `.catamorphic/workflows/package.json`
+   needs the workspace first: copy the support files that
+   `catamorphic-projects` lists with `program_files` and `program_write`.
+2. `program_write` the workflow or app. Nothing reaches others yet.
+3. `program_check` refreshes generated types (the trigger kinds this server
+   offers, app API types) and validates the draft: parse errors, trigger
+   kinds and configuration, and imports it can see. It is not a full
+   TypeScript check; keep code simple, and check locally when you have a
+   clone. Fix every error.
+4. `program_deploy` with a commit message. It builds and publishes every app
+   the change touches and reports each app's build result; a failed build
+   keeps the app's previous version. Projects whose program is
+   published from GitHub change through pull requests there, or
+   `propose_change`.
+5. `workflow_run` with a JSON input, then `run_details` for a longer run. A
+   workflow with an `ai.tool-call` trigger is a tool on the next
+   `tools/list`, for everyone whose role grants it.
+
+A member without `program:publish` drafts the same way and ends with
+`propose_change`.
+
+## Agents, workers, and production systems
+
+`ask_agent` runs a project agent on the server and returns its reply. It runs
+on the member's own machine when the operator gave them one, otherwise on a
+team or shared machine; pass `environment` to choose another Environment
+(`project_overview` lists them and what each runs for you).
+Continue a conversation with its `sessionId`; the same chat appears in the
+Work app. Server agents reach connected systems, such as a read-only
+production database, through the gateway with guard review
+([secrets and the gateway](secrets-and-gateway.md)). A member's own client
+never receives those credentials; ask a project agent instead. An action a
+guard escalates waits for approval in the Work app.
+
+## Sharing with customers
+
+`share_create` with `kind` (`document`, `folder`, or `app`), `target`, and
+an `audience` of emails or domains returns the link to send; app shares also
+name the `environment` its workflows run in. See [sharing](sharing.md).
+
+## When something fails
+
+- 401 after a while: sign in again from the client (`/mcp` in Claude Code).
+- "Your roles do not allow that": the role lacks the permission; ask a
+  project manager, who changes `.catamorphic/roles/*.json` through review.
+- `ask_agent` answers that no Environment satisfies the workload: the
+  project has no Environment for agents that this member may use and that
+  is online. Check `project_overview`, the role's `environments`, and the
+  workers (`GET /_work/operator/machines` on the server).
+- `program_deploy` returns `blocked`: its `findings` are `program_check`
+  errors.
+
+## Machines: workers, per-person machines, and replicas
+
+Source: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/cluster-deployment.md
+
+# Machines: control plane, replicas, and workers
+
+Use this for adding execution capacity or availability to a Work server
+(ADRs 0164, 0167), including a machine for every employee. Custom embedders
+keep their own identity, database, Environment provider, storage, and
+deployment.
+
+## Choose the smallest topology that fits
+
+| Situation | Topology |
+| --- | --- |
+| A person or a small trusted team | One Work server, PGlite, default execution. Nothing below applies. |
+| More agent capacity, or agents that must not run beside the server's secrets | One server (the control plane) plus enrolled **workers** |
+| Each person or team gets their own machine | Workers with **access** lists, created by hand or by **machine rules** |
+| The brain must survive a machine failure | Control-plane **replicas** on shared Postgres, plus workers |
+
+A worker holds only its own machine credential: no `DATABASE_URL`,
+`WORK_SECRET`, `WORK_VAULT_KEY`, member tokens, or connection credentials.
+A replica holds all of them, so only machines you would trust with the whole
+brain become replicas. Never add a replica just for capacity.
+
+## Add a worker
+
+1. On the control plane, create a single-use enrollment code on the loopback
+   operator listener (port 4701) with the operator bearer:
+   `POST /_work/operator/workers` with `{ "name": "build-1" }`. Names are
+   lowercase letters, digits, and dashes. The code expires in 30 minutes.
+   Add placement in the same request (see [placement](#placement-labels-and-access)):
+   `labels` (`{ "class": "gpu" }`), `access` (`{ "everyone": true }`, the
+   default, or `{ "people": ["dana@example.com"], "groups": ["eng@example.com"] }`),
+   and `trusted`.
+2. On the worker machine, run the same image version with the worker command
+   and its own empty data volume:
+
+   ```bash
+   docker run -d --name work-worker -v work-worker-data:/data \
+     -e WORK_CONTROL_PLANE_URL=https://brain.example.com \
+     -e WORK_WORKER_ENROLLMENT=<code> \
+     -e WORK_SANDBOX=microsandbox -e WORK_MAX_WORKSPACES=4 \
+     <work-server image> bun apps/server/src/worker.ts
+   ```
+
+   Pass the code through the deployment's secret mechanism; it is needed only
+   for the first start. The worker stores its credential in
+   `/data/worker-credential` (owner-only) and refuses to start if
+   `DATABASE_URL`, `WORK_SECRET`, or `WORK_VAULT_KEY` is set. It dials out; open
+   no inbound port.
+3. Check `GET /_work/operator/machines` for `worker.build-1` with
+   `available: true`, and `GET /_work/operator/workers` for its last contact.
+4. Nothing in projects changes: the `default` Environment already runs agents
+   on any machine open to their owner. To reserve machines for some work, give
+   them a label and select it in `.catamorphic/project.json`
+   (`{ "pool": { "class": "gpu" }, "workloads": ["agent"] }`); `node` and
+   `plane` (`control` or `worker`) are always set.
+5. Verify as a member: `project_overview` shows the Environment runs agents,
+   and an agent command runs on the worker.
+
+Revoke a worker with `DELETE /_work/operator/workers/:name`; its credential and
+node stop working at once. Re-enroll the same name with a new code.
+
+Workers run agent sandboxes only. Workflow runs, which receive project secrets,
+execute on the control plane. For developer and review agents use
+`WORK_SANDBOX=microsandbox` on workers (see capacity below).
+
+## Keep agent code away from the control plane
+
+A company deployment should run agents on workers, not beside the control
+plane's secrets. Set `WORK_CONTROL_PLANE_WORKLOADS=workflow` on the control
+plane (or empty to run nothing locally). A Postgres control plane refuses to
+start agents as plain subprocesses unless `WORK_SANDBOX=microsandbox` or the
+operator sets `WORK_TRUST_CONTROL_PLANE_AGENTS=1` for a fully trusted team.
+
+The `default` Environment then puts workflows on the control plane (the only
+machines offering workflows) and agents on workers, with no project change.
+Label the control plane with `WORK_MACHINE_LABELS=pool=agents,class=large`
+when an Environment should select it.
+
+## Placement: labels and access
+
+Every machine carries labels: the server's own `node` and `plane`, plus the
+operator's. An Environment's `pool` selects machines whose labels all match.
+Each worker also has **access**, which only the operator sets: everyone, or
+named people and directory groups by email. The server places a piece of
+work for its owner (the session's member; project chats and workflow runs
+have none and use machines open to everyone):
+
+1. the owner's own machine (access naming only them),
+2. then a machine shared with named people or their groups,
+3. then machines open to everyone.
+
+When the narrowest tier is full, work falls back to the next unless the
+Environment sets `"strict": true`. A worker serving more than one person must
+run `WORK_SANDBOX=microsandbox`; the control plane refuses to connect a
+process-isolated shared worker unless the operator vouches for the people it
+serves with `"trusted": true`. Change placement with
+`PATCH /_work/operator/workers/:name` (`labels`, `access`, `trusted`); it
+applies to the next placement, and an existing session re-checks it on its
+next turn.
+
+Groups come from the Google Workspace directory (see [company
+identity](company-identity.md)): the server checks the groups that access
+lists, machine rules, and project role mappings name.
+
+## A machine for every person or team
+
+Machine rules create and destroy workers to match the directory. They need a
+platform: extend the Work server with a `machineProvisioner` hook
+(`create({ name, class, labels, enrollment })` returns a platform reference;
+`destroy({ name, ref })` deletes the machine). A created machine starts the
+worker command with `WORK_CONTROL_PLANE_URL` and the one-time
+`WORK_WORKER_ENROLLMENT` code it received, for example through cloud-init.
+
+- `PUT /_work/operator/machine-rules/desks` with
+  `{ "group": "eng@example.com", "machines": "each-member", "class": "standard-4" }`
+  gives every active member of the group their own machine.
+- `PUT /_work/operator/machine-rules/support` with
+  `{ "group": "support@example.com", "machines": { "shared": 3 }, "class": "small" }`
+  gives the group three shared machines (add `"trusted": true` only for
+  process-isolated machines among people who trust each other).
+- `GET /_work/operator/machine-rules` lists rules; `DELETE` removes one and its
+  machines; `POST /_work/operator/machine-rules/reconcile` runs a pass now.
+
+The server reconciles every minute and when an account is disabled: members
+who left the group or were suspended lose their machine (revoked, then
+destroyed), and a machine that never enrolls within an hour is destroyed and
+replaced. A person gets a machine after their first sign-in, once the
+directory has placed them in the group.
+
+## Add a control-plane replica
+
+1. Provision the same version with its own empty `WORK_DATA_DIR`; never copy
+   another machine's identity or data volume.
+2. Supply the deployment's `DATABASE_URL`, `WORK_SECRET`, `WORK_VAULT_KEY`,
+   `WORK_PUBLIC_URL`, sign-in configuration (`WORK_AUTH_CONFIG`), and gateway
+   configuration (`WORK_GATEWAY_CONFIG`) through the secret mechanism. All
+   replicas share one public HTTPS origin behind the load balancer.
+3. Start the normal server. Boot migrates with database coordination, checks
+   that origin, secrets, vault key id, and sign-in configuration match, and
+   registers its machine with a renewable lease.
+4. Workers reconnect through the load balancer to any replica. If the replica
+   holding a worker's lease stops, the lease lapses within about a minute and
+   the worker's next connection moves it.
+
+The operator can disable any machine with
+`PATCH /_work/operator/machines/:id` and `{ "enabled": false }`. Lease fencing
+blocks new claims and renewal of old execution ownership. Existing sessions do
+not silently move to a different machine. Inspect uncertain actions and move a
+settled session explicitly through its Environment update.
+
+## Shared state and recovery
+
+Network Postgres holds core state, Better Auth in its own schema, worker leases,
+permission requests, runner jobs, project origin objects, deployment/app bundles,
+and encrypted vault records. Neither `WORK_SECRET` (sign-in and notification
+signing) nor `WORK_VAULT_KEY` (the credential vault) is stored in these records.
+Back up the database and protect both secrets separately. Rotate the vault key
+by moving the old key to `WORK_VAULT_PREVIOUS_KEYS`; see
+[secrets and the gateway](secrets-and-gateway.md).
+
+Each machine owns local checkouts and sandbox processes. Server agent sessions
+checkpoint to isolated `sessions/<id>` branches in the shared origin. Relocation
+reconstructs the workspace and model history; it does not migrate a live process
+or publish session edits to project `main`. Failed checkpoint persistence is a
+failed turn requiring recovery. Work not checkpointed before a machine is lost
+remains uncertain and is never automatically replayed.
+
+## A member's This machine
+
+Declare a project Environment with `device: "member"`, workload `agent`,
+and appropriate role grants. The desktop's **Connect This machine** action starts
+an authenticated SDK runner using its local sandbox provider. It receives no
+Postgres credentials. Discovery and every operation retain the member's current
+project and Environment permissions. Closing the desktop or losing authorization
+stops the runner. A new connection lifetime cannot revive an old allocation.
+
+Stock local execution uses the controller topology: the host model loop and
+connection broker stay on the server; sandbox commands and files run on the
+member's machine. Native local CLI execution is not advertised by the stock host.
+Do not call a controller sandbox a locally running model or promise offline use.
+
+## Connections and verification
+
+`WORK_GATEWAY_CONFIG` declares the connections the server brokers (MCP
+endpoints, HTTP APIs, databases) and the guards that review them; see
+[secrets and the gateway](secrets-and-gateway.md). This is host endpoint
+configuration, not workflow logic or a second role model.
+Commit project aliases and role capability grants separately. Members authorize
+their own accounts and explicitly review each workflow before enabling it.
+
+Verify cross-instance sign-in, PKCE exchange, refresh, approval replies, chosen
+machine execution, role revocation, and checkpoint recovery with deterministic
+fixtures. Verify the installed release's contracts before applying these steps.
+Live provider checks and production deployment need authorization for those
+external actions; never simulate enrollment through direct database writes.
+
+## Capacity and isolated development
+
+For developer agents on managed machines, use `WORK_SANDBOX=microsandbox`.
+Install and verify the supported microsandbox runtime on that machine first;
+Linux needs virtualization support and access to KVM. The stock Docker image
+still defaults to trusted subprocess execution. Setting an environment variable
+alone does not supply virtualization or turn that container into a per-agent
+sandbox. Keep microsandbox's machine-local state on persistent storage.
+
+Set these environment variables on each machine's service before starting it:
+
+```dotenv
+WORK_SANDBOX=microsandbox
+WORK_MAX_WORKSPACES=4
+WORK_CAPACITY_CPU_MILLIS=8000
+WORK_CAPACITY_MEMORY_MB=16384
+WORK_WORKSPACE_CPU_MILLIS=1000
+WORK_WORKSPACE_MEMORY_MB=1024
+WORK_SANDBOX_IMAGE=oven/bun
+```
+
+Capacity is an admission budget, not total machine RAM or CPU. Leave room for
+Postgres (if colocated), the stock server, model controllers, builds, and the OS.
+Defaults reserve one core and 1024 MiB per sandbox; the default machine budget
+uses available CPUs minus one and 75% of host memory, with eight workspace slots.
+Set explicit budgets in containers: OS memory reporting may describe the host.
+
+Agent definitions reuse `environment.requirements.resources`; there is no second
+agent resource configuration file. For example, merge this into an ordinary
+`.catamorphic/agents/developer.json` definition:
+
+```json
+{
+  "environment": {
+    "allowed": ["development"],
+    "preferred": ["development"],
+    "requirements": {
+      "isolation": "sandbox",
+      "resources": { "cpuMillis": 2000, "memoryMb": 4096 }
+    }
+  }
+}
+```
+
+Microsandbox enforces whole-core CPU limits (multiples of 1000 millicores) and
+memory in MiB. Disk and GPU limits are currently rejected by the stock providers.
+Native host CLI execution does not enforce these sandbox limits; use controller
+agents for this setup. The stock controller and connection broker remain outside
+the VM. Agent command timeouts are bounded by `timeoutSeconds` when supplied.
+The local-process backend has a workspace-slot budget but rejects CPU/memory
+budgets; it is still for trusted single-tenant work only.
+
+A managed session reserves its workspace at creation, including between turns.
+Background development servers stay within the same VM and budget. Full machines
+stop accepting new Allocations; already admitted sessions keep their placement.
+Archive, close, or move unused sessions to retire their workspaces. Restoring an
+archived session needs fresh admission. Workflow root allocations release on
+termination. Cleanup runs on the owning node; capacity returns only after its
+sandbox is destroyed. A stopped VM still has a reservation for safe restart.
+
+Inspect `GET /_work/operator/machines` for budget, usage, and
+`acceptingWork`; `GET /_work/operator/machines/:id/workspaces` identifies
+retained allocations. Missing heartbeat or a cleanup error never frees capacity.
+An ambiguous sandbox creation stays reserved too. Inspect the backend for the
+`allocationId` label, stop and remove any matching sandbox, then use the
+loopback-only `POST /_work/operator/machines/:id/workspaces/:allocationId/confirm-destroyed`
+with `{ "confirmedDestroyed": true }` only after verifying physical cleanup.
+The allocation must first be retired by closing/archiving/moving its session or
+terminating its workflow. This is operator recovery, not a way to oversubscribe.
+Do not switch a machine's sandbox backend while it still owns workspaces.
+
+Member runners report their actual isolation and supported limits at registration;
+This machine remains local trust even when it uses a VM. Unsupported requirements
+are rejected before use, and requested limits travel with sandbox creation.
+
+## Assign a development machine to one user
+
+Use an ordinary named project Environment bound to the intended machine, and
+an ordinary role granting that Environment to the selected member. Keep that
+grant out of other roles; membership managers can grant it to additional members
+when sharing is intended. No developer-owner machine type or separate assignment
+permission exists. A grant controls admission, not OS accounts or network access.
+
+Choose the trust boundary before provisioning. Control-plane replicas carry
+the whole deployment's authority. Put developer machines in as workers (or as a
+member's **This machine** runner); neither receives Postgres, vault, or
+sign-in secrets. A private Environment grant alone does not make unrestricted
+processes safe on a shared worker: use microsandbox for code you do not trust.
+
+## Docker, development services, and private HTTP
+
+Catamorphic does not require a team service manifest or parse Compose files.
+Agents can run `docker compose up`, package scripts, or other ordinary commands
+when their execution provider, harness permission mode, and host policy permit
+those commands. Provision Docker Engine and dependencies on the actual command
+target. Advertising a `docker` capability does not install Docker or grant access
+to its socket. For sandboxed work, verify the selected backend/image supports the
+needed daemon or containers; do not assume a host Docker socket is available.
+Keep database volumes outside disposable checkouts and back them up through the
+host's normal process. Archiving or moving a session can destroy its workspace.
+
+The host owns HTTP routing and access protection. Bind a development service to
+a private interface on its command target, then expose it through the host's
+chosen private network, authenticated reverse proxy, or identity-aware gateway.
+Tailscale is one host option, not a Catamorphic dependency. Configure its access
+rules for the intended user and any explicitly permitted collaborators. If a
+proxy handles authentication, configure it independently of the app's own login
+and block direct access that would bypass it. Environment permission does not
+automatically create a network rule. Do not publish an unprotected URL merely
+because the service is on a developer's private Allocation.
+
+Verify access as the owner, an allowed collaborator, and an unrelated user;
+verify both the advertised endpoint and direct reachability. `localhost` refers
+to the machine where the command executes, which can differ from the agent loop
+or the user's browser. Record the reachable URL and access instructions through
+the host's normal service inventory; a host capability can expose that inventory
+to authorized agents. Catamorphic does not install tunnels or infer proxy rules.
+
+## Updating machines
+
+Use the host's service manager, container deployment, or existing orchestration.
+Catamorphic does not ship a Kubernetes distribution or a second updater for
+managed machines. Pin a release or image digest and keep replicas and workers
+on the same version; do not assume arbitrary mixed-version operation is safe.
+Update the control plane first, then workers; a worker keeps its credential and
+data volume across updates.
+
+1. Back up shared Postgres and verify recovery of the separately protected
+   deployment secret. Review the release's migration and compatibility notes.
+2. Stop submitting new work through the host's maintenance controls. Wait for
+   turns and external actions to settle and verify their checkpoints. Inspect
+   retained workspace processes and data that require persistence.
+3. Disable the machine through the operator API before replacing its process.
+   Disabling fences claims and lease renewal; it is not a graceful drain of
+   running work. Never use it as evidence that an external action was undone.
+4. Update the service/image while preserving that machine's own data volume and
+   identity. Boot applies coordinated migrations. Re-enable the machine through
+   the operator API and verify heartbeat, capabilities, and capacity before use.
+5. Test sign-in, a permitted session, private HTTP access, and checkpoint
+   persistence. Explicitly recover or relocate interrupted sessions. A service
+   restart does not move a live process or promise automatic replay.
+
+A package downgrade cannot undo forward-only database migrations. Follow the
+release's recovery plan, which may require restoring the database and matching
+application version. Hosts with unattended rollout requirements can automate
+these existing controls in their own deployment system.
+
 ## Extending the Work server with your own code
 
 Source: https://github.com/opencx-labs/catamorphic/blob/main/packages/work-server/README.md
@@ -1644,7 +2114,10 @@ await server.app.listen({ port: 4700, host: "0.0.0.0" });
 | --- | --- |
 | `agentCapabilities` | Host capabilities, profiles, and approvals for agents |
 | `connectionProviders` | Connection providers beside the configured MCP endpoints |
+| `connectionGuards` | Guards that review each gateway action, such as a query classifier (ADR 0162) |
+| `vaultKeys` | Credential vault keys from a key service instead of `WORK_VAULT_KEY` |
 | `directories` | Upstream directories (beyond Google Workspace) that keep accounts active or disable them (ADR 0161) |
+| `machineProvisioner` | Creates and destroys worker machines on a platform, so machine rules give people and teams their own machines (ADR 0167) |
 | `projectSeeds` | Changes to the files seeded into new projects |
 | `routes` | Extra routes on the public application |
 
@@ -2513,12 +2986,15 @@ retry, rate limit, batch, or child call settles inline) and `.start(input)`
 ## Execution Environments and credential connections
 
 Hosts own physical execution and provider credentials. Projects name logical
-Environments in `.catamorphic/project.json`; the host maps each binding id to
-an actual provider with `defineStaticEnvironments`. An Environment is
-project-visible policy, a binding is its host-owned realization, and an
-Allocation is the immutable decision for one root session or workflow run.
-WorkerNode selection is a later placement concern and is never a project
-choice.
+Environments in `.catamorphic/project.json` by what the work needs: workloads,
+requirements, and an optional `pool` of machine labels (ADR 0167). The host's
+`EnvironmentProvider` places work: `defineStaticEnvironments` picks the first
+binding whose `labels` match the pool, and a scheduler receives the work's
+owner (`ownerUserId`, absent for project work) to prefer machines reserved for
+that person or their groups, using `accessTier` and `placementOrder` from
+`@catamorphic/sandbox`. An Environment is project-visible policy, a binding is
+its host-owned realization, and an Allocation is the immutable decision for
+one root session or workflow run. Machine selection is never a project choice.
 
 The managed multi-machine target is multiple Catamorphic server instances of
 one logical authority, sharing network Postgres and accessible authoritative

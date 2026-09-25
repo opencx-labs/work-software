@@ -21,6 +21,8 @@ DOCUMENTS = [
     ("skills/setup-work-server/references/company-identity.md", "Company sign-in through Google Workspace"),
     ("skills/setup-work-server/references/secrets-and-gateway.md", "Credentials, the connection gateway, and guards"),
     ("skills/setup-work-server/references/sharing.md", "Sharing with customers and partners"),
+    ("skills/setup-work-server/references/members-over-mcp.md", "Working on a project from Claude Code or any MCP client"),
+    ("skills/setup-work-server/references/cluster-deployment.md", "Machines: workers, per-person machines, and replicas"),
     ("packages/work-server/README.md", "Extending the Work server with your own code"),
     ("INTEGRATION.md", "Embedding the framework in your own product"),
 ]
