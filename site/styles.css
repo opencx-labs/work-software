@@ -651,7 +651,7 @@ h1 {
   margin-top: 14px;
 }
 
-/* The brain: one sentence and one button. */
+/* The brain: one sentence, what runs it, and one button. */
 .brain {
   padding: 96px 0 72px;
   text-align: center;
@@ -663,6 +663,17 @@ h1 {
   line-height: 1.15;
   letter-spacing: -0.03em;
   font-weight: 500;
+}
+.brain-detail {
+  max-width: 34rem;
+  margin: 20px auto 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.brain-detail strong {
+  font-weight: 600;
+  color: var(--text);
 }
 /* Why Work exists: read like the first paragraph of a post, not a pitch. */
 .philosophy {
