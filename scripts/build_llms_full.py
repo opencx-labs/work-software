@@ -15,9 +15,15 @@ REPO = "https://raw.githubusercontent.com/opencx-labs/catamorphic/main/"
 # Order matters: what an agent needs first comes first.
 DOCUMENTS = [
     ("README.md", "The repository README: what Work and Catamorphic are, install, the three ways to use it"),
-    ("apps/server/README.md", "The self-hosted server (a company brain)"),
-    ("skills/setup-catamorphic-server/SKILL.md", "Setting up a server with an agent"),
-    ("skills/setup-catamorphic-server/references/first-brain.md", "The first brain, step by step"),
+    ("apps/server/README.md", "The Work server (a company brain)"),
+    ("skills/setup-work-server/SKILL.md", "Setting up a Work server with an agent"),
+    ("skills/setup-work-server/references/first-brain.md", "The first brain, step by step"),
+    ("skills/setup-work-server/references/company-identity.md", "Company sign-in through Google Workspace"),
+    ("skills/setup-work-server/references/secrets-and-gateway.md", "Credentials, the connection gateway, and guards"),
+    ("skills/setup-work-server/references/sharing.md", "Sharing with customers and partners"),
+    ("skills/setup-work-server/references/members-over-mcp.md", "Working on a project from Claude Code or any MCP client"),
+    ("skills/setup-work-server/references/cluster-deployment.md", "Machines: workers, per-person machines, and replicas"),
+    ("packages/work-server/README.md", "Extending the Work server with your own code"),
     ("INTEGRATION.md", "Embedding the framework in your own product"),
 ]
 SITE = Path(__file__).resolve().parent.parent / "site"
