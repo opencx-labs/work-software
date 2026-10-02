@@ -38,13 +38,14 @@ We built Work because we believe one well-built piece of software can replace mo
 - A project is an ordinary folder and a git repository. Every agent turn that changes files becomes a checkpoint commit; you can inspect diffs or trust routine work to continue.
 - Chats float over whatever you are doing (a page, a document, a terminal) and can be minimized to a dock. Agents see the workspace context you give them: the page, the file, the terminal.
 - Agents can be Claude Code, Codex, or API models (multi-harness), with per-agent permission mode (each harness's own, such as Claude Code's plan, auto or bypass permissions, or Codex's sandbox and approvals), sandboxing, memory, skills, instructions and effort. Connectors (MCP) attach to profiles and agents.
+- Every chat is a durable log of turns, the same on the desktop, the phone and the server, streamed live. Questions and approvals can be answered from any of them, a message sent while an agent waits on a question reaches it in the same turn, a turn whose machine stopped is picked up by another and continues on the agent's own conversation, and any turn can be undone with the files it changed.
 - Agents write durable workflows (TypeScript, run in sandboxes, resumable) and apps (small React screens built from Work's component kit). An app can read your own chats in a project after you allow it once; it never sees anyone else's.
 - Automations run for you or for the whole project. A workflow starts from a schedule, a chat event, or a webhook sent to your server (GitHub's included; on the desktop, GitHub is polled into the same events), and can message your chat or a shared project chat that anyone in the project can continue (one per pull request review, one per inbound request). Projects define their own triggers, such as "a pull request was merged" or "someone mentioned the app in Slack", on top of webhooks, with filters that decide which events start a run; webhooks check each sender's signature scheme and answer its setup handshake.
 - Slack is built the same way, from project code rather than a built-in integration: mentioning the app in a Slack thread starts or continues a shared project chat for that thread, the agent reads the thread (and, given a search token, searches Slack) through the gateway, which holds the tokens, and its answer is posted back to the thread. Slack's retries of an event start no second run.
 - Pull request review is built the same way: every pull request in a connected repository gets a code and security review in its own shared chat on a dedicated review pool. The reviewer checks out the pull request's head, installs, builds, and runs the tests and the change's services in its own sandbox, checks migrations against a read-only production replica, and posts a review with inline comments and a check run; each push moves the same chat to the new head, mentions in comments are answered on the pull request, and merging or closing it releases everything the review held. The whole automation is plain files in the project that the team can edit.
 - Agents run long commands in the background, on the desktop and on the Work server, where they run inside the agent's own workspace and stop when the chat closes. On the desktop agents can also watch a command (a deploy, a file, a status page); the chat wakes when it finishes, succeeds or changes, including after the computer sleeps.
 - The mobile companion (a PWA) pairs with the desktop by QR code over your LAN, or connects to your server, so a chat can continue from your phone.
-- The Work server is a company brain in one image. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys; database access is read-only with cost and row limits, and a company can add its own guards in code (a model reviewer, a person's approval, or both) to review each action. Organization administrators connect each system once, from the app or the server, and projects choose which of those connections each environment may use in a reviewed project file. Project secrets are sealed in an encrypted vault. Enrolled workers add execution capacity holding only a machine credential, never the database or secrets; each worker serves everyone, named people and groups, or one project's own automations and shared chats, so a person's agents run on their own machine first, and machine rules can give every member of a directory group a machine of their own. Agents use Git in their sandboxes the ordinary way: fetches and pushes go through the gateway with a short-lived session grant, never the remote's credential, pushes are limited to the project's work branches, and automations can start a chat's checkout at any ref of the project's remote, such as a pull request's head, and move it when the pull request changes. Project agents can be Claude Code or Codex on the server too: the CLI runs in the chat's sandbox, on a worker or the server, and reaches its model through the gateway, which holds the organization's model key, allows only the models the environment names, and records usage per chat. Developers can instead use their own Claude Code and Codex accounts in their own remote chats, sent from Work on their computer without logging in again, along with files such as `.env` that are never committed; they reach only that person's chats, in environments that allow it, on machines that isolate that person. A chat started on their own computer moves to a server environment and continues there with its history. A single machine stays one `docker run`.
+- The Work server is a company brain in one image. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys; database access is read-only with cost and row limits, and a company can add its own guards in code (a model reviewer, a person's approval, or both) to review each action. Organization administrators connect each system once, from the app or the server, and projects choose which of those connections each environment may use in a reviewed project file. Project secrets are sealed in an encrypted vault. Enrolled workers add execution capacity holding only a machine credential, never the database or secrets; each worker serves everyone, named people and groups, or one project's own automations and shared chats, so a person's agents run on their own machine first, and machine rules can give every member of a directory group a machine of their own. Agents use Git in their sandboxes the ordinary way: fetches and pushes go through the gateway with a short-lived session grant, never the remote's credential, pushes are limited to the project's work branches, and automations can start a chat's checkout at any ref of the project's remote, such as a pull request's head, and move it when the pull request changes. Project agents can be Claude Code or Codex on the server too: the CLI runs in the chat's sandbox, on a worker or the server, and reaches its model through the gateway, which holds the organization's model key, allows only the models the environment names, and records usage per chat. Developers can instead use their own Claude Code and Codex subscriptions in their own remote chats on machines where they signed in themselves, such as a worker at home: Work never copies or forwards a sign-in, and a chat on a subscription runs only on a machine holding that person's sign-in. Files such as `.env` that are never committed can travel with them; they reach only that person's chats, in environments that allow it, on machines that isolate that person. A chat started on their own computer moves to a server environment and continues there with its history. A single machine stays one `docker run`.
 - On the Work server each project Environment chooses the image its agents run in (a registry image or a Dockerfile reviewed in the project), whether they get their own Docker and Docker Compose, and which hosts they may reach. An agent's sandboxing is enforced by the server: a contained reviewer can run anything in its sandbox but changes nothing outside it and only reads through connections, a propose agent proposes but does not publish, and a publish agent may deploy and publish. Sandboxing is separate from the harness's own permission mode, which each agent also chooses. When an unattended agent needs approval, the people its automation named get a notification and answer from their own chats.
 - Shares send customers or partners a sign-in link to one document, folder or live app. They sign in with their own account (for example your product's own sign-in over OpenID Connect) and see only what was shared.
 - A company adds its own code (guards, directories, connection providers, routes) by extending the image with `@catamorphic/work-server` hooks instead of forking. Anyone can ask their coding agent to set up a Work server with the setup skill, and members work from Claude Code or any MCP client connected to the project's MCP endpoint with their own roles: read and search the project, draft, check and deploy workflows and apps, run workflows and read their runs, ask the project's agents, and share with customers.
@@ -139,7 +140,10 @@ take over a surface at any moment, inspect diffs when a change deserves your
 eyes, or trust routine work to continue.
 
 Projects are ordinary folders and git repositories. Every agent turn that
-changes files creates a checkpoint commit. Local execution uses an embedded
+changes files creates a checkpoint commit, and any turn can be undone with
+its files. A session is a durable log of turns that every client folds the
+same way, so a turn whose machine stopped continues elsewhere on the agent's
+own conversation. Local execution uses an embedded
 database and local sandboxes, so the desktop does not depend on a hosted
 Catamorphic service.
 
@@ -442,18 +446,21 @@ Supporting packages (consumed through the surface above, importable directly for
 | --- | --- |
 | `@catamorphic/core` | Framework-agnostic service layer: projects, workflows, runs, deployments, triggers, apps, app storage, plugins, secrets, agent sessions, agent definitions, remote sync, and the CodeHost seam. The kernel behind `server-sdk` and `fastify-plugin`. |
 | `@catamorphic/db` | Kysely + Postgres. Schema-scoped (default schema `catamorphic`), raw SQL migrations, programmatic `migrateToLatest`. |
-| `@catamorphic/git` | Git-backed project storage (`isomorphic-git`): per-user working copies, pluggable origin remotes (`RemoteBackend`), and the remote sync engine (`syncWithNetworkRemote`: fetch and fast-forward; merge, push, and rescue branches only for repositories Work created), with the one push guard every network push passes (`work/` branches only on attached repositories). |
+| `@catamorphic/git` | Git-backed project storage (`isomorphic-git`): members' drafts as refs in the project origin (ADR 0191), local folder checkouts, pluggable origin remotes (`RemoteBackend`), and the remote sync engine (`syncWithNetworkRemote`: fetch and fast-forward; merge, push, and rescue branches only for repositories Work created), with the one push guard every network push passes (`work/` branches only on attached repositories). |
 | `@catamorphic/github` | GitHub mechanics: OAuth + device-flow helpers, GitHub App auth (app JWTs, installation tokens, manifest registration), and the REST API client. The server SDK builds the `github` connection provider and code host on it. |
 | `@catamorphic/parser` | ts-morph AST → `WorkflowGraph` parser + dagre layout; also powers the seeded project `check` script. |
-| `@catamorphic/sandbox` | Vendor-neutral sandbox + coding-agent contracts (`SandboxProvider`, `SandboxManager`, `RunExecutor`, `CodingAgentProvider`), the stdio supervisor transport, OTel instrumentation. |
+| `@catamorphic/sandbox` | Vendor-neutral sandbox contracts (`SandboxProvider`, `SandboxManager`, `RunExecutor`), the stdio supervisor transport, OTel instrumentation, and plugin-doc staging and tool-policy helpers for harnesses. |
+| `@catamorphic/agent-protocol` | The agent session log (turns, attempts, items, requests, provider threads), its events, commands and shared reducer, and the runner protocol every harness adapter speaks (`HarnessAdapter`). |
+| `@catamorphic/agent-runner` | The harness-agnostic runner that drives one attempt of a turn on an adapter, in-process or over stdio. |
+| `@catamorphic/runner-bundle` | The runner and its Claude Code and Codex adapters as one hash-addressed file a sandbox runs with Bun or Node. |
 | `@catamorphic/microsandbox` | Local sandbox provider over the microsandbox SDK: the desktop's default execution. |
 | `@catamorphic/local-process` | Sandboxless execution as plain subprocesses with an explicit env. Trusted single-tenant hosts only (ADR 0047). |
 | `@catamorphic/cloudflare` | Cloudflare backend plugin: `CloudflareSandboxProvider` (execution via Bridge Worker) + `ArtifactsRemoteBackend` (Cloudflare-native code storage when available). |
 | `@catamorphic/s3` | S3-compatible git origin backend for Cloudflare R2, AWS S3, MinIO, and similar stores. |
 | `@catamorphic/daytona` | Daytona backend plugin: `DaytonaSandboxProvider` + experimental Daytona git storage. |
-| `@catamorphic/ai-sdk` | Built-in coding-agent harness: Vercel AI SDK tool loop on any API model, running in the host and driving the dev sandbox remotely. |
-| `@catamorphic/claude-code` | Coding-agent harness backed by the Claude Code (Claude Agent SDK) CLI, with per-session MCP servers and full settings-source fidelity. |
-| `@catamorphic/codex` | Coding-agent harness backed by the OpenAI Codex SDK. |
+| `@catamorphic/ai-sdk` | Built-in harness adapter: Vercel AI SDK tool loop on any API model, running in the host and driving the session's sandbox through its tools. |
+| `@catamorphic/claude-code` | Harness adapter backed by the Claude Code (Claude Agent SDK) CLI, with per-turn MCP servers, portable native state and full settings-source fidelity. |
+| `@catamorphic/codex` | Harness adapter backed by the pinned OpenAI Codex app-server protocol. |
 | `@catamorphic/mcp` | MCP client infrastructure: both protocol generations with auto-negotiation, elicitation, the official MCP registry search, and plugin-marketplace install. |
 | `@catamorphic/otel` | Tiny OpenTelemetry helpers (`@opentelemetry/api` only: the host owns the SDK/exporters). |
 | `@catamorphic/runtime` | Execution harness that runs *inside* the sandbox and reports step results. |
@@ -957,7 +964,13 @@ credential exchanged once for an operator's single-use enrollment code. Workers
 dial out to the control plane over HTTPS and run agent sandboxes; workflow runs
 and every credential stay on the control plane. For availability, run
 control-plane replicas on shared Postgres with the same `WORK_SECRET`,
-`WORK_VAULT_KEY`, public origin, and sign-in and gateway configuration.
+`WORK_VAULT_KEY`, `WORK_OPERATOR_SECRET`, public origin, and sign-in and
+gateway configuration. Replicas are disposable (ADR 0190): each start is a new
+machine, a stopped or lost replica's workflow runs and chats move to the
+others, `/readyz` answers 503 while its lease is not renewing, and
+`/healthz` answers 503 once its lease is lost for good. Workers own their
+leases (ADR 0192): any replica runs any worker's agents, so stopping a replica
+interrupts only the turns it was running itself.
 `WORK_CONTROL_PLANE_WORKLOADS=workflow` keeps agent code off the control plane.
 Each worker takes work for everyone or for named people and directory groups,
 so a person's agents run on their own machine first; machine rules and a
@@ -979,6 +992,12 @@ sign in, suspended or departed accounts lose every session within one five
 minute sweep, access tokens last 15 minutes, refresh tokens rotate with reuse
 detection, and directory groups can grant project roles. See
 [company identity](../../skills/setup-work-server/references/company-identity.md).
+
+Password sign-in is limited per client address (three attempts every 10
+seconds), counted in the database so every replica shares the limit. Behind a
+load balancer or CDN, set `WORK_TRUSTED_PROXIES` to their addresses so the
+limit counts each person's address; see
+[sign-in limits](../../skills/setup-work-server/references/stock-server.md#sign-in-limits).
 
 Use [`../../skills/setup-work-server/SKILL.md`](../../skills/setup-work-server/SKILL.md)
 for agent-guided stock setup or custom-host embedding. The guidance first
@@ -1155,8 +1174,8 @@ Start small and add only what the situation needs:
   shares for customer material ([sharing](references/sharing.md)). Members
   then work from the Work app or from their own agents over the project MCP
   ([working from your own agent](references/members-over-mcp.md)).
-- **High availability:** control-plane replicas on shared Postgres, only on
-  machines trusted with every secret.
+- **High availability:** disposable control-plane replicas on shared
+  Postgres, only on machines trusted with every secret.
 
 ## 2. Read the matching reference
 
@@ -1172,7 +1191,7 @@ Start small and add only what the situation needs:
 | More execution capacity, workers, replicas for availability | [Machines: control plane, replicas, and workers](references/cluster-deployment.md) |
 | Sharing documents, folders, or apps with customers behind a sign-in | [Sharing outside the company](references/sharing.md) |
 | Members working from Claude Code, Codex, or another MCP client | [Working from your own agent](references/members-over-mcp.md) |
-| Project agents that are Claude Code or Codex, running on the server with a model key the gateway holds | [Harnesses on the server](references/harnesses.md) |
+| Project agents that are Claude Code or Codex, running on the server with a model key the gateway holds, or on a member's own subscription signed in on the machine | [Harnesses on the server](references/harnesses.md) |
 | Work server plus company code (a guard or classifier, a directory, a connection provider, seeds, or a route) | [`@catamorphic/work-server`](../../packages/work-server/README.md): extend the published image with hooks; never fork the server |
 | Existing or custom application | [Custom host](references/custom-host.md) |
 | Sign-in, OIDC, invitations, roles, permissions | [Auth and identity](references/auth-and-identity.md) |
@@ -1224,6 +1243,10 @@ disagree with the installed source, the source wins.
 - **Model keys are connections too.** Claude Code and Codex agents run in
   their sandbox and reach their model through the gateway with the chat's
   grant (ADR 0180); the server's own model variables never reach them.
+- **Sign-ins stay on the machine.** A member's Claude Code or Codex
+  subscription runs only where they signed in with the CLI's own login
+  (`work worker sign-in`), in an Environment with `"personalCredentials":
+  true`; Work never copies, stores, or forwards a sign-in (ADR 0199).
 - **GitHub is a connection.** The organization's GitHub App installation is
   the `github` service connection; sync, proposals, and agents' GitHub
   actions all go through it (ADR 0177). There is no GitHub token variable
@@ -2036,13 +2059,16 @@ does not allow:
    `read_skill`. A project with no `.work/workflows/package.json`
    needs the workspace first: copy the support files that
    `work-projects` lists with `program_files` and `program_write`.
-2. `program_write` the workflow or app. Nothing reaches others yet.
+2. `program_write` the workflow or app. Nothing reaches others yet. The
+   draft lives on the server, private to you, and one call's changes land
+   together; every replica sees them, and none loses them on restart.
 3. `program_check` refreshes generated types (the trigger kinds this server
    offers, app API types) and validates the draft: parse errors, trigger
    kinds and configuration, and imports it can see. It is not a full
    TypeScript check; keep code simple, and check locally when you have a
    clone. Fix every error.
-4. `program_deploy` with a commit message. It builds and publishes every app
+4. `program_deploy` with a commit message publishes the draft as one commit,
+   merging what others published meanwhile. It builds and publishes every app
    the change touches and reports each app's build result; a failed build
    keeps the app's previous version. Projects whose program is
    published from GitHub change through pull requests there, or
@@ -2133,12 +2159,17 @@ brain become replicas. Never add a replica just for capacity.
    ```
 
    Pass the code through the deployment's secret mechanism; it is needed only
-   for the first start. The worker stores its credential in
+   for the first start. Every worker call states the worker's protocol; a
+   control plane that cannot drive it answers `426` with
+   `{ "code": "upgrade_required", "serverProtocol", "minimum" }`, and the
+   worker logs which side to update and asks again every few minutes. Run
+   workers of the control plane's release. The worker stores its credential in
    `/data/worker-credential` (owner-only) and refuses to start if
    `DATABASE_URL`, `WORK_SECRET`, or `WORK_VAULT_KEY` is set. It dials out; open
    no inbound port.
 3. Check `GET /_work/operator/machines` for `worker.build-1` with
-   `available: true`, and `GET /_work/operator/workers` for its last contact.
+   `available: true`, and `GET /_work/operator/workers` for its last contact
+   (its last call to any replica).
 4. Nothing in projects changes: the `default` Environment already runs agents
    on any machine open to their owner. To reserve machines for some work, give
    them a label and select it in `.work/project.json`
@@ -2235,49 +2266,133 @@ worker command with `WORK_CONTROL_PLANE_URL` and the one-time
 - `GET /_work/operator/machine-rules` lists rules; `DELETE` removes one and its
   machines; `POST /_work/operator/machine-rules/reconcile` runs a pass now.
 
-The server reconciles every minute and when an account is disabled: members
-who left the group or were suspended lose their machine (revoked, then
-destroyed), and a machine that never enrolls within an hour is destroyed and
-replaced. A person gets a machine after their first sign-in, once the
+The server reconciles every minute and when an account is disabled, one
+replica at a time: a pass holds a lease in Postgres, renews it while platform
+calls run, and stops changing anything once another replica took it over; a
+machine whose enrollment code is still waiting is never provisioned twice.
+Members who left the group or were suspended lose their machine (revoked,
+then destroyed), and a machine that never enrolls within an hour is destroyed
+and replaced. A person gets a machine after their first sign-in, once the
 directory has placed them in the group.
 
 ## Add a control-plane replica
 
-1. Provision the same version with its own empty `WORK_DATA_DIR`; never copy
-   another machine's identity or data volume.
+A replica on network Postgres is disposable (ADR 0190): everything durable
+lives in Postgres or in its configuration, so any replica can be replaced by a
+fresh one with an empty disk at any time.
+
+1. Provision the same version with its own `WORK_DATA_DIR`. It may be empty
+   and need not persist: it holds only session checkouts and sandboxes. Never
+   share one data directory between two running replicas: a replica removes
+   the sandboxes it finds there when it starts.
 2. Supply the deployment's `DATABASE_URL`, `WORK_SECRET`, `WORK_VAULT_KEY`,
-   `WORK_PUBLIC_URL`, sign-in configuration (`WORK_AUTH_CONFIG`), and gateway
-   configuration (`WORK_GATEWAY_CONFIG`) through the secret mechanism. All
-   replicas share one public HTTPS origin behind the load balancer.
-3. Start the normal server. Boot migrates with database coordination, checks
-   that origin, secrets, vault key id, and sign-in configuration match, and
-   registers its machine with a renewable lease.
-4. Workers reconnect through the load balancer to any replica. If the replica
-   holding a worker's lease stops, the lease lapses within about a minute and
-   the worker's next connection moves it.
+   `WORK_OPERATOR_SECRET`, `WORK_PUBLIC_URL`, sign-in configuration
+   (`WORK_AUTH_CONFIG`), and gateway configuration (`WORK_GATEWAY_CONFIG`)
+   through the secret mechanism. Boot refuses a Postgres deployment without
+   `WORK_OPERATOR_SECRET`, since every replica must answer the same operator
+   credential. All replicas share one public HTTPS origin behind the load
+   balancer; set `WORK_MDNS=off`. Set `WORK_TRUSTED_PROXIES` to the balancer's
+   (and any CDN's) addresses so sign-in limits count each person's address,
+   not the balancer's; the limits are shared by every replica
+   ([sign-in limits](stock-server.md#sign-in-limits)).
+3. Start the normal server under a restart policy. Boot migrates with
+   database coordination, checks that origin, secrets, vault key id, and
+   sign-in configuration match, and registers a new machine
+   (`node.<uuid>`, `plane=control`) with a renewable lease. The machine lives
+   as long as the process: a restarted replica is a new machine.
+4. Probe it. `/readyz` (readiness) answers 503 while its lease is not
+   renewing, for example during a database failover, or while the machine is
+   disabled; the balancer then routes around it. `/healthz` (liveness) answers
+   503 only once the lease is lost, which is permanent (the database refused
+   a renewal, or none landed for 45 seconds): the process then exits and its
+   supervisor starts a fresh one. Never point liveness at `/readyz`:
+   a database blip shorter than the 45 second lease would restart every
+   replica. On Kubernetes, also set `terminationGracePeriodSeconds` to at
+   least 30, so a stopping replica can let its chat turns finish (up to 15
+   seconds) and move its work before it is killed. The image exits within 25
+   seconds of SIGTERM whatever is still running.
+5. Workers reach the replicas through the load balancer, and any replica
+   answers any worker call (ADR 0187). A worker retries a failed call, such as
+   a 502 or a replica restarting, without ending its session or interrupting
+   its agents. Set the balancer's idle timeout above 30 seconds (a poll waits
+   up to 20) and allow 64 MiB request bodies. A worker owns its lease (ADR
+   0192): its own calls renew it, and any replica runs its agents. Stopping a
+   replica affects only the turns that replica was running: a stopping
+   replica lets them finish or interrupts them (see below), and a crashed
+   one's are settled as interrupted by another replica once their turn lease
+   lapses, about a minute later. The chats' next turns run on any replica. A
+   worker that is away for more than 45 seconds is unavailable: its chats'
+   turns wait, and in-flight operations its controllers stopped waiting for
+   fail as uncertain. When it calls again, the same process simply carries
+   on.
+6. No replica keeps state another replica needs in memory (ADR 0193).
+   Whether a chat is running, and whether it may be changed, comes from its
+   turn's lease in Postgres, so every replica answers the same. An interrupt,
+   close, or archive sent to any replica reaches the turn within about a
+   second; a closed chat's workspace is given back only once its turn has
+   stopped. One replica at a time publishes a project, creates a deployment
+   runtime, or syncs a company project, under a claim in Postgres. A deploy
+   applies on every replica at once: roles and program reads follow the
+   published commit.
+
+A restarted worker process connects under a new epoch. The operations it had
+in flight fail as uncertain and are never replayed; its sandboxes and chats
+carry on. Two processes must never share one worker's data volume: the older
+one stops for good once the newer one connects. A new process whose clock is
+behind its predecessor's waits up to 45 seconds for the old lease to lapse.
 
 The operator can disable any machine with
 `PATCH /_work/operator/machines/:id` and `{ "enabled": false }`. Lease fencing
-blocks new claims and renewal of old execution ownership. Existing sessions do
-not silently move to a different machine. Inspect uncertain actions and move a
-settled session explicitly through its Environment update.
+blocks new claims and renewal of old execution ownership. A disabled
+replica's lease lapses, its process exits, and its work is recovered like a
+lost replica's. A disabled single server keeps running, answers 503 on
+`/readyz`, takes no work, and resumes when its own operator API enables it
+again. A disabled worker keeps its sessions: they do not silently move to a
+different machine.
 
 ## Shared state and recovery
 
 Network Postgres holds core state, Better Auth in its own schema, worker leases,
-permission requests, runner jobs, project origin objects, deployment/app bundles,
-and encrypted vault records. Neither `WORK_SECRET` (sign-in and notification
+permission requests, runner jobs, project origin objects, members' program
+drafts (refs in each project's origin, ADR 0191), deployment/app bundles,
+and encrypted vault records. A member's draft is the same on every replica,
+so any replica answers any `program_*` call, and replacing a replica loses
+no draft. Neither `WORK_SECRET` (sign-in and notification
 signing) nor `WORK_VAULT_KEY` (the credential vault) is stored in these records.
 Back up the database and protect both secrets separately. Rotate the vault key
 by moving the old key to `WORK_VAULT_PREVIOUS_KEYS`; see
 [secrets and the gateway](secrets-and-gateway.md).
 
-Each machine owns local checkouts and sandbox processes. Server agent sessions
-checkpoint to isolated `sessions/<id>` branches in the shared origin. Relocation
-reconstructs the workspace and model history; it does not migrate a live process
-or publish session edits to project `main`. Failed checkpoint persistence is a
-failed turn requiring recovery. Work not checkpointed before a machine is lost
-remains uncertain and is never automatically replayed.
+A replica that stops (SIGTERM) stops claiming work, returns its running
+workflow jobs to the queue, lets its running chat turns finish (and
+interrupts any still running after about ten seconds), gives its machine
+back, moves its work to the other replicas at once, and removes its
+sandboxes. A replica that dies is lost once its lease has lapsed
+for 30 seconds (about a minute and a quarter after its last renewal). Every
+replica checks for lost replicas every ten seconds and recovers their work:
+
+- each workflow run, paused durable runs included, gets a workspace on a
+  live replica in its own Environment. Its sandbox is rebuilt from the
+  deployed commit and its step journal carries on; a step whose outcome was
+  uncertain retries as after a restart. The run is placed for its owner
+  with their current access, as a chat's next turn is. A run that no replica
+  can take waits for one; a run whose Environment the project removed, or
+  whose owner may no longer act, fails with the reason.
+  Tenant run capacity is freed when the run ends, as always;
+- each chat's workspace on that replica is released; its next turn is
+  admitted on a live machine and restores the workspace from its
+  `sessions/<id>` branch. Chats on workers and on members' machines keep
+  their workspaces: any replica runs their turns;
+- the lost machine disappears from `GET /_work/operator/machines`.
+
+Server agent sessions checkpoint to isolated `sessions/<id>` branches in the
+shared origin after every settled turn. Relocation reconstructs the workspace
+and model history; it does not migrate a live process or publish session edits
+to project `main`. Failed checkpoint persistence is a failed turn requiring
+recovery. Work not checkpointed before a machine is lost, and a chat's
+background processes, are gone with it and never automatically replayed.
+Members' program drafts live in the project origin (ADR 0191), never on a
+replica, so losing one loses no draft.
 
 ## A member's This machine
 
@@ -2287,6 +2402,12 @@ an authenticated SDK runner using its local sandbox provider. It receives no
 Postgres credentials. Discovery and every operation retain the member's current
 project and Environment permissions. Closing the desktop or losing authorization
 stops the runner. A new connection lifetime cannot revive an old allocation.
+The runner renews its own lease through any replica, so its chats belong to no
+replica: any replica runs their turns, and they continue when the replica
+that admitted them stops (ADR 0192). While the runner is away, its chats' turns stay
+queued instead of failing. When it connects again, a new connection cannot
+revive the old workspace (see above): each chat is admitted on the new
+connection and its workspace rebuilt from its `sessions/<id>` branch.
 
 Stock local execution uses the controller topology: the host model loop and
 connection broker stay on the server; sandbox commands and files run on the
@@ -2461,18 +2582,23 @@ An Environment chooses its sandbox (ADR 0176) in `.work/project.json`:
   `WORK_UNENFORCED_EGRESS=accept`, which runs them with open egress.
 
 Machines advertise `images`, `images.build`, `containers`, and
-`network.policy`, and a local-process machine `harness.claude-code` and
+`network.policy`, `sign-ins` and one `sign-in:<harness>:<member>` per
+member signed in on them, and a local-process machine `harness.claude-code` and
 `harness.codex` when those CLIs are on its `PATH`;
 `GET /_work/operator/machines` shows them. An Environment
 no machine satisfies reports which capability is missing. VM budgets include
 nested containers; the Docker disk has its own size, and local-process
 containers are not budgeted.
 
-## Members' own logins and files
+## Members' own sign-ins and files
 
-An Environment with `"personalCredentials": true` lets a member's own
-Claude Code or Codex login and listed files reach that member's own chats
-(ADR 0184, [harnesses](harnesses.md#members-own-logins)). Only placements
+An Environment with `"personalCredentials": true` lets a member's chats run
+Claude Code or Codex on the member's own sign-in, made on a machine with
+`work worker sign-in <claude-code|codex> --member <id>` in a terminal there
+(ADR 0199, [harnesses](harnesses.md#members-own-sign-ins)), and lets their
+listed files reach their own chats. The sign-in never leaves that machine:
+the worker reports only `sign-in:<harness>:<member>` in its offer, and
+placement takes only a machine reporting the chat owner's. Only placements
 that isolate the member qualify: microsandbox, a worker whose access names
 only that person, or the member's device. A local-process machine that
 serves several people (a `trusted` worker, or the control plane itself)
@@ -2480,7 +2606,9 @@ refuses them unless its operator sets `WORK_PERSONAL_CREDENTIALS=accept` on
 that machine (the worker's own environment, like `WORK_UNENFORCED_EGRESS`),
 which advertises `credentials.personal`. Give such Environments egress to
 `api.anthropic.com`, `chatgpt.com`, and `api.openai.com` when they restrict
-it, and the CLIs on the path or in the image.
+it, and the CLIs on the path or in the image. A company that wants these
+harnesses for everyone binds a model connection instead
+([harnesses](harnesses.md)).
 
 ## Unattended agents
 
@@ -2540,12 +2668,17 @@ data volume across updates.
 2. Stop submitting new work through the host's maintenance controls. Wait for
    turns and external actions to settle and verify their checkpoints. Inspect
    retained workspace processes and data that require persistence.
-3. Disable the machine through the operator API before replacing its process.
-   Disabling fences claims and lease renewal; it is not a graceful drain of
-   running work. Never use it as evidence that an external action was undone.
-4. Update the service/image while preserving that machine's own data volume and
-   identity. Boot applies coordinated migrations. Re-enable the machine through
-   the operator API and verify heartbeat, capabilities, and capacity before use.
+3. Stop each control-plane replica with SIGTERM: its work moves to the
+   replicas still running, or waits for the next one to start. Then start the
+   new version; boot applies coordinated migrations. A replica needs no data
+   volume or identity carried over.
+4. For a worker or a single server, disable the machine through the operator
+   API before replacing its process. Disabling fences claims and lease
+   renewal; it is not a graceful drain of running work. Never use it as
+   evidence that an external action was undone. Update the service/image while
+   preserving that machine's own data volume and identity. Re-enable the
+   machine through the operator API and verify heartbeat, capabilities, and
+   capacity before use.
 5. Test sign-in, a permitted session, private HTTP access, and checkpoint
    persistence. Explicitly recover or relocate interrupted sessions. A service
    restart does not move a live process or promise automatic replay.
@@ -2633,7 +2766,12 @@ const server = await createWorkServer({
 validate earlier. Generated state stays in files under `dataDir` (the vault
 key, the generated secrets, the host id, worker credentials); the matching
 config fields and hooks (`secret`, `vaultKeys`, `operatorSecret`) supply them
-instead.
+instead. With `databaseUrl` the server is a disposable replica (ADR 0190):
+`secret`, vault keys, and `operatorSecret` are required, it writes no identity
+to `dataDir`, and it registers a new machine at every start. `server.lost`
+resolves when that machine's lease is lost (`/healthz` then answers 503;
+`/readyz` answers 503 whenever renewals fail); the host should then shut down so
+its supervisor starts a fresh process.
 
 ## Hooks
 
@@ -3052,7 +3190,7 @@ Project permissions are `thing:action`. Catamorphic enforces these:
 
 `write` and `publish` each imply `read` on the same thing; nothing else implies anything, so `program:publish` does not include `program:write`. A grant may be `thing:*` or `*`. Deleting a project is a tenant operation for the root identity only.
 
-Which artifacts and permissions each user gets is host policy (a role file, an entitlement table); catamorphic only enforces the result. Enforcement lives in core, so `server-sdk` callers get it too: `catamorphic.forTenant({ tenantId }).forUser({ externalUserId, scope, projectPermissions })`. Scoped agent sessions hand the harness the caller (`StartSessionOpts.caller`, forwarded on `ExtraToolContext.caller`) and the caller's policy layers (`StartSessionOpts.toolPolicies`, refreshed on every `TurnOptions.toolPolicies`) — a hosting backend uses `caller` in `mcpServersForSession` to mint the project MCP endpoint's credentials for that user, so the endpoint enforces the same scope structurally. See [`docs/decisions/0053-identity-scope-and-app-routes.md`](docs/decisions/0053-identity-scope-and-app-routes.md) and [`0055`](docs/decisions/0055-company-brain-roles-store-and-change-loop.md).
+Which artifacts and permissions each user gets is host policy (a role file, an entitlement table); catamorphic only enforces the result. Enforcement lives in core, so `server-sdk` callers get it too: `catamorphic.forTenant({ tenantId }).forUser({ externalUserId, scope, projectPermissions })`. Scoped agent sessions hand host hooks the caller (`AgentTurnContext.caller`, also on `ExtraToolContext.caller`) and the harness the caller's policy layers (`AttemptStart.toolPolicies`, read again at every attempt): a hosting backend uses `caller` in `harness.mcpServers(context)` to mint the project MCP endpoint's credentials for that user, so the endpoint enforces the same scope structurally. See [`docs/decisions/0053-identity-scope-and-app-routes.md`](docs/decisions/0053-identity-scope-and-app-routes.md) and [`0055`](docs/decisions/0055-company-brain-roles-store-and-change-loop.md).
 
 ### Roles as files, memberships as the stock source (ADR 0055)
 
@@ -3074,7 +3212,7 @@ Most hosts do not want to hand-write scopes. Commit roles into the project — `
 { "version": 1, "name": "Brain Maintainer", "permissions": ["brain:maintain"], "agents": ["brain-maintainer"] }
 ```
 
-`{param}` placeholders are filled from per-user **grants** (`{ customer: ["acme", "globex"] }`), one ref per value; an entry whose placeholder has no grant yields nothing. `permissions` become the identity's `projectPermissions`; an admin who may not see the whole store simply lists fewer documents. Writing, committing or publishing any `.work/roles/*.json` needs `roles:write`, whoever made the edit. Role files are read from the shared origin `main` (a project without a remote reads its working tree), cached briefly (`rolesCacheTtlMs`, default 10s), and never throw: a broken file is reported by `GET /projects/:id/roles` and contributes nothing.
+`{param}` placeholders are filled from per-user **grants** (`{ customer: ["acme", "globex"] }`), one ref per value; an entry whose placeholder has no grant yields nothing. `permissions` become the identity's `projectPermissions`; an admin who may not see the whole store simply lists fewer documents. Writing, committing or publishing any `.work/roles/*.json` needs `roles:write`, whoever made the edit. Role files are read from the shared origin `main` (a project without a remote reads its working tree), cached per published commit (every resolve reads the current one, so a deploy applies on every replica at once, ADR 0193), and never throw: a broken file is reported by `GET /projects/:id/roles` and contributes nothing.
 
 Two ways to turn a verified user into an identity:
 
@@ -3133,6 +3271,37 @@ Scope is how a host says "may not"; a few coarse switches say what the whole ins
 
 **Remote login.** Connect links are credential-free locators: `work://connect?server=…&project=…&invitation=…`. A compatible host publishes OAuth protected-resource and authorization-server metadata. The desktop and PWA dynamically register public clients, use authorization code with S256 PKCE, keep refreshable credentials in local protected storage, and redeem admission after sign-in. A 401 changes the connection state to "Sign in again" and reruns the same OAuth path. Embedders may implement that contract with their existing identity system; Catamorphic's framework packages remain auth-neutral.
 
+### Agent sessions: an event log of turns (ADRs 0197, 0198)
+
+A session holds turns; a turn holds attempts; items are the ordered
+transcript (messages, reasoning, tool calls, commands, file changes, plans,
+requests, subagents, notices); runtime requests are questions, approvals and
+elicitations; provider threads are the harnesses' native conversations. Every
+change is an event in the session's gapless log, committed with the rows it
+changes, so a client folds the same history wherever it reads it. The types
+and the pure reducer are `@catamorphic/agent-protocol`.
+
+- `GET /projects/:id/agent/sessions/:sid` returns the session with a bounded
+  `snapshot` (recent turns, their items, open requests, threads) and its
+  `sequence`; `GET .../items?before` pages older items.
+- `GET .../events?after=<sequence>` streams events over SSE (`events`,
+  `reset` with a fresh snapshot when the gap is too large, `heartbeat`).
+  Fold them with `applySessionEvents`; resume from the last sequence.
+- `POST .../commands` takes one `SessionCommand` (`send` with `dispatch:
+  queue | steer | interrupt`, `interrupt`, `retry`, `edit_queued`,
+  `cancel_queued`, `send_now`, `respond`, `rollback`) with a client-made
+  `commandId`; sending it again returns its first receipt.
+
+Agents are `RegisteredCodingAgent`s whose `harness` is either `{ placement:
+"host", adapter }` (a `HarnessAdapter` such as `createClaudeCodeAdapter`,
+`createCodexAdapter` or `createAiSdkAdapter`, run in this process, beside a
+checkout on this machine or driving a sandbox through its tools) or `{
+placement: "sandbox", id }` (the bundled runner runs the CLI inside the
+session's sandbox). A turn whose machine went away is recovered by any
+replica: its runner is reattached when it survived, otherwise the attempt is
+lost and a continuation turn resumes the native thread (`recovery:
+"continue"`, the default).
+
 ### Agent session lifecycle and delegation
 
 Agent sessions carry source provenance, hierarchy, fork lineage, presentation,
@@ -3147,14 +3316,13 @@ durable identities and policies.
 Archive is a recursive server operation, not a local hidden flag. It reports
 the session ids, running work, Watchers, and processes that would stop and
 returns `409 archive_confirmation_required` until the caller confirms when
-necessary. Unarchive restores navigation; later work re-anchors the chosen
-provider. React hosts use `useArchiveAgentSession`,
+necessary. Unarchive restores navigation. React hosts use `useArchiveAgentSession`,
 `useUnarchiveAgentSession`, and
 `useAcknowledgeAgentSessionAttention` instead of hand-written state.
 
 ### The project MCP endpoint: bring your own agent
 
-`POST /api/projects/:id/mcp` serves the caller's whole scope as one MCP server: the project's `mcpToolKinds` workflow tools (roster filtered to the caller's workflow refs), `documents_list/read/search/write/delete/history` (the documents surface, per the caller's document refs; `documents_write` takes `text` or `base64` for binaries), `publish_document/revoke_publication/list_publications`, `propose_change`, `list_skills/read_skill`, and `ask_agent` (a synchronous turn with a project agent the caller may open sessions on). Claude Code, Cursor, or the host's own assistant connect with a host-issued token through `identityFromBearer`; the desktop's harnesses mount the same URL per session (`mcpServersForSession`). Being invited *is* receiving this URL.
+`POST /api/projects/:id/mcp` serves the caller's whole scope as one MCP server: the project's `mcpToolKinds` workflow tools (roster filtered to the caller's workflow refs), `documents_list/read/search/write/delete/history` (the documents surface, per the caller's document refs; `documents_write` takes `text` or `base64` for binaries), `publish_document/revoke_publication/list_publications`, `propose_change`, `list_skills/read_skill`, and `ask_agent` (a synchronous turn with a project agent the caller may open sessions on). Claude Code, Cursor, or the host's own assistant connect with a host-issued token through `identityFromBearer`; the desktop's harnesses mount the same URL on every turn through their harness's `mcpServers(context)` hook. Being invited *is* receiving this URL.
 
 The generated HTTP client lives in `@catamorphic/api-client`; construct it with `createApiClient({ baseUrl, fetch })`.
 
@@ -3222,9 +3390,9 @@ Hooks shipped:
 
 - **Projects + workflows + files**: `useProjects`, `useProject`, `useCreateProject`, `useUpdateProject`, `useDeleteProject`, `useProjectFiles`, `useProjectFile`, `useWriteProjectFile`, `useWorkflows`, `useWorkflow`.
 - **Runs**: `useRuns`, `useRun`, `useTriggerRun`, `useCancelRun`, `usePauseRunProcessing`, `useResumeRunProcessing`, `useSubmitRunInput`, `useRunItems`, `useRunItemSteps`.
-- **Git**: `useProjectGit`, `useProjectBranches`, `useProjectCommits`, `useProjectConflicts`, `useCreateBranch`, `useCheckoutBranch`, `useCommitChanges`, `useDeployProject`, plus the composite `useProjectGitState({ projectId, baselineFiles })` for multi-branch draft persistence.
+- **Git**: `useProjectGit`, `useProjectCommits`, `useProjectConflicts`, `useCommitChanges`, `useDeployProject`, plus the composite `useProjectGitState({ projectId, baselineFiles })` for client-side draft persistence.
 - **Plugins + secrets**: `usePluginCatalog`, `useProjectPlugins`, `useAttachPlugin`, `useDetachPlugin`, `useProjectSecrets`, `useUpsertProjectSecret`, `useDeleteProjectSecret`.
-- **Agent sessions**: `useAgentSessions`, `useAgentSession`, `useCreateAgentSession`, `useSendAgentMessage`, `useAcknowledgeAgentSessionAttention`, `useArchiveAgentSession`, `useUnarchiveAgentSession`.
+- **Agent sessions**: `useAgentSessions`, `useAgentSession` (the live session: snapshot, event stream, resume, gap recovery), `useAgentChat` (turns, queue, requests and every session command), `useCreateAgentSession`, `useAcknowledgeAgentSessionAttention`, `useArchiveAgentSession`, `useUnarchiveAgentSession`; `sessionTimeline` reads a session as turns of input, work and answer.
 - **Workflow enablement**: `useWorkflowEnablements`, `usePreviewWorkflowEnablement`, `useCreateWorkflowEnablement`, `useUpdateWorkflowEnablement`.
 
 All hooks reject with the typed `CatamorphicError` envelope (discriminated by `code`: `unauthorized`, `forbidden`, `not_found`, `conflict`, `validation`, `rate_limited`, `sandbox_unavailable`, `authentication_required`, `network`, `unknown`). Check `err instanceof CatamorphicError` and switch on `err.code`; never branch on `err.message`. Shared OpenAPI-derived domain types (`Project`, `Run`, `RepoStatus`, `BranchInfo`, `ConflictEntry`, `PluginInfo`, `Secret`, `AgentSession`, …) live behind a single `@catamorphic/react/types` barrel.
@@ -3235,34 +3403,31 @@ Coding-agent harnesses gate every MCP tool call through a permission policy
 (`allow` / `ask` / `deny`; `auto` = read-only tools run, others ask). A host
 supplies two things:
 
-- **Policies** — per server key, as layers that intersect (strictest wins).
-  Pass `mcpPolicies` (a value or a getter) to `AiSdkCodingAgent` /
-  `ClaudeCodeAgent` / `CodexAgent`; a shared org credential's ceiling is
-  simply the first layer, the user's own policy the second, the agent's the
-  third. Codex has no per-call approval channel: `deny` and `ask` become
-  `disabled_tools` there.
-- **The answer to `ask`** — `onToolPermission`. Hosts with their own consent
-  UI implement it directly. Browser-served hosts use the broker: create a
-  `ToolPermissionBroker` (from `@catamorphic/core`), pass it as
-  `toolPermissions` on the core config and hand `broker.handlerFor(agentName)`
-  to each provider. The plugin then serves
-  `GET /projects/:id/agent/sessions/:sid/permissions` and
-  `POST …/permissions/:pid` (`{decision: "allow" | "deny", remember?:
-  "always"}`); `useToolPermissions()` in `@catamorphic/react` polls them
-  while a turn runs and the registry's `tool-permission-card` (already inside
-  `agent-chat`) renders the consent. Unanswered asks deny after five minutes.
-  Persisting an "always allow" is the host's job — it knows where the
-  connection's policy lives.
-- **Unattended chats** (ADR 0176) — `DurableToolPermissionBroker` (durable,
-  any replica answers) routes an ask in a project chat, or one a workflow
-  delivered with `approvers: { members, roles }`, to those people: it
-  publishes an `approval_requested` notification, promotes the chat in their
-  list, and lets them answer the card without otherwise holding the chat
-  (the permission routes filter to what they may answer). It waits the
-  Environment's `approvals.waitMinutes` (options `timeoutMs` and
-  `unattendedTimeoutMs` set the defaults: five and 30 minutes) and denies
-  with a `reason` the agent reads. Role holders come from stock memberships;
-  hosts with their own directory name members.
+- **Policies**: per server key, as layers that intersect (strictest wins).
+  A host agent's `harness.toolPolicies()` (read at every attempt) and
+  `RegisteredCodingAgent.toolPolicies` give the host's and the agent's
+  layers; core adds the caller's. A shared org credential's ceiling is simply
+  the first layer, the user's own policy the second, the agent's the third.
+  The runner applies them to every tool call, in every harness (ADR 0198).
+- **The answer to `ask`** (ADR 0197): an ask is a runtime request on the
+  session's working turn (`kind: "approval"`), in the session snapshot and
+  its event stream like any other change. Any client answers it on any
+  replica with a `respond` command:
+  `POST /projects/:id/agent/sessions/:sid/commands` with
+  `{ type: "respond", commandId, requestId, response: { kind: "approval",
+  decision: "approved" | "denied", remember?: "always" } }`. Questions and
+  elicitations answer the same way. Persisting an "always allow" is the
+  host's job, through `onToolAlwaysAllowed({ agentId, server, tool })`: it
+  knows where the connection's policy lives.
+- **Unattended chats** (ADR 0176): an approval in a project chat, or in one a
+  workflow delivered with `approvers: { members, roles }`, opens with those
+  people as its `approvers`: they get an `approval_requested` notification,
+  the chat is promoted in their list, and only they may answer it (they need
+  no other access to the chat). It waits the Environment's
+  `approvals.waitMinutes` (default 30 minutes; five in a person's own chat)
+  and then denies with a `reason` the agent reads. With nobody to approve it
+  is refused at once, with a reason. Role holders come from stock
+  memberships; hosts with their own directory name members.
 
 Core also applies a committed definition's `toolPolicies` (keyed by
 connection alias or `catamorphic`) as the agent's layer on every host, and
@@ -3274,8 +3439,7 @@ gateway, and only read connection actions run
 `RegisteredCodingAgent.sandboxing` and `.toolPolicies` carry the same for
 agents a host defines itself. A definition's `harnessPermissions` (Claude
 Code `permissionMode`; Codex `sandbox` and `approvals`) reach the harness as
-`TurnOptions.harnessPermissions` on every turn; harnesses honor them over
-their constructor defaults.
+`AttemptStart.permissions` on every attempt, over the agent's own options.
 
 ## Ready-made components: `@catamorphic/ui`
 
@@ -3524,7 +3688,7 @@ entries is legitimate:
 - `standingAgentPrompt` — the standing system prompt for agent sessions:
   omit for the default (`STANDING_AGENT_PROMPT`: general work, audience
   calibration, skills on demand), a string to replace, `false` for none.
-  Keep it stable; per-turn facts belong in `TurnOptions.context` fragments
+  Keep it stable; per-turn facts belong in `harness.context(context)` fragments
   (ADR 0152), not the system prompt.
 
 ```ts
@@ -3606,6 +3770,17 @@ as **This machine** and does not require database credentials (ADR 0098).
 The stock Postgres host implements shared objects, machine leases, auth, and
 durable approvals. Custom hosts register `WorkerNodesService` leases, inject
 `workerNode: { id, token }`, and renew/release them with their host lifecycle.
+A host whose instances keep nothing durable on disk registers each process as
+a new `disposable: true` node and calls `core.nodeRecovery.recoverLostNodes({
+authorityId })` periodically: a disposable node that released its lease, or
+whose lease lapsed past `LOST_NODE_GRACE_MS`, has its workflow runs moved to a
+live node and its chats released for readmission
+([ADR 0190](docs/decisions/0190-disposable-control-plane-replicas.md)).
+A remote executor owns its node lease (ADR 0192): the host connects it with
+`WorkerNodesService.connectRemote({ epoch, offer, ... })`, renews it from the
+executor's own calls with `renewRemote`, and builds its sandbox provider from
+the row with `remoteProvider`; any host of the authority then claims its
+turns. `workerNode` names only the process's own local node.
 Enable `clientExecution: true` to accept authenticated member sandbox runners;
 `startClientRunner` supplies the transport-independent client loop. See the
 [cluster setup reference](skills/setup-work-server/references/cluster-deployment.md)
@@ -3626,7 +3801,7 @@ the Work server ship none. Core runs them in order on every brokered action
 (connections, Git, models) and keeps the mechanics: any deny wins, a guard
 that throws denies, one slower than `connectionGuardTimeoutMs` (default 30
 seconds) escalates, an escalation asks the agent session's person or a project
-chat's approvers through `toolPermissions` (a workflow's is refused), and each
+chat's approvers with a request on the working turn (a workflow's is refused), and each
 verdict lands in the connection audit. Guards skip connections outside their
 `kinds`, so the audit holds only verdicts that were judged. Provider limits,
 Git push rules, and model allowlists and budgets are mechanics and stay in
@@ -3704,23 +3879,24 @@ back unchanged. Guards see kind `model` with action = method and path
 spending rules belong in guards. Usage lands in `model_usage` per session and
 turn, read passively from Anthropic and OpenAI answers (zero when a format is
 not recognized, such as a Chat Completions stream without
-`stream_options.include_usage`). At each sandbox turn core writes the grant of every model alias into
-the sandbox (the same `sandbox`-channel grants as Git) and passes the turn
-`TurnOptions.sandbox` and, for an agent registered with `modelConnection:
-<alias>`, `TurnOptions.modelGateway`. `ClaudeCodeAgent` and `CodexAgent` with
-`sandbox: {}` then run their CLI inside that sandbox over process operations
-(`spawnInSandbox`; providers implement `processes.writeProcessInput` for a
-process started with `stdin: true`), with the gateway as their only model
-endpoint. Harness binaries come from the Environment image.
+`stream_options.include_usage`). At each sandbox attempt core writes the grant of every model alias into
+the sandbox (the same `sandbox`-channel grants as Git), and an agent
+registered with `harness: { placement: "sandbox", id }` and `modelConnection:
+<alias>` gets `AttemptStart.modelAccess = { kind: "gateway", ... }`. Core
+starts the runner bundle (`@catamorphic/runner-bundle`) inside the sandbox
+as a process with standard input (providers implement
+`processes.writeProcessInput` for a process started with `stdin: true`); the
+runner runs the harness's CLI beside the workspace, with the gateway as its
+only model endpoint, and any replica can read it or reattach to it (ADR
+0198). Harness binaries come from the Environment image.
 
-Personal credentials (ADR 0184): a member's own harness logins and listed
-files may reach sandboxes that run only that member's work. The member's
-client calls `PUT /projects/:id/personal-environment` with `{ logins:
-{ "claude-code"?: { credentials, expiresAt? }, codex?: { auth, expiresAt? } },
-files: [{ path, content /* base64 */ }] }` (refresh tokens refused, at most
-50 files of 256 KiB, repository-relative paths); `GET` answers `{ allowed,
-logins: { [kind]: { fingerprint, expiresAt?, updatedAt, needsRefresh } },
-files: [{ path, fingerprint, bytes, updatedAt }] }` and `DELETE` forgets them.
+Personal credentials (ADRs 0184, 0199): a member's listed files may reach
+sandboxes that run only that member's work. The member's client calls
+`PUT /projects/:id/personal-environment` with `{ files: [{ path, content
+/* base64 */ }] }` (at most 50 files of 256 KiB, repository-relative paths);
+a body naming `logins` is refused with 400, since sign-ins stay on the
+machine they were made on. `GET` answers `{ allowed, files: [{ path,
+fingerprint, bytes, updatedAt }] }` and `DELETE` forgets them.
 Values are sealed in `credentialVault` (required) as
 `core.personalEnvironments`. An Environment opts in with
 `personalCredentials: true`; admission then requires the chat's owner to be a
@@ -3728,14 +3904,15 @@ member (not the project principal) and the placement to isolate them:
 binding isolation `sandbox`, a `device: "member"` Environment, an
 `EnvironmentRuntimeBinding.servesOnlyOwner` from the host's provider, or the
 machine capability `credentials.personal` (`MACHINE_CAPABILITIES` in
-`@catamorphic/sandbox`). Register an agent with `personalLogin:
-"claude-code" | "codex"` to run on the owner's login: admission and
-discovery pass it through (refusals are `EnvironmentIncompatibleError`
-reasons; without an Environment image the machine must advertise
-`harness.claude-code` or `harness.codex`), core writes the login under
-`.work-session/home/` each turn and on grant renewal and passes
-`TurnOptions.personalLogin`, and the harnesses run with `CLAUDE_CONFIG_DIR` or
-`CODEX_HOME` instead of the gateway. Listed files are delivered to any of the
+`@catamorphic/sandbox`). Register an agent with `signIn:
+"claude-code" | "codex"` to run on the owner's own subscription (ADR 0199):
+the sign-in is made on the machine that runs the chat (`work worker sign-in
+<harness>` on a worker) and never leaves it. Work copies no sign-in.
+Placement takes only machines that report `sign-in:<harness>:<member>`
+(`signInCapability`), turns must be authored by the owner, and the sandbox
+mounts that member's harness home (`CreateSandboxOpts.signIns`) so the
+harness runs with `CLAUDE_CONFIG_DIR` or `CODEX_HOME` instead of the
+gateway. Listed files are delivered to any of the
 owner's chats in such an Environment, excluded from Git through
 `.git/info/exclude`, and removed on close and idle release. Discovery items
 carry `personalCredentials` when an Environment allows them.
