@@ -40,13 +40,14 @@ We built Work because we believe one well-built piece of software can replace mo
 - Agents can be Claude Code, Codex, or API models (multi-harness), with per-agent permission mode (each harness's own, such as Claude Code's plan, auto or bypass permissions, or Codex's sandbox and approvals), sandboxing, memory, skills, instructions and effort. Connectors (MCP) attach to profiles and agents.
 - Every chat is a durable log of turns, the same on the desktop, the phone and the server, streamed live. Questions and approvals can be answered from any of them, a message sent while an agent waits on a question reaches it in the same turn, a turn whose machine stopped is picked up by another and continues on the agent's own conversation, and any turn can be undone with the files it changed.
 - Agents write durable workflows (TypeScript, run in sandboxes, resumable) and apps (small React screens built from Work's component kit). An app can read your own chats in a project after you allow it once; it never sees anyone else's.
-- Automations run for you or for the whole project. A workflow starts from a schedule, a chat event, or a webhook sent to your server (GitHub's included; on the desktop, GitHub is polled into the same events), and can message your chat or a shared project chat that anyone in the project can continue (one per pull request review, one per inbound request). Projects define their own triggers, such as "a pull request was merged" or "someone mentioned the app in Slack", on top of webhooks, with filters that decide which events start a run; webhooks check each sender's signature scheme and answer its setup handshake.
+- Automations run for you or for the whole project. A workflow starts from a schedule, a chat event, or a webhook sent to your server (GitHub's included; on the desktop, GitHub is polled into the same events), and can message your chat or a shared project chat that anyone in the project can continue (one per pull request review, one per inbound request). On a Work server, people joining, leaving, or changing groups in the company directory start workflows too, so a new engineer's keys are issued as they join and revoked as they leave. Projects define their own triggers, such as "a pull request was merged" or "someone mentioned the app in Slack", on top of webhooks, with filters that decide which events start a run; webhooks check each sender's signature scheme and answer its setup handshake.
 - Slack is built the same way, from project code rather than a built-in integration: mentioning the app in a Slack thread starts or continues a shared project chat for that thread, the agent reads the thread (and, given a search token, searches Slack) through the gateway, which holds the tokens, and its answer is posted back to the thread. Slack's retries of an event start no second run.
 - Pull request review is built the same way: every pull request in a connected repository gets a code and security review in its own shared chat on a dedicated review pool. The reviewer checks out the pull request's head, installs, builds, and runs the tests and the change's services in its own sandbox, checks migrations against a read-only production replica, and posts a review with inline comments and a check run; each push moves the same chat to the new head, mentions in comments are answered on the pull request, and merging or closing it releases everything the review held. The whole automation is plain files in the project that the team can edit.
 - Agents run long commands in the background, on the desktop and on the Work server, where they run inside the agent's own workspace and stop when the chat closes. On the desktop agents can also watch a command (a deploy, a file, a status page); the chat wakes when it finishes, succeeds or changes, including after the computer sleeps.
+- People work beside their agents on the Work server: from the desktop, a chat that runs there opens a terminal in its workspace (a login shell with the environment's secrets) and previews a server running there, such as a dev server, in a browser tab by its port. Previews reload by hand; live reload does not reach them.
 - The mobile companion (a PWA) pairs with the desktop by QR code over your LAN, or connects to your server, so a chat can continue from your phone.
-- The Work server is a company brain in one image. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys; database access is read-only with cost and row limits, and a company can add its own guards in code (a model reviewer, a person's approval, or both) to review each action. Organization administrators connect each system once, from the app or the server, and projects choose which of those connections each environment may use in a reviewed project file. Project secrets are sealed in an encrypted vault. Enrolled workers add execution capacity holding only a machine credential, never the database or secrets; each worker serves everyone, named people and groups, or one project's own automations and shared chats, so a person's agents run on their own machine first, and machine rules can give every member of a directory group a machine of their own. Agents use Git in their sandboxes the ordinary way: fetches and pushes go through the gateway with a short-lived session grant, never the remote's credential, pushes are limited to the project's work branches, and automations can start a chat's checkout at any ref of the project's remote, such as a pull request's head, and move it when the pull request changes. Project agents can be Claude Code or Codex on the server too: the CLI runs in the chat's sandbox, on a worker or the server, and reaches its model through the gateway, which holds the organization's model key, allows only the models the environment names, and records usage per chat. Developers can instead use their own Claude Code and Codex subscriptions in their own remote chats on machines where they signed in themselves, such as a worker at home: Work never copies or forwards a sign-in, and a chat on a subscription runs only on a machine holding that person's sign-in. Files such as `.env` that are never committed can travel with them; they reach only that person's chats, in environments that allow it, on machines that isolate that person. A chat started on their own computer moves to a server environment and continues there with its history. A single machine stays one `docker run`.
-- On the Work server each project Environment chooses the image its agents run in (a registry image or a Dockerfile reviewed in the project), whether they get their own Docker and Docker Compose, and which hosts they may reach. An agent's sandboxing is enforced by the server: a contained reviewer can run anything in its sandbox but changes nothing outside it and only reads through connections, a propose agent proposes but does not publish, and a publish agent may deploy and publish. Sandboxing is separate from the harness's own permission mode, which each agent also chooses. When an unattended agent needs approval, the people its automation named get a notification and answer from their own chats.
+- The Work server is a company brain in one image. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys, and code running in an agent's sandbox (a dev server, a script, tests) calls the same HTTP APIs through it with a short-lived session grant instead of a pasted key; database access is read-only with cost and row limits, and a company can add its own guards in code (a model reviewer, a person's approval, or both) to review each action. Organization administrators connect each system once, from the app or the server, and projects choose which of those connections each environment may use in a reviewed project file. Project secrets are sealed in an encrypted vault. Enrolled workers add execution capacity holding only a machine credential, which rotates, and the key their queued work is sealed to, never the database or secrets; each worker serves everyone, named people and groups, or one project's own automations and shared chats, so a person's agents run on their own machine first, and machine rules can give every member of a directory group a machine of their own: a Hetzner Cloud server created for them, or one of the company's own servers enrolled into a pool, each set up by the same install script. A departed person's machine stops taking work at once and is kept for a set number of days, then destroyed or wiped and returned to its pool. Agents use Git in their sandboxes the ordinary way: fetches and pushes go through the gateway with a short-lived session grant, never the remote's credential, pushes are limited to the project's work branches, and automations can start a chat's checkout at any ref of the project's remote, such as a pull request's head, and move it when the pull request changes. Project agents can be Claude Code or Codex on the server too: the CLI runs in the chat's sandbox, on a worker or the server, and reaches its model through the gateway, which holds the organization's model key, allows only the models the environment names, and records usage per chat. Developers can instead use their own ChatGPT subscription for Codex in their own remote chats: they sign in from the app on a machine of their own, approving a one-time code in their browser, and the sign-in stays on that machine; Work never copies or forwards it, and a machine holds one person's sign-in only. Claude Code subscriptions stay on each person's own computer. Files such as `.env` that are never committed can travel with them; they reach only that person's chats, in environments that allow it, on machines that isolate that person. Projects list the secrets each environment sets as environment variables, with a shared value and a value of each person's own, such as a key issued to every engineer, set by that person, an administrator, or an onboarding workflow; values are write-only and masked in chat transcripts. A chat started on their own computer moves to a server environment and continues there with its history. A single machine stays one `docker run`.
+- On the Work server each machine runs sandboxes in the best isolation it has, chosen at start: a microVM where it has hardware virtualization, else a gVisor container on any Linux machine with Docker and gVisor, which the machine install script sets up. Each project Environment chooses the image its agents run in (a registry image or a Dockerfile reviewed in the project), whether they get their own Docker and Docker Compose, which hosts they may reach, a setup command every new workspace runs (installing the project's dependencies), and directories kept on the machine for each person, such as a package store or a Docker data root, so later workspaces start warm. An agent's sandboxing is enforced by the server: a contained reviewer can run anything in its sandbox but changes nothing outside it and only reads through connections, a propose agent proposes but does not publish, and a publish agent may deploy and publish. Sandboxing is separate from the harness's own permission mode, which each agent also chooses. When an unattended agent needs approval, the people its automation named get a notification and answer from their own chats.
 - Shares send customers or partners a sign-in link to one document, folder or live app. They sign in with their own account (for example your product's own sign-in over OpenID Connect) and see only what was shared.
 - A company adds its own code (guards, directories, connection providers, routes) by extending the image with `@catamorphic/work-server` hooks instead of forking. Anyone can ask their coding agent to set up a Work server with the setup skill, and members work from Claude Code or any MCP client connected to the project's MCP endpoint with their own roles: read and search the project, draft, check and deploy workflows and apps, run workflows and read their runs, ask the project's agents, and share with customers.
 - Privacy: incognito chats stay on the device and are never mirrored; a project's private working files are separate from shared project source.
@@ -403,7 +404,7 @@ Every dependency is an axis with a heavy and a light end. Pick per axis:
 | Axis | Heavy end | Light end |
 | --- | --- | --- |
 | Database | Network Postgres (`{ pool }` / `{ connectionString }`) | **Embedded pglite** (Kysely `PGliteDialect` via `database: { db }`; migrations run statement-by-statement so single-connection dialects just work) |
-| Execution | Cloud sandboxes: `@catamorphic/cloudflare`, `@catamorphic/daytona` | **Local sandboxes** (`@catamorphic/microsandbox`), plain local processes (`@catamorphic/local-process`, trusted single-tenant hosts only), or none (read-only embed) |
+| Execution | Cloud sandboxes: `@catamorphic/cloudflare`, `@catamorphic/daytona` | **Local sandboxes** (`@catamorphic/microsandbox`, or `@catamorphic/container` under gVisor on any Linux machine with Docker and gVisor), plain local processes (`@catamorphic/local-process`, trusted single-tenant hosts only), or none (read-only embed) |
 | Code storage | S3-compatible bucket (`@catamorphic/s3`) or Cloudflare Artifacts | Two writable directories |
 | Identity | Host org/user per request | One fixed tenant/user |
 | Surface | HTTP API + React UI | In-process SDK calls, or migrations-only |
@@ -461,10 +462,12 @@ Supporting packages (consumed through the surface above, importable directly for
 | `@catamorphic/agent-runner` | The harness-agnostic runner that drives one attempt of a turn on an adapter, in-process or over stdio. |
 | `@catamorphic/runner-bundle` | The runner and its Claude Code and Codex adapters as one hash-addressed file a sandbox runs with Bun or Node. |
 | `@catamorphic/microsandbox` | Local sandbox provider over the microsandbox SDK: the desktop's default execution. |
+| `@catamorphic/container` | Sandboxes as OCI containers through the Docker Engine API, under gVisor (`runsc`) or runc: images, Dockerfile builds, CPU and memory limits, egress policy through a proxy socket, nested Docker, and volumes (ADR 0204). |
 | `@catamorphic/local-process` | Sandboxless execution as plain subprocesses with an explicit env. Trusted single-tenant hosts only (ADR 0047). |
 | `@catamorphic/cloudflare` | Cloudflare backend plugin: `CloudflareSandboxProvider` (execution via Bridge Worker) + `ArtifactsRemoteBackend` (Cloudflare-native code storage when available). |
 | `@catamorphic/s3` | S3-compatible git origin backend for Cloudflare R2, AWS S3, MinIO, and similar stores. |
 | `@catamorphic/daytona` | Daytona backend plugin: `DaytonaSandboxProvider` + experimental Daytona git storage. |
+| `@catamorphic/hetzner` | Hetzner Cloud client and machine provisioner behind the Work server's `hetzner-cloud` machine classes (ADR 0205). |
 | `@catamorphic/ai-sdk` | Built-in harness adapter: Vercel AI SDK tool loop on any API model, running in the host and driving the session's sandbox through its tools. |
 | `@catamorphic/claude-code` | Harness adapter backed by the Claude Code (Claude Agent SDK) CLI, with per-turn MCP servers, portable native state and full settings-source fidelity. |
 | `@catamorphic/codex` | Harness adapter backed by the pinned OpenAI Codex app-server protocol. |
@@ -980,8 +983,10 @@ leases (ADR 0192): any replica runs any worker's agents, so stopping a replica
 interrupts only the turns it was running itself.
 `WORK_CONTROL_PLANE_WORKLOADS=workflow` keeps agent code off the control plane.
 Each worker takes work for everyone or for named people and directory groups,
-so a person's agents run on their own machine first; machine rules and a
-provisioner hook give every member of a group a machine of their own (ADR 0167).
+so a person's agents run on their own machine first; machine rules give every
+member of a group a machine of their own (ADR 0167), on Hetzner Cloud, from a
+pool of machines you enrolled with `GET /api/workers/install.sh`, or through a
+provisioner hook, and keep a released machine for a few days (ADR 0205).
 See [ADR 0164](../../docs/decisions/0164-control-plane-and-enrolled-workers.md)
 and the [machines reference](../../skills/setup-work-server/references/cluster-deployment.md).
 
@@ -1135,7 +1140,7 @@ Source: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-s
 
 ---
 name: setup-work-server
-description: Use when installing or operating a Work server (the prebuilt server image), provisioning its first project and user, company sign-in and deprovisioning, credentials and the connection gateway, connecting Slack, reviewing pull requests on a review pool, enrolling workers or replicas, sharing with customers, embedding Catamorphic in an existing application, mapping host authentication to Catamorphic identity, or configuring Postgres or PGlite.
+description: Use when installing or operating a Work server (the prebuilt server image), provisioning its first project and user, company sign-in and deprovisioning, credentials and the connection gateway, connecting Slack, reviewing pull requests on a review pool, enrolling workers or replicas, giving every engineer a machine on Hetzner Cloud or from a pool of servers, sharing with customers, embedding Catamorphic in an existing application, mapping host authentication to Catamorphic identity, or configuring Postgres or PGlite.
 ---
 
 # Setting up a Work server or a Catamorphic host
@@ -1190,12 +1195,12 @@ Start small and add only what the situation needs:
 | --- | --- |
 | Nothing installed; "a brain on this machine" an MCP client can reach | [A first brain on one machine](references/first-brain.md) |
 | Work server image or `apps/server` | [Work server](references/stock-server.md) |
-| Company sign-in through Google Workspace, deprovisioning, groups as roles | [Company identity](references/company-identity.md) |
+| Company sign-in through Google Workspace, deprovisioning, groups as roles, onboarding and offboarding automations | [Company identity](references/company-identity.md) |
 | Credentials, API keys, a production database, query review, vault keys | [Secrets and the gateway](references/secrets-and-gateway.md) |
 | GitHub: a GitHub App, company repositories, pull requests, webhooks | [Connect GitHub](references/connect-github.md) |
 | Slack: a project answering mentions in threads, reading and searching Slack | [Connect Slack](references/connect-slack.md) |
 | Code and security review of every pull request on a dedicated review pool | [Review pull requests with Work](references/review-pull-requests.md) |
-| More execution capacity, workers, replicas for availability | [Machines: control plane, replicas, and workers](references/cluster-deployment.md) |
+| More execution capacity, workers, replicas for availability; a machine for every engineer on Hetzner Cloud or from a pool of the company's own servers | [Machines: control plane, replicas, and workers](references/cluster-deployment.md) |
 | Sharing documents, folders, or apps with customers behind a sign-in | [Sharing outside the company](references/sharing.md) |
 | Members working from Claude Code, Codex, or another MCP client | [Working from your own agent](references/members-over-mcp.md) |
 | Project agents that are Claude Code or Codex, running on the server with a model key the gateway holds, or on a member's own subscription signed in on the machine | [Harnesses on the server](references/harnesses.md) |
@@ -1221,8 +1226,9 @@ disagree with the installed source, the source wins.
   there is no silent default role.
 - **No super-admin.** The operator credential is machine access, not a user.
   A setup agent provisions the first ordinary user and membership through the
-  server's own operations. Organization administrators manage only the named
-  service connections (ADR 0172); they gain nothing inside projects.
+  server's own operations. Organization administrators manage the named
+  service connections (ADR 0172) and the workers and machine rules
+  (ADR 0205); they gain nothing inside projects.
 - **After setup, configuration is project code.** Roles, agents,
   `.work/workspace.js`, and `.work/project.json` change through
   ordinary review. Do not create a parallel bootstrap config.
@@ -1241,7 +1247,9 @@ disagree with the installed source, the source wins.
   execution uses their project connection, never database credentials.
 - **Credentials reach systems only through the gateway** (ADR 0162): agents
   and workflows get reviewed actions, never keys. Workflow runs, which receive
-  project secrets, stay on the control plane. An administrator enters each
+  project secrets, stay on the control plane. Secrets a project lists on an
+  Environment, with a value per member, reach that Environment's sandboxes
+  where the placement isolates their owner (ADR 0206). An administrator enters each
   service credential once; projects bind it by name to an Environment in
   `.work/project.json` (ADR 0172).
 - **Isolation matches trust.** Local-process execution is for trusted
@@ -1446,15 +1454,18 @@ What the server does once configured:
   address is refused.
 - The Admin SDK Directory API is checked at sign-in, at every token refresh
   when the last answer is over five minutes old, and by a sweep every five
-  minutes over every account with a live session. Suspended, archived, and
-  deleted users, and users outside every required group, are disabled: all
-  their tokens and sessions are deleted, running agent turns stop, and their
-  unattended workflows suspend at their next dispatch.
+  minutes over every member who has signed in and is not disabled. Suspended,
+  archived, and deleted users, and users outside every required group, are
+  disabled: all their tokens and sessions are deleted, running agent turns
+  stop, and their unattended workflows suspend at their next dispatch.
 - Access tokens last 15 minutes. Refresh tokens rotate on every use, reuse of
   a rotated token revokes the whole session, sessions expire after 14 idle
   days and 30 days total. These can be shortened, never lengthened.
 - Directory groups can grant committed project roles. Leaving the group
   removes exactly the roles the mapping granted.
+- Someone joining, leaving, or changing groups starts the project workflows
+  bound to it, such as issuing a new engineer's keys and revoking them when
+  they leave (ADR 0210; see Onboarding and offboarding automations below).
 
 ## 1. OAuth client
 
@@ -1563,6 +1574,198 @@ only the email domain at sign-in and has no deprovisioning. A custom server can
 inject another directory through the `directories` hook of
 `@catamorphic/work-server`.
 
+## Onboarding and offboarding automations
+
+The account lifecycle above starts project workflows (ADR 0210), so a project
+can issue a new engineer's keys when they join and revoke them when they leave.
+Three trigger kinds carry it:
+
+| Kind | Fires when |
+| --- | --- |
+| `directory.member-joined` | An account becomes active: its first sign-in (the first code exchange from the desktop, the PWA, or an MCP client), or a sign-in the directory approves after the account was disabled. |
+| `directory.member-left` | An account is disabled: the directory reports it suspended, archived, deleted, or outside every required group. |
+| `directory.groups-changed` | The directory groups of an active member change. |
+
+Each run's input is the event: `input.id`, `input.occurredAt`, and
+`input.payload` with `member` (`id`, the member's user id; `email`; `name` or
+null; `domain`, the email's domain), `groups` (their groups, lowercased; for a
+departure, the groups they last held) and, for `groups-changed`, `added` and
+`removed`. Groups are the ones the server asks the directory about: groups
+that map roles, worker access and machine rules, and groups a directory
+trigger names. A group the server starts or stops asking about is not a
+change in anyone's groups.
+
+- `trigger("directory.member-joined", { groups: ["engineering@example.com"] })`
+  starts runs only for members of any of those groups. On `groups-changed`,
+  `groups` selects changes that add or remove one of them.
+- `where` narrows by any other field, such as one email domain:
+  `where: { payload: { member: { domain: "example.com" } } }`.
+- A workflow that binds these kinds must declare `memberships:read`. The
+  project check and the server refuse the binding otherwise, and only someone
+  who holds every permission the workflow declares can turn it on.
+- Directory events name people. Every project with such an automation
+  receives the email, name and tracked groups of everyone who joins, leaves
+  or changes groups on the server, including people who are not members of
+  that project, and its workflows can send them anywhere they can reach.
+  Only someone whose role in that project grants `memberships:read` can turn
+  one on, and only someone who can publish there can add the workflow; only
+  the operator creates projects. Grant those roles, in any project whose
+  automations may listen to the directory, only to people the company
+  trusts with its directory, and review changes that add these triggers.
+- A transition is recorded with its event; delivering the event to the
+  projects happens right after and retries until it succeeds. A departure
+  disables the account and signs it out whether or not that delivery
+  works, and one account's events always arrive in the order they happened.
+- Events reach only projects with the automation turned on, and each
+  automation sees each change once. Changes from before an automation was
+  turned on are not replayed: issue keys to existing members by hand or with a
+  one-off run. A server without a directory still fires `member-joined` at each
+  account's first sign-in; nothing there fires the other two.
+
+Workflows give a member a value of their own with
+`host["catamorphic.secrets"]` (ADRs 0206, 0210): `set({ name, value, member })` and
+`delete({ name, member })` name the member by email or id, need the workflow
+to declare `secrets:write`, and keep the value write-only. Declare the secret
+in `.work/project.json` and list it in the `secrets` of each Environment
+whose sandboxes need it; each member's chats then receive their own value:
+
+```json
+{
+  "secrets": {
+    "CLICKHOUSE_API_KEY": { "description": "Your own ClickHouse key, issued when you join" }
+  },
+  "environments": {
+    "default": { "workloads": ["agent", "workflow"], "secrets": ["CLICKHOUSE_API_KEY"] }
+  }
+}
+```
+
+This project automation issues a ClickHouse Cloud API key to everyone in the
+engineering group when they join and revokes it when they leave. It reads an
+admin key from the project secrets `CLICKHOUSE_ADMIN_KEY` (as
+`keyId:keySecret`) and `CLICKHOUSE_ORGANIZATION_ID`; adapt the two steps to
+another service's API. A run may retry, so issuing first revokes any key a
+failed attempt left, and keys are found by their name, never by a stored
+value.
+
+```typescript
+// .work/workflows/src/clickhouse-keys.ts
+import {
+  type BoundaryContext,
+  defineSecrets,
+  defineWorkflow,
+  type TriggerPayload,
+  trigger,
+} from "@catamorphic/workflow";
+
+export const secrets = defineSecrets({
+  CLICKHOUSE_ORGANIZATION_ID: { description: "The ClickHouse Cloud organization that issues keys" },
+  CLICKHOUSE_ADMIN_KEY: { description: "A ClickHouse Cloud key that manages keys, as keyId:keySecret" },
+});
+
+/** Where the organization's keys live, and the admin key's credentials. */
+function keysApi() {
+  return {
+    url: `https://api.clickhouse.cloud/v1/organizations/${secrets.CLICKHOUSE_ORGANIZATION_ID}/keys`,
+    headers: {
+      authorization: `Basic ${Buffer.from(secrets.CLICKHOUSE_ADMIN_KEY).toString("base64")}`,
+      "content-type": "application/json",
+    },
+  };
+}
+
+/**
+ * @displayname Revoke ClickHouse keys
+ * @icon key-round
+ * @param email - @displayname Email | @description Whose keys to revoke
+ */
+async function revokeClickHouseKeys({ email }: { email: string }) {
+  "use step";
+  const { url, headers } = keysApi();
+  const listed = await fetch(url, { headers });
+  if (!listed.ok) throw new Error(`Listing ClickHouse keys failed: ${listed.status}`);
+  const { result } = (await listed.json()) as { result: { id: string; name: string }[] };
+  const keys = result.filter((key) => key.name === `work ${email}`);
+  for (const key of keys) {
+    const revoked = await fetch(`${url}/${key.id}`, { method: "DELETE", headers });
+    if (!revoked.ok) throw new Error(`Revoking ClickHouse key ${key.id} failed: ${revoked.status}`);
+  }
+  return { revoked: keys.length };
+}
+
+/**
+ * @displayname Issue a ClickHouse key
+ * @icon key-round
+ * @param email - @displayname Email | @description Who the key is for
+ */
+async function issueClickHouseKey({ email }: { email: string }) {
+  "use step";
+  const { url, headers } = keysApi();
+  const created = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ name: `work ${email}`, roles: ["developer"], state: "enabled" }),
+  });
+  if (!created.ok) throw new Error(`Issuing a ClickHouse key failed: ${created.status}`);
+  const { result } = (await created.json()) as { result: { keyId: string; keySecret: string } };
+  return `${result.keyId}:${result.keySecret}`;
+}
+
+/** @displayname Issue engineers their ClickHouse key */
+export const issueEngineerKeys = defineWorkflow(({ defineBoundary }) => ({
+  permissions: ["memberships:read", "secrets:write"],
+  triggers: [trigger("directory.member-joined", { groups: ["engineering@example.com"] })],
+  steps: [
+    /** @displayname Issue and store the key */
+    defineBoundary({
+      run: async ({ input, host }: BoundaryContext<TriggerPayload<"directory.member-joined">>) => {
+        const { email } = input.payload.member;
+        await revokeClickHouseKeys({ email });
+        const value = await issueClickHouseKey({ email });
+        return host["catamorphic.secrets"].set({ name: "CLICKHOUSE_API_KEY", value, member: email });
+      },
+    }),
+  ],
+}));
+
+/** @displayname Revoke leavers' ClickHouse keys */
+export const revokeLeaverKeys = defineWorkflow(({ defineBoundary }) => ({
+  permissions: ["memberships:read", "secrets:write"],
+  triggers: [trigger("directory.member-left", { groups: ["engineering@example.com"] })],
+  steps: [
+    /** @displayname Revoke their keys */
+    defineBoundary({
+      run: async ({ input }: BoundaryContext<TriggerPayload<"directory.member-left">>) => {
+        const { email } = input.payload.member;
+        await revokeClickHouseKeys({ email });
+        return { email };
+      },
+    }),
+    /** @displayname Delete their stored key */
+    defineBoundary({
+      run: ({ input, host }: BoundaryContext<{ email: string }>) =>
+        host["catamorphic.secrets"].delete({ name: "CLICKHOUSE_API_KEY", member: input.email }),
+    }),
+  ],
+}));
+```
+
+The key is issued and stored in one boundary, so it is never a boundary's
+output, which the run keeps as the next boundary's input. The host call is
+that boundary's returned transition: return it, never await it. To
+issue keys to people added to the group later, bind
+`directory.groups-changed` with the same `groups` and act when
+`input.payload.added` holds the group.
+
+Turn both on as project automations: someone holding `memberships:read` and
+`secrets:write` (an administrator role, usually) enables each workflow for
+the project, after storing `CLICKHOUSE_ADMIN_KEY` and
+`CLICKHOUSE_ORGANIZATION_ID`. To verify, sign in once with a new test account
+in the group, then check that the run succeeded and that the secret lists the
+account as holding a value; suspending the account revokes it within one
+sweep. Issuing and revoking real keys are external actions: do them only
+with the operator's approval.
+
 ## Credentials, the connection gateway, and guards
 
 Source: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/secrets-and-gateway.md
@@ -1570,10 +1773,11 @@ Source: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-s
 # Secrets, connections, and the gateway
 
 Use this when a Work server should let agents or workflows act on company
-systems: APIs, a production database, internal MCP tools (ADRs 0162, 0163).
-The rule: workloads get permission to act, never the credential. The Work
-server holds credentials in its vault and makes each call itself, after any
-guards the company added review it.
+systems: APIs, a production database, internal MCP tools (ADRs 0162, 0163),
+or when developers' remote Environments need the variables they have on their
+laptops (ADR 0206). The rule for company systems: workloads get permission to
+act, never the credential. The Work server holds credentials in its vault and
+makes each call itself, after any guards the company added review it.
 
 Simple servers need none of this. Add it when a project needs a system that
 holds company data.
@@ -1582,14 +1786,20 @@ holds company data.
 
 | Need | Use |
 | --- | --- |
-| An HTTP API with a key (billing, CRM, internal service) | An `http` gateway connection |
+| An HTTP API with a key (billing, CRM, internal service) that agents call | An `http` gateway connection |
+| An HTTP API with a shared key that code in a sandbox calls (a dev server or tests reading a logging cluster) | The same `http` gateway connection, reached at `WORK_HTTP_<ALIAS>`: [HTTP APIs from sandboxes](#http-apis-from-sandboxes-through-the-gateway) |
 | Reading a production database | A `postgres` gateway connection to a read-only replica role |
 | Tools behind an MCP server | An `mcp` gateway connection |
 | Git with a company remote from agents' sandboxes (fetch, push a fix branch) | A Git-capable connection (`git` gateway entry, or the GitHub provider) bound with `git` rules |
 | A value a workflow's own code must read (a webhook signing secret, a non-sensitive token) | A project secret (`defineSecrets`), sealed in the vault |
+| A variable developers' code needs in remote Environments (a Sentry DSN, a test Stripe key) | A project secret listed on the Environment: [Secrets in Environments](#secrets-in-environments) |
+| A key each engineer has their own of (a ClickHouse key issued per person) | The same, with a value per member, set by them, an admin, or an onboarding workflow |
 
-Prefer a gateway connection whenever the value is a credential: the call is
-reviewed and audited, and the key never enters a sandbox.
+Prefer a gateway connection whenever the value grants access to a company
+system: the call is reviewed and audited, and the key never enters a sandbox.
+A secret listed on an Environment is readable by any code running in its
+sandboxes, a compromised dependency included; restrict egress where that
+matters.
 
 ## Keys the server itself needs
 
@@ -1620,6 +1830,8 @@ print them, or pass them to agents.
       "maxRows": 500, "maxCost": 100000, "statementTimeoutMs": 10000, "poolSize": 4 },
     { "type": "http", "kind": "billing", "displayName": "Billing API",
       "baseUrl": "https://api.billing.example/v1", "paths": ["/invoices", "/customers"] },
+    { "type": "http", "kind": "logs-cluster", "displayName": "Logs (ClickHouse)",
+      "baseUrl": "https://logs.example.com:8443", "auth": { "basic": true } },
     { "type": "http", "kind": "slack", "displayName": "Slack", "baseUrl": "https://slack.com/api",
       "actions": [
         { "name": "conversations.replies", "method": "get", "path": "/conversations.replies" },
@@ -1654,7 +1866,14 @@ not declare it here.
   grant single operations of an RPC-style API and guards see them by name
   (ADR 0179). A caller of
   a named action passes `query`, `headers`, and `body`, never a path.
-  [Connect Slack](connect-slack.md) is the worked example.
+  [Connect Slack](connect-slack.md) is the worked example. `auth` says how
+  the stored key goes upstream: `Authorization: Bearer <key>` by default,
+  `{ "header": "X-Api-Key" }` (with an optional `scheme`), or
+  `{ "basic": true }`, where the service connection stores `user:password`
+  and the gateway sends HTTP Basic. An entry without `actions` is also
+  reachable by code in sandboxes
+  ([HTTP APIs from sandboxes](#http-apis-from-sandboxes-through-the-gateway));
+  one with `actions` is not, since a raw route would reach past them.
 - `postgres`: each service connection keeps up to `poolSize` sessions (at most
   16, default 4), closed after `poolIdleTimeoutMs` idle and at once when the
   credential rotates or is revoked. Every call still gets its own read-only
@@ -1676,6 +1895,83 @@ not declare it here.
   passes any path below the base URL through with the stored key.
   `anthropic` and `openai` are built in; see
   [Harnesses on the server](harnesses.md).
+
+## Secrets in Environments
+
+A project secret holds a shared value and may hold one value per member
+(ADR 0206). Values are sealed in the vault and write-only: APIs report which
+values exist, who set them and when, never a value.
+
+Declare the names in `.work/project.json` (or with `defineSecrets` in
+workflow code) and list on each Environment the ones its sandboxes receive;
+both are reviewed project changes:
+
+```json
+{
+  "secrets": {
+    "CLICKHOUSE_API_KEY": { "description": "Your ClickHouse key" },
+    "SENTRY_DSN": {}
+  },
+  "environments": {
+    "dev": { "workloads": ["agent"], "secrets": ["CLICKHOUSE_API_KEY", "SENTRY_DSN"] }
+  }
+}
+```
+
+Names are `SCREAMING_SNAKE_CASE` and never start with `CATAMORPHIC_` or
+`WORK_`; variables that change how the sandbox's shells, Git, Node, TLS, the
+harnesses or the proxy behave (`PATH`, `HOME`, `NODE_OPTIONS`, `GIT_CONFIG_*`,
+`SSL_CERT_FILE`, `LD_PRELOAD`, `ANTHROPIC_BASE_URL`, the proxy variables and
+the like) are listed but never set. Declarations in `project.json` are for
+Environments; workflow runs keep receiving the shared values of secrets their
+code declares, as before.
+
+Who sets values:
+
+- **Shared value**: anyone holding `secrets:write`, in the app (**Secrets**
+  in a connected project's Server section) or with
+  `PUT /api/projects/:id/secrets/:name` `{ "value": … }`.
+- **A member's own value**: that member (`PUT
+  /api/projects/:id/secrets/:name/members/me`), anyone holding
+  `secrets:write` for any member (`…/members/:userId`), or a workflow that
+  declared `secrets:write`:
+  `host["catamorphic.secrets"].set({ name, value, member: "ada@example.com" })`
+  (ADR 0210), as in an onboarding workflow that issues each new engineer's
+  key. `DELETE` on the same paths clears a value.
+- `GET /api/projects/:id/secrets` lists each secret with its Environments,
+  whether a shared value exists, the caller's own, and (with `secrets:read`)
+  which members hold theirs.
+
+Where values go:
+
+- A member's own chat gets their value, else the shared one, for turns that
+  answer that member's own messages, on a placement that isolates them: a VM
+  or gVisor sandbox, a machine only they use, their own computer, or a machine
+  with `WORK_PERSONAL_CREDENTIALS=accept`.
+- A project chat gets the shared value on a sandbox or a machine only that
+  project's work reaches.
+- Elsewhere the agent is told which names it did not get and who can set
+  them, and the turn goes on without them.
+
+Before each turn the variables are written to
+`.work-session/env/secrets.sh` (mode 0600, outside the repository); the agent
+runner, shells, terminals and workspace setup load it, and it is removed
+when a turn may not have it and when the workspace is given back. A project
+chat whose workspace holds it opens a terminal only for someone holding
+`secrets:write`. Each
+delivery is audited by name and fingerprint (`project_secrets.deliver` in the
+connection audit). Once a chat has held secrets, every later turn of it, and
+of its forks, replaces every value it could repeat with `[secret NAME]` in
+what is recorded, whoever wrote the message, including values rotated since
+they were delivered (the server keeps a sealed record of them in its vault).
+Values shorter than six characters cannot be masked; the agent is told not to
+print them. Processes and files the owner left in the workspace keep what
+they hold when someone else's turn runs there.
+
+Verify: a member sets their own value in the app; their chat's
+`printenv CLICKHOUSE_API_KEY` works in the agent's shell and shows as
+`[secret CLICKHOUSE_API_KEY]` in the transcript; a message from someone else
+in that chat runs without it; the audit lists the delivery without the value.
 
 ## Service connections and administrators
 
@@ -1900,6 +2196,76 @@ Verify: from a chat in that Environment, `git fetch origin` succeeds,
 `git push origin work/<name>` succeeds, `git push --force origin HEAD:main` is
 refused with a readable reason, `env` and the worker's files hold no remote
 credential, and after closing the chat its grant is refused.
+
+## HTTP APIs from sandboxes, through the gateway
+
+Code running in a chat's sandbox (a dev server, a CLI, an SDK, a test suite)
+often needs a company API with a shared key: a logging cluster's HTTP
+interface, an internal service. Bind an `http` gateway connection instead of
+listing the key as a secret (ADR 0212): the code gets the session's grant,
+never the key.
+
+```json
+"connections": {
+  "logs": { "provider": "logs-cluster", "principal": "service", "service": "logs-cluster",
+            "capabilities": ["get", "post"] }
+}
+```
+
+- A chat's sandbox gets the aliases its agent uses: list the alias in the
+  agent's `connections` (`.work/agents/developer.json`:
+  `"connections": ["logs"]`), and grant it in the member's role
+  (`"connections": [{ "environment": "dev", "alias": "logs" }]`). Terminals
+  in that chat's workspace see the same aliases.
+- The capabilities are the HTTP methods the alias may send (`get` also
+  allows HEAD); leave them out to keep the connection's own. The entry's
+  `paths`, when set, bound what may be reached. A contained agent's chat
+  only reads (GET and HEAD).
+- Each turn writes `.work-session/env/gateway.sh` beside the project folder:
+  `WORK_HTTP_<ALIAS>` (the alias in capitals, `-` as `_`) is the alias's
+  gateway URL, and `WORK_HTTP_<ALIAS>_GRANT_FILE` the file holding the
+  session's grant. The agent's commands, terminals and workspace setup load
+  it; a shell started some other way runs
+  `. ../.work-session/env/gateway.sh` from the project folder.
+- Send the API's own requests to `$WORK_HTTP_<ALIAS>` with the grant as a
+  bearer, as the HTTP Basic password (any user name), or in `x-work-grant`.
+  The gateway replaces whatever authorization was sent with the stored key.
+  The grant renews every 20 minutes and with each turn, with a new value, so
+  read the file for each request (or again after a 401); never copy it into
+  a config file.
+
+```sh
+# A query from a terminal or a test script.
+curl -sS -u "work:$(cat "$WORK_HTTP_LOGS_GRANT_FILE")" \
+  "$WORK_HTTP_LOGS/?query=SELECT%20count()%20FROM%20events"
+```
+
+```ts
+// A dev server's query helper: the grant read for each request.
+import { readFileSync } from "node:fs";
+
+export async function queryLogs(sql: string): Promise<string> {
+  const grant = readFileSync(process.env.WORK_HTTP_LOGS_GRANT_FILE ?? "", "utf8");
+  const response = await fetch(
+    `${process.env.WORK_HTTP_LOGS}/?query=${encodeURIComponent(sql)}`,
+    { headers: { authorization: `Bearer ${grant}` } },
+  );
+  if (!response.ok) throw new Error(await response.text());
+  return response.text();
+}
+```
+
+- Guards for the connection's kind review each request (action: the
+  lowercase method; input: `{ path, query }`, never the body), and each is
+  audited as `connection.http` with its status. Request bodies are limited to
+  32 MiB; answers stream back as the API sends them.
+- Sandboxes reach `WORK_PUBLIC_URL/api/gateway/http/<alias>`. If an
+  Environment restricts egress, allow that URL.
+
+Verify: from a chat in that Environment, `printenv WORK_HTTP_LOGS` names the
+gateway, the `curl` above returns rows, a method the binding leaves out is
+refused with a readable reason, `env` and the worker's files hold no key, the
+audit lists each request, and after closing the chat its grant is refused.
 
 ## A production database, safely
 
@@ -2133,13 +2499,86 @@ deployment.
 
 | Situation | Topology |
 | --- | --- |
-| A person or a small trusted team | One Work server, PGlite, default execution. Nothing below applies. |
+| A person or a small trusted team | One Work server, PGlite, default execution (`WORK_SANDBOX=auto`). Nothing below applies. |
 | More agent capacity, or agents that must not run beside the server's secrets | One server (the control plane) plus enrolled **workers** |
 | Each person or team gets their own machine | Workers with **access** lists, created by hand or by **machine rules** |
+| Cloud VMs or dedicated servers without hardware virtualization | Workers with the **container backend** under gVisor (see [sandbox backends](#sandbox-backends)) |
 | The brain must survive a machine failure | Control-plane **replicas** on shared Postgres, plus workers |
 
-A worker holds only its own machine credential: no `DATABASE_URL`,
-`WORK_SECRET`, `WORK_VAULT_KEY`, member tokens, or connection credentials.
+## Sandbox backends
+
+Every machine (control plane or worker) runs its sandboxes with one backend
+(ADR 0204), chosen by `WORK_SANDBOX`:
+
+| `WORK_SANDBOX` | Sandboxes | Isolation |
+| --- | --- | --- |
+| `auto` (default) | The best this machine offers, in this order: microsandbox, the container backend under gVisor, the container backend under runc, local processes | As chosen |
+| `microsandbox` | One microVM each. Needs an Apple silicon Mac, or Linux (x64, arm64) with a `/dev/kvm` the server can open read-write, and the `msb` runtime (`MSB_PATH`, `~/.microsandbox/bin/msb`, or the SDK's own) | `sandbox` |
+| `container` | One OCI container each through the Docker Engine API (`DOCKER_HOST` as `unix://` or plain `tcp://`, or `/var/run/docker.sock`), under `WORK_CONTAINER_RUNTIME=runsc` (gVisor) or `runc`. Unset, gVisor when the daemon has a `runsc` runtime, else runc | `sandbox` under gVisor, `process` under runc |
+| `local-process` | Plain processes of the server, for a trusted single-tenant machine (ADR 0047) | `process` |
+
+The machine logs its choice and the reason at start (`Sandboxes: container
+(auto: This machine has no usable /dev/kvm, so microsandbox cannot run here;
+containers run under gVisor (runsc))`), and `GET /_work/operator/machines`
+shows it as each machine's `descriptor.backend` (`kind`, `runtime`,
+`reason`). A backend named explicitly that cannot run refuses to start and
+says what is missing; microsandbox without KVM, for example, answers "This
+machine has no usable /dev/kvm, so microsandbox cannot run here. Use
+WORK_SANDBOX=container (gVisor) or auto." With `auto`, a machine whose only
+choice is local processes refuses CPU or memory budgets it cannot enforce.
+
+**gVisor for the container backend.** Install gVisor from its apt repository
+(`https://storage.googleapis.com/gvisor/releases release main`, key
+`https://gvisor.dev/archive.key`) or its release archive, which holds `runsc`,
+`containerd-shim-runsc-v1`, and the `gvisor-bin/` sidecars `runsc` runs from
+beside itself. Register it in `/etc/docker/daemon.json` with Work's runtime
+arguments and restart Docker:
+
+```json
+{
+  "runtimes": {
+    "runsc": {
+      "path": "/usr/bin/runsc",
+      "runtimeArgs": ["--host-uds=open", "--net-raw"]
+    }
+  }
+}
+```
+
+`--host-uds=open` lets a sandbox reach the egress proxy's socket, so the
+machine offers `network.policy`; `--net-raw` lets the sandbox's own Docker
+daemon run, so it offers `containers`. A `runsc` runtime without them works,
+and the machine simply does not advertise those capabilities (its start log
+says which are missing). Check it with
+`docker run --rm --runtime=runsc --network none alpine echo ok`.
+
+Under runc, the container backend isolates only by kernel namespaces, as
+local processes do by process: it counts as `process` isolation everywhere
+(placement, personal credentials), and nested Docker needs privileged
+containers, which the operator must accept with `WORK_CONTAINER_PRIVILEGED=1`.
+A privileged container can leave its network and reach the machine, so such
+a machine offers no `network.policy`, and a Postgres control plane refuses
+to run agents on it as it does for plain processes.
+
+Open sandboxes join the `work-sandboxes` bridge network, which the backend
+creates with inter-container traffic off, so sandboxes on one machine cannot
+reach each other; they resolve names with the machine's own name servers
+(those in `/etc/resolv.conf`, or systemd-resolved's upstream ones, else
+Docker's fallback `8.8.8.8`). A network of that name with inter-container
+traffic on is refused: remove it and the backend makes it again. Each
+sandbox runs at most 4096 processes (`WORK_SANDBOX_PIDS_LIMIT`). A worker
+that died while creating a sandbox leaves a record in its data directory,
+and the next start removes that half-made sandbox.
+
+A worker that runs in a container finds the host path of its data
+directory by inspecting its own container, so sign-ins, egress sockets, and
+project data it bind-mounts into sandboxes must live on a mount from the
+machine: mount the data directory from the machine, preferably at the same
+path.
+
+A worker holds only its own machine credential and the private key its
+operations are sealed to: no `DATABASE_URL`, `WORK_SECRET`, `WORK_VAULT_KEY`,
+member tokens, or connection credentials.
 A replica holds all of them, so only machines you would trust with the whole
 brain become replicas. Never add a replica just for capacity.
 
@@ -2154,26 +2593,43 @@ brain become replicas. Never add a replica just for capacity.
    default, or `{ "people": ["dana@example.com"], "groups": ["eng@example.com"] }`,
    or `{ "projects": ["<project id>"] }` for one project's own work),
    and `trusted`.
-2. On the worker machine, run the same image version with the worker command
-   and its own empty data volume:
+2. On a Linux worker machine, run the control plane's
+   [install script](#the-install-script) as root with the code
+   (`curl -fsSL https://brain.example.com/api/workers/install.sh | sudo sh -s -- --code <code>`;
+   the enrollment response's `install` is that command). It installs Docker,
+   and gVisor on a machine without KVM, and starts the worker. Or run the
+   same image version with the worker command yourself. With the container
+   backend the worker drives the machine's Docker daemon, so it gets the
+   daemon's socket (and its group, since the image runs as an unprivileged
+   user) and its data directory from the machine at the same path:
 
    ```bash
-   docker run -d --name work-worker -v work-worker-data:/data \
+   docker run -d --name work-worker \
+     -v /srv/work-worker:/srv/work-worker -e WORK_DATA_DIR=/srv/work-worker \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     --group-add "$(stat -c %g /var/run/docker.sock)" \
      -e WORK_CONTROL_PLANE_URL=https://brain.example.com \
      -e WORK_WORKER_ENROLLMENT=<code> \
-     -e WORK_SANDBOX=microsandbox -e WORK_MAX_WORKSPACES=4 \
+     -e WORK_MAX_WORKSPACES=4 \
      <work-server image> bun apps/server/src/worker.ts
    ```
+
+   `WORK_SANDBOX` defaults to `auto` ([sandbox backends](#sandbox-backends)):
+   on a machine without KVM and with a gVisor runtime this runs gVisor
+   containers. Check the worker's start log for its choice.
 
    Pass the code through the deployment's secret mechanism; it is needed only
    for the first start. Every worker call states the worker's protocol; a
    control plane that cannot drive it answers `426` with
    `{ "code": "upgrade_required", "serverProtocol", "minimum" }`, and the
    worker logs which side to update and asks again every few minutes. Run
-   workers of the control plane's release. The worker stores its credential in
-   `/data/worker-credential` (owner-only) and refuses to start if
-   `DATABASE_URL`, `WORK_SECRET`, or `WORK_VAULT_KEY` is set. It dials out; open
-   no inbound port.
+   workers of the control plane's release: a worker older than sealed
+   operations (protocol 1) is answered `426`. The worker generates an X25519
+   key pair when it enrolls and sends only the public key. It stores its
+   credential in `/data/worker-credential` and the private key in
+   `/data/worker-key` (both owner-only), and refuses to start if
+   `DATABASE_URL`, `WORK_SECRET`, or `WORK_VAULT_KEY` is set. It dials out;
+   open no inbound port.
 3. Check `GET /_work/operator/machines` for `worker.build-1` with
    `available: true`, and `GET /_work/operator/workers` for its last contact
    (its last call to any replica).
@@ -2188,17 +2644,52 @@ brain become replicas. Never add a replica just for capacity.
 Revoke a worker with `DELETE /_work/operator/workers/:name`; its credential and
 node stop working at once. Re-enroll the same name with a new code.
 
+### Sealed operations and credential rotation
+
+Every operation queued for a worker (commands, uploaded files, members'
+secrets and personal files) is sealed to that worker's public key before it
+is written to Postgres (ADR 0207): the row, the write-ahead log, and backups
+hold only the operation's kind and ciphertext that only the worker's private
+key opens. Even the ciphertext is dropped once the operation has run.
+Results are not sealed; they enter the chat's record anyway.
+
+A worker replaces its credential and key pair every 30 days on its own. To
+ask for a rotation now, for example after a credential may have leaked, call
+`POST /_work/operator/workers/:name/rotate`. The worker hears it in its next
+answer from the control plane (its heartbeat calls every 10 seconds), writes
+the new credential and key to its data volume, and then uses them. The old
+credential keeps working until the new one is first used, then stops, so a
+rotation never interrupts running work and a lost answer is simply asked
+again. Rotation requests are ordered, so one delayed on its way never
+replaces a later one's credential. Until the new credential is accepted
+once, the worker keeps the pair it replaces in
+`/data/worker-identity.previous` and goes back to it if the new one is
+refused. `GET /_work/operator/workers` shows each worker's
+`credentialIssuedAt` and whether a rotation it was asked for is still
+`rotationRequested`. A worker enrolled by an earlier release generates and
+registers its key the first time it connects after its update.
+
+The data volume is the worker's identity. Losing it, or replacing its key
+file, means enrolling the worker again: revoke it and create a new code. A
+worker whose key does not match the one it enrolled with is refused with
+`403`.
+
 Workers run agent sandboxes only. Workflow runs, which receive project secrets,
-execute on the control plane. For developer and review agents use
-`WORK_SANDBOX=microsandbox` on workers (see capacity below).
+execute on the control plane; a worker's sandboxes receive only the secrets a
+project lists on their Environment, where the placement isolates the work's
+owner ([secrets in Environments](secrets-and-gateway.md#secrets-in-environments)).
+For developer and review agents use an isolating backend on workers:
+microsandbox, or the container backend under gVisor, which `auto` picks where
+they can run (see capacity below).
 
 ## Keep agent code away from the control plane
 
 A company deployment should run agents on workers, not beside the control
 plane's secrets. Set `WORK_CONTROL_PLANE_WORKLOADS=workflow` on the control
 plane (or empty to run nothing locally). A Postgres control plane refuses to
-start agents as plain subprocesses unless `WORK_SANDBOX=microsandbox` or the
-operator sets `WORK_TRUST_CONTROL_PLANE_AGENTS=1` for a fully trusted team.
+start agents as plain subprocesses: its backend must be microsandbox or the
+container backend (named, or what `auto` found), unless the operator sets
+`WORK_TRUST_CONTROL_PLANE_AGENTS=1` for a fully trusted team.
 
 The `default` Environment then puts workflows on the control plane (the only
 machines offering workflows) and agents on workers, with no project change.
@@ -2232,9 +2723,10 @@ its own Environment, so control-plane machines need no `review` label.
 
 When the narrowest tier is full, work falls back to the next unless the
 Environment sets `"strict": true`. A worker serving more than one person must
-run `WORK_SANDBOX=microsandbox`; the control plane refuses to connect a
-process-isolated shared worker unless the operator vouches for the people it
-serves with `"trusted": true`. A machine opened to exactly one project counts
+isolate its sandboxes (microsandbox, or gVisor containers); the control plane
+refuses to connect a process-isolated shared worker (local processes, or
+containers under runc) unless the operator vouches for the people it serves
+with `"trusted": true`. A machine opened to exactly one project counts
 as serving one owner. Change placement with
 `PATCH /_work/operator/workers/:name` (`labels`, `access`, `trusted`); it
 applies to the next placement, and an existing session re-checks it on its
@@ -2256,31 +2748,195 @@ lists, machine rules, and project role mappings name.
 
 ## A machine for every person or team
 
-Machine rules create and destroy workers to match the directory. They need a
-platform: extend the Work server with a `machineProvisioner` hook
-(`create({ name, class, labels, enrollment })` returns a platform reference;
-`destroy({ name, ref })` deletes the machine). A created machine starts the
-worker command with `WORK_CONTROL_PLANE_URL` and the one-time
-`WORK_WORKER_ENROLLMENT` code it received, for example through cloud-init.
+Machine rules keep workers in step with the directory (ADRs 0167, 0205):
+every active member of a group gets a machine of their own, or the group
+shares a fixed number. A rule names a machine **class**, and classes live in
+the JSON file `WORK_MACHINES_CONFIG` names:
 
-- `PUT /_work/operator/machine-rules/desks` with
-  `{ "group": "eng@example.com", "machines": "each-member", "class": "standard-4" }`
-  gives every active member of the group their own machine.
-- `PUT /_work/operator/machine-rules/support` with
-  `{ "group": "support@example.com", "machines": { "shared": 3 }, "class": "small" }`
-  gives the group three shared machines (add `"trusted": true` only for
-  process-isolated machines among people who trust each other).
-- `GET /_work/operator/machine-rules` lists rules; `DELETE` removes one and its
-  machines; `POST /_work/operator/machine-rules/reconcile` runs a pass now.
+```json
+{
+  "classes": {
+    "desk": {
+      "platform": "hetzner-cloud",
+      "serverType": "cpx41",
+      "location": "fsn1",
+      "image": "ubuntu-24.04",
+      "sshKeys": ["ops"],
+      "firewalls": [1234567],
+      "labels": { "team": "eng" },
+      "snapshot": true
+    },
+    "office": { "platform": "pool" }
+  }
+}
+```
 
-The server reconciles every minute and when an account is disabled, one
-replica at a time: a pass holds a lease in Postgres, renews it while platform
-calls run, and stops changing anything once another replica took it over; a
-machine whose enrollment code is still waiting is never provisioned twice.
-Members who left the group or were suspended lose their machine (revoked,
-then destroyed), and a machine that never enrolls within an hour is destroyed
-and replaced. A person gets a machine after their first sign-in, once the
-directory has placed them in the group.
+- `hetzner-cloud`: one Hetzner Cloud server per machine. `serverType`,
+  `location` and `image` are Hetzner's names; `sshKeys` (names or ids),
+  `firewalls` and `networks` (ids) and extra server `labels` are optional;
+  `snapshot: true` keeps an image of a machine's disk when it is destroyed.
+  The API token is `WORK_HETZNER_TOKEN` (read and write), never the file.
+- `pool`: machines you enrolled yourself ([pools](#dedicated-servers-and-other-machines-pools)).
+- `custom`: a custom server's `machineProvisioner` hook creates and destroys
+  them (`create({ name, class, labels, enrollment })` returns a platform
+  reference, `destroy({ name, ref })` destroys by the reference, or by the
+  name when it is `null`). `enrollment.cloudInit` is the same cloud-init a
+  Hetzner machine gets. `create` throws `MachineProvisioningRefusedError`
+  when the platform made nothing, so its code is withdrawn and the next pass
+  tries again; after any other error the code waits for the machine to
+  enroll. A server with the hook and no classes file treats every class as
+  custom.
+
+The server refuses to start when a class needs what it lacks (a Hetzner
+class without the token, a custom class without the hook), and refuses a
+rule that names a class it does not know.
+
+### Hetzner Cloud
+
+1. Set `WORK_PUBLIC_URL` (the HTTPS origin machines dial),
+   `WORK_HETZNER_TOKEN`, and `WORK_MACHINES_CONFIG`. The published image
+   knows where it was published and which release it is
+   (`WORK_IMAGE_REPOSITORY` and `WORK_VERSION`, set by its build) and gives
+   machines that same image; `WORK_WORKER_IMAGE` overrides it (a server
+   built from source must set it). Until one of them is known, no machine is
+   created and the rule's status says why.
+2. Write a rule: `PUT /_work/operator/machine-rules/desks` with
+   `{ "group": "eng@example.com", "machines": "each-member", "class": "desk" }`.
+   `{ "machines": { "shared": 3 } }` gives the group three shared machines
+   instead (add `"trusted": true` only for process-isolated machines among
+   people who trust each other). The request answers once the rule is
+   stored, and a pass starts at once; `GET /_work/operator/machine-rules`
+   shows how it went.
+3. Each machine is a server named after it and labeled `work-machine`,
+   `work-rule` and `work-class`. Cloud-init writes the
+   [install script](#the-install-script) to it with the machine's one-time
+   enrollment code and runs it; nothing is fetched to start it, but the
+   machine must reach the control plane and the container registry. A
+   machine that does not enroll within an hour is destroyed and replaced.
+
+Creation is idempotent: a server already named for the machine and labeled
+as it is that machine. When Hetzner refuses a server (a wrong server type,
+an exhausted quota), its code is withdrawn, the rule's status shows the
+error, and the next pass tries again. Destruction finds the server by its
+id, or by its label when no id was recorded, and succeeds when it is
+already gone; the machine stays listed (`state: "destroying"`) until then.
+A snapshot is started by one pass and the server destroyed by a later one,
+once the snapshot is written.
+
+### Dedicated servers and other machines: pools
+
+Machines that cannot be created on demand (dedicated servers, machines on
+premises, existing VMs) join a pool:
+
+1. Declare a pool class: `"office": { "platform": "pool" }`.
+2. Create an enrollment code for each machine:
+   `POST /_work/operator/workers` with
+   `{ "name": "office-1", "pool": true, "labels": { "class": "office" } }`.
+   A pooled machine has no access of its own; leave out `access` and
+   `trusted`. The response's `install` is the command for that machine.
+3. On the machine: `curl -fsSL https://brain.example.com/api/workers/install.sh | sudo sh -s -- --code <code>`.
+4. A rule on the pool's class assigns one free machine of that class to each
+   member, or `{ "shared": n }` of them to the group, with the access the
+   rule gives. A rule on a pool takes no `labels`: pooled machines keep the
+   labels they enrolled with.
+
+A pooled machine nobody holds takes no work. A group's shared machine
+belongs to that group: change a rule's group and its machines are released
+(and later reset), never handed to the new group. When no machine is free,
+a member waits: `GET /_work/operator/machine-rules` reports, for each rule,
+`desired`, `ready`, `starting` (created, not yet enrolled), `waiting` (no
+machine yet) and `released`; a `problem` when a rule names a class that is
+no longer configured, whose machines are then left as they are; and a
+`failure` (`{ error, at }`) when something failed for the rule's machines
+in the latest pass.
+
+### The install script
+
+`GET /api/workers/install.sh` is public and holds no secret: a POSIX sh
+script with this server's public URL and worker image in it. Run it as root
+with `--code` (required) and optionally `--image`, `--data-dir` (default
+`/var/lib/work`) and `--name` (the container's, default `work-worker`). The
+data directory must be new, or an empty one (or a worker's) under
+`/var/lib`, `/srv`, `/opt`, `/data` or `/home/<user>`; the script refuses
+system directories. It:
+
+- installs Docker with Docker's convenience script when `docker` is missing,
+  downloaded to a file and checked first, waiting up to ten minutes for
+  another package installation (a cloud machine's first boot) to finish;
+- with a usable `/dev/kvm`, gives the worker the device and its group, so
+  agents run in microVMs. libkrun needs nothing more: never `--privileged`
+  or added capabilities;
+- without KVM, installs gVisor from its apt repository (Debian and Ubuntu;
+  elsewhere install `runsc` first) and registers the `runsc` runtime with
+  `--host-uds=open --net-raw` (ADR 0204), restarting Docker only when that
+  changed;
+- creates the data directory for the image's user (uid 1000, mode 0700),
+  pulls the image, replaces any container of that name, and runs the worker
+  with `--restart unless-stopped`, the Docker socket and its group, the data
+  directory mounted at the same path, and `WORK_SANDBOX=auto`.
+
+Running it again is safe: the worker keeps its enrollment in its data
+directory. The endpoint answers 503 naming what is missing when the server
+does not know its worker image or has no public URL.
+
+### Retention
+
+When a member leaves the group or is disabled, or the rule is removed or
+changes class, their machine is **released**: it takes no new work from
+that moment (a chat already on it keeps reaching its workspace there until
+it idles and gives it back; its next turn after that lands elsewhere), and
+it keeps its disk for the rule's `retainDays` (0 to 365, default 7;
+kept with the machine, so it outlives the rule; counted by the database's
+clock). A member back within that time gets the same machine again.
+Afterwards:
+
+- a cloud machine is destroyed, after a snapshot when its class says
+  `snapshot: true`;
+- a pooled machine is reset: its worker destroys every sandbox on it and
+  deletes every volume and every member's sign-in, and the machine returns
+  to its pool. A machine that is not connected is reset when it reconnects;
+  a pass waits a few minutes for a reset and asks again on the next pass
+  when it takes longer.
+
+Chats on a released machine give their workspaces back, saved to their
+session branch, once they idle (`idleReleaseMinutes`, ADR 0173): a connected
+machine is destroyed or reset only after that, so a chat that keeps its
+workspace (`idleReleaseMinutes: 0`) holds it until the chat is closed or
+moved. `retainDays: 0` acts in the same pass otherwise. A machine that never
+enrolled holds nothing and goes at once. `GET /_work/operator/workers` shows
+each worker's `state` (`serving`, `released`, `resetting`, `free`,
+`destroying`, or `revoked`) and `released: { at, retainDays }`.
+
+### Passes
+
+The server reconciles every minute and when an account is disabled. One
+replica at a time runs a pass, under a claim in Postgres (ADR 0193) renewed
+while platform calls run and checked before every change; a replica whose
+claim moved stops changing anything. A machine whose enrollment code is
+still waiting is never provisioned twice, and one machine's failure is
+recorded for its rule while the pass goes on with the others. A person gets
+a machine after their first sign-in, once the directory has placed them in
+the group. `POST /_work/operator/machine-rules/reconcile` runs a pass now
+and answers with what it did; `PUT` and `DELETE
+/_work/operator/machine-rules/:name` answer once the rule is stored or
+removed and start a pass (a removed rule's machines are released).
+
+### Through the API
+
+Organization administrators (ADR 0172) manage machines with their own
+sign-in, through the same handlers as the operator:
+
+| Operator listener | Administrators |
+| --- | --- |
+| `GET /_work/operator/machines` | `GET /api/work/machines` |
+| `GET`, `POST /_work/operator/workers` | `GET`, `POST /api/work/machines/workers` |
+| `PATCH`, `DELETE /_work/operator/workers/:name` | `PATCH`, `DELETE /api/work/machines/workers/:name` |
+| `GET /_work/operator/machine-rules` | `GET /api/work/machines/rules` |
+| `PUT`, `DELETE /_work/operator/machine-rules/:name` | `PUT`, `DELETE /api/work/machines/rules/:name` |
+| `POST /_work/operator/machine-rules/reconcile` | `POST /api/work/machines/rules/reconcile` |
+
+Members are refused (403). Enabling and disabling machines and confirming
+destroyed workspaces stay on the operator listener.
 
 ## Add a control-plane replica
 
@@ -2331,7 +2987,12 @@ fresh one with an empty disk at any time.
    worker that is away for more than 45 seconds is unavailable: its chats'
    turns wait, and in-flight operations its controllers stopped waiting for
    fail as uncertain. When it calls again, the same process simply carries
-   on.
+   on. A replica that queues an operation wakes the worker's poll it is
+   serving at once, and one that receives a result wakes its own waiting
+   turn at once (ADR 0207). Across replicas, a waiting poll checks the queue every
+   250 milliseconds and a waiting turn checks for its result every 100
+   milliseconds, so each operation takes a little longer with several
+   replicas.
 6. No replica keeps state another replica needs in memory (ADR 0193).
    Whether a chat is running, and whether it may be changed, comes from its
    turn's lease in Postgres, so every replica answers the same. An interrupt,
@@ -2406,7 +3067,9 @@ replica, so losing one loses no draft.
 Declare a project Environment with `device: "member"`, workload `agent`,
 and appropriate role grants. The desktop's **Connect This machine** action starts
 an authenticated SDK runner using its local sandbox provider. It receives no
-Postgres credentials. Discovery and every operation retain the member's current
+Postgres credentials. Its operations are sealed to a key kept in the member's
+desktop profile, whose public half the runner registers each time it
+connects (ADR 0207). Discovery and every operation retain the member's current
 project and Environment permissions. Closing the desktop or losing authorization
 stops the runner. A new connection lifetime cannot revive an old allocation.
 The runner renews its own lease through any replica, so its chats belong to no
@@ -2443,17 +3106,19 @@ external actions; never simulate enrollment through direct database writes.
 
 ## Capacity and isolated development
 
-For developer agents on managed machines, use `WORK_SANDBOX=microsandbox`.
-Install and verify the supported microsandbox runtime on that machine first;
-Linux needs virtualization support and access to KVM. The stock Docker image
-still defaults to trusted subprocess execution. Setting an environment variable
-alone does not supply virtualization or turn that container into a per-agent
-sandbox. Keep microsandbox's machine-local state on persistent storage.
+For developer agents on managed machines, use an isolating backend
+([sandbox backends](#sandbox-backends)): microsandbox where the machine has
+KVM (or is an Apple silicon Mac), else the container backend under gVisor.
+`WORK_SANDBOX=auto`, the default, picks between them and logs why. Install
+and verify the runtime first: microsandbox's `msb` and access to
+`/dev/kvm`, or Docker with a `runsc` runtime. Setting an environment
+variable alone supplies neither. Keep microsandbox's machine-local state,
+and the Docker daemon's data, on persistent storage.
 
 Set these environment variables on each machine's service before starting it:
 
 ```dotenv
-WORK_SANDBOX=microsandbox
+WORK_SANDBOX=auto
 WORK_MAX_WORKSPACES=4
 WORK_CAPACITY_CPU_MILLIS=8000
 WORK_CAPACITY_MEMORY_MB=16384
@@ -2461,6 +3126,9 @@ WORK_WORKSPACE_CPU_MILLIS=1000
 WORK_WORKSPACE_MEMORY_MB=1024
 WORK_SANDBOX_IMAGE=oven/bun
 ```
+
+With `auto`, a machine that can only run local processes refuses these
+budgets at start instead of ignoring them.
 
 Capacity is an admission budget, not total machine RAM or CPU. Leave room for
 Postgres (if colocated), the stock server, model controllers, builds, and the OS.
@@ -2489,11 +3157,15 @@ agent resource configuration file. For example, merge this into an ordinary
 }
 ```
 
-Microsandbox enforces whole-core CPU limits (multiples of 1000 millicores) and
-memory in MiB. Disk and GPU limits are currently rejected by the stock providers.
+Microsandbox enforces whole-core CPU limits (multiples of 1000 millicores),
+memory in MiB, and `storageMb` as the size of the VM's root disk, which holds
+the workspace. The container backend enforces CPU in any millicores and
+memory in MiB (Docker's `NanoCpus` and `Memory`, without swap), and rejects
+`storageMb`: Docker's default storage cannot cap one container's disk. GPU
+limits are rejected by the stock providers.
 Native host CLI execution does not enforce these sandbox limits; use controller
 agents for this setup. The stock controller and connection broker remain outside
-the VM. `resources.commandTimeoutSeconds` bounds one foreground command, an
+the sandbox. `resources.commandTimeoutSeconds` bounds one foreground command, an
 agent's shell command included (ten minutes when unset). Longer work runs as a
 background command: the built-in agent starts it with `run_background_command`,
 follows it with `read_background_output`, and stops it with
@@ -2503,12 +3175,16 @@ the worker and end when the chat closes or the workspace is destroyed
 CPU/memory budgets; it is still for trusted single-tenant work only.
 
 A managed session reserves its workspace at creation, including between turns.
-Background development servers stay within the same VM and budget. Full machines
+Background development servers stay within the same sandbox and budget. Full machines
 stop accepting new Allocations; already admitted sessions keep their placement.
 Archive, close, or move unused sessions to retire their workspaces. Restoring an
 archived session needs fresh admission. Workflow root allocations release on
 termination. Cleanup runs on the owning node; capacity returns only after its
-sandbox is destroyed. A stopped VM still has a reservation for safe restart.
+sandbox is destroyed. A stopped sandbox still has a reservation for safe
+restart. A restarted container sandbox keeps its workspace (a Docker volume of
+its own) and its volumes; under gVisor the rest of its filesystem starts over
+from the image, so the setup step runs again and what an agent installed
+outside the workspace and volumes is gone.
 
 Inspect `GET /_work/operator/machines` for budget, usage, and
 `acceptingWork`; `GET /_work/operator/machines/:id/workspaces` identifies
@@ -2527,17 +3203,21 @@ are rejected before use, and requested limits travel with sandbox creation.
 
 ## Assign a development machine to one user
 
-Use an ordinary named project Environment bound to the intended machine, and
-an ordinary role granting that Environment to the selected member. Keep that
-grant out of other roles; membership managers can grant it to additional members
-when sharing is intended. No developer-owner machine type or separate assignment
-permission exists. A grant controls admission, not OS accounts or network access.
+Environments say what work needs; they never name a machine (ADR 0167). A
+machine for one person is a worker whose access names only them: enroll it
+with `"access": { "people": ["dana@example.com"] }`, change an enrolled
+worker's access with `PATCH /_work/operator/workers/:name`, or let a machine
+rule give every member of a group one ([above](#a-machine-for-every-person-or-team)).
+Their chats prefer it to shared machines, nobody else's work lands on it, and
+it may run their own Codex sign-in and files (ADRs 0184, 0213). Access decides placement,
+not OS accounts or network access on the machine.
 
 Choose the trust boundary before provisioning. Control-plane replicas carry
 the whole deployment's authority. Put developer machines in as workers (or as a
 member's **This machine** runner); neither receives Postgres, vault, or
-sign-in secrets. A private Environment grant alone does not make unrestricted
-processes safe on a shared worker: use microsandbox for code you do not trust.
+sign-in secrets. A worker that serves several people must isolate their
+agents from each other: microVMs or gVisor, never plain processes unless the
+operator marks those people as trusting each other.
 
 ## Images, containers, and egress
 
@@ -2557,18 +3237,33 @@ An Environment chooses its sandbox (ADR 0176) in `.work/project.json`:
 }
 ```
 
-- `image` is an OCI reference (`node:22`) or a project Dockerfile. Only
-  microsandbox machines boot images. A Dockerfile needs a machine with a
-  builder: set `WORK_IMAGE_BUILDER=docker` (or `podman`) and install that CLI
+- `image` is an OCI reference (`node:22`) or a project Dockerfile.
+  Microsandbox and container machines boot images; the container backend
+  pulls a missing image with its Docker daemon. A Dockerfile needs a machine
+  with a builder: the container backend builds with its own daemon (the
+  classic builder, so BuildKit-only Dockerfile features are not available);
+  microsandbox needs `WORK_IMAGE_BUILDER=docker` (or `podman`) and that CLI
   and its daemon on the machine. The build context is the Dockerfile alone;
   each machine builds a digest once and keeps it cached. Build steps (`RUN`)
   use the builder's network, not the Environment's `network.egress`, so
   review a Dockerfile's downloads like the rest of the program, or give the
   builder's daemon a restricted default network or proxy.
 - `requirements.containers` places the work where the sandbox gets its own
-  container runtime. On microsandbox, Docker runs inside the VM (on by
-  default; `WORK_SANDBOX_CONTAINERS=0` turns it off) on a private disk, and
-  the image must ship `dockerd`: use `docker:dind` or a Dockerfile `FROM` it.
+  container runtime, and the image must ship `dockerd`: use `docker:dind` or a
+  Dockerfile `FROM` it. On microsandbox, Docker runs inside the VM (on by
+  default; `WORK_SANDBOX_CONTAINERS=0` turns it off) on a private disk. On the
+  container backend under gVisor, the sandbox's own daemon runs inside the
+  sandbox (with all capabilities, which gVisor virtualizes, and without
+  iptables, since gVisor has no NAT): nested containers reach each other and
+  the sandbox, published ports answer on the sandbox's `127.0.0.1`, and
+  nested containers reach the outside only through the sandbox's proxy,
+  which the sandbox's Docker CLI hands every container and build it starts.
+  The machine's `runsc` needs `--net-raw` for this. Under runc the sandbox
+  must be privileged, so the container backend offers containers there only
+  with `WORK_CONTAINER_PRIVILEGED=1`; `WORK_SANDBOX_CONTAINERS=0` turns them
+  off on either runtime. Without a volume at `/var/lib/docker` the nested
+  daemon's images live in the sandbox and go with it (under gVisor, also
+  with a restart).
   A trusted local-process machine offers containers with
   `WORK_DOCKER_SOCKET=/var/run/docker.sock`: each sandbox gets its own
   endpoint as `DOCKER_HOST` that serves only the API routes and settings the
@@ -2582,40 +3277,133 @@ An Environment chooses its sandbox (ADR 0176) in `.work/project.json`:
   is a per-user plugin (Docker Desktop), also set `WORK_DOCKER_CLI_PLUGINS`
   to that plugin directory.
 - `network.egress` is `open` (default), `gateway` (only this server's public
-  host and port, from `WORK_PUBLIC_URL`, and DNS), or `allowlist`. Only microsandbox
-  enforces it, containers inside the VM included. A restricted image must
-  already contain git and bash, since the setup step cannot install them.
+  host and port, from `WORK_PUBLIC_URL`, and DNS), or `allowlist`.
+  Microsandbox enforces it in the VM's network, containers inside the VM
+  included. The container backend enforces it without a firewall (ADR 0204):
+  a restricted sandbox has no network interface but loopback, and its only
+  way out is a socket mounted from the machine, where the worker serves an
+  HTTP proxy that admits the allowlist (`CONNECT` for TLS, absolute URLs for
+  plain HTTP), resolves names itself, checks every address a name resolves
+  to, and refuses everything else with 403 (a host that is not a valid name
+  or IP literal with 400). The machine's own addresses (loopback, link-local
+  such as cloud metadata) are reached only through an entry naming that
+  exact address and port, such as a development gateway's
+  `127.0.0.1:<port>` (or `localhost:<port>` for loopback).
+  A forwarder in the sandbox, run with the image's Bun or Node, listens on
+  `127.0.0.1:3128`, and `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` and
+  `NODE_USE_ENV_PROXY` point there. Tools that ignore proxy variables, and
+  anything that is not HTTP (Git over SSH, for example), have no network;
+  use HTTPS remotes. The machine's `runsc` needs `--host-uds=open` for this;
+  runc needs nothing. A restricted image must already contain git, bash,
+  and Bun or Node, since the setup step cannot install them.
   Local-process refuses such Environments unless the operator sets
   `WORK_UNENFORCED_EGRESS=accept`, which runs them with open egress.
+- `volumes` (ADR 0208) keep directories on the machine across a member's
+  sandboxes. Microsandbox keeps each as a named volume (a disk for an
+  `exclusive` one, sized by `sizeMb`), and the container backend as a Docker
+  volume named `work-volume-<key>`; both mount at absolute paths or under
+  `~`, the image user's home. Local-process keeps them only under `~` (each
+  sandbox's own home) and refuses absolute paths. A machine forgets a volume
+  no sandbox used for `WORK_VOLUME_RETENTION_DAYS` (default 30), checked
+  hourly; a volume a sandbox still mounts, even a stopped one, is kept.
+  Microsandbox keeps volumes only where the Work server gives it a state
+  directory, as the stock server and workers do.
 
-Machines advertise `images`, `images.build`, `containers`, and
-`network.policy`, `sign-ins` and one `sign-in:<harness>:<member>` per
-member signed in on them, and a local-process machine `harness.claude-code` and
-`harness.codex` when those CLIs are on its `PATH`;
-`GET /_work/operator/machines` shows them. An Environment
-no machine satisfies reports which capability is missing. VM budgets include
-nested containers; the Docker disk has its own size, and local-process
-containers are not budgeted.
+Machines advertise `images`, `images.build`, `containers`,
+`network.policy`, and `volumes`, `sign-ins` and one
+`sign-in:<harness>:<member>` per member signed in on them, and a
+local-process machine `harness.claude-code` and `harness.codex` when those
+CLIs are on its `PATH`; `GET /_work/operator/machines` shows them with the
+machine's `descriptor.backend`. An Environment no machine satisfies reports
+which capability is missing. Sandbox budgets include nested containers; the
+microsandbox Docker disk has its own size, and local-process containers are
+not budgeted.
+
+### Setup and volumes
+
+Images hold a team's toolchain; setup and volumes hold what the project
+installs with it, so the second workspace on a machine starts from warm
+caches (ADR 0208):
+
+```json
+{
+  "environments": {
+    "dev": {
+      "workloads": ["agent"],
+      "image": ".work/images/dev.Dockerfile",
+      "requirements": { "containers": true },
+      "setup": "corepack enable && pnpm install --frozen-lockfile",
+      "setupTimeoutMinutes": 45,
+      "volumes": {
+        "pnpm": "~/.local/share/pnpm/store",
+        "docker": { "path": "/var/lib/docker", "exclusive": true, "sizeMb": 20480 }
+      }
+    }
+  }
+}
+```
+
+- `setup` is a shell command run in the project folder of every new
+  workspace before its first turn, once the chat's secrets and the member's
+  personal files are in place, and again when the command changes. A
+  workspace rebuilt after idle release runs it again. Its first failing
+  command stops it. Output is appended to `.work-session/setup.log` beside
+  the project, and the chat shows that the workspace is being set up. A
+  failure, or a run longer than `setupTimeoutMinutes` (30 by default), is
+  told to the agent with the end of the log; the turn goes on, and setup
+  runs again before the next turn. A member may add their own `setup` in
+  `.work/personal/environment.json`: it runs after the Environment's, only
+  in their own chats in Environments with `"personalCredentials": true`,
+  and only for turns they wrote.
+- `volumes` name directories kept on the machine for each owner (a member,
+  or the project for its own chats and runs) and project: the owner's next
+  sandbox on that machine mounts the same directory, and nobody else's does.
+  A path is absolute or starts with `~/`, the sandbox user's home. Point
+  package stores and caches at them, such as pnpm's store above.
+- An `exclusive` volume, such as a Docker data root or a database's data
+  directory, is mounted into one sandbox at a time. Placement records which
+  sandbox holds it, in Postgres, so every replica agrees; a sandbox that
+  starts while another of the same owner's holds it gets an empty temporary
+  one that goes away with it, and its agent is told. The hold ends when the
+  holding sandbox is destroyed. `sizeMb` sizes the disk a backend gives an
+  exclusive volume when it needs one.
+- Volumes stay on their machine: moving to another machine starts cold.
+  They hold whatever the owner's code writes there, credentials included.
+  Machines advertise `volumes` when their backend keeps them; local-process
+  keeps only paths under `~`. A machine forgets volumes nobody used for 30
+  days (`WORK_VOLUME_RETENTION_DAYS`) and a member's volumes when a pooled
+  machine is reset.
 
 ## Members' own sign-ins and files
 
 An Environment with `"personalCredentials": true` lets a member's chats run
-Claude Code or Codex on the member's own sign-in, made on a machine with
-`work worker sign-in <claude-code|codex> --member <id>` in a terminal there
-(ADR 0199, [harnesses](harnesses.md#members-own-sign-ins)), and lets their
-listed files reach their own chats. The sign-in never leaves that machine:
-the worker reports only `sign-in:<harness>:<member>` in its offer, and
-placement takes only a machine reporting the chat owner's. Only placements
-that isolate the member qualify: microsandbox, a worker whose access names
-only that person, or the member's device. A local-process machine that
-serves several people (a `trusted` worker, or the control plane itself)
-refuses them unless its operator sets `WORK_PERSONAL_CREDENTIALS=accept` on
-that machine (the worker's own environment, like `WORK_UNENFORCED_EGRESS`),
-which advertises `credentials.personal`. Give such Environments egress to
-`api.anthropic.com`, `chatgpt.com`, and `api.openai.com` when they restrict
-it, and the CLIs on the path or in the image. A company that wants these
-harnesses for everyone binds a model connection instead
-([harnesses](harnesses.md)).
+Codex on the member's own ChatGPT sign-in, made from the Work app on a
+machine of their own (ADRs 0199, 0213,
+[harnesses](harnesses.md#members-own-sign-ins)), and lets their listed files
+reach their own chats. The sign-in never leaves that machine: the worker
+reports only `sign-in:codex:<member>` in its offer, and placement takes only
+a machine reporting the chat owner's. A sign-in runs only on the member's
+own machine: a worker whose access names only that person, or a single
+server's own machine whose operator set `WORK_PERSONAL_CREDENTIALS=accept`.
+A machine holds one person's Codex sign-in at most, so a shared machine runs
+Codex on keys whatever its isolation. Claude Code subscriptions never run on
+servers or workers (ADR 0213). Personal files follow the isolation rule:
+microsandbox, gVisor containers, a worker whose access names only that
+person, or the member's device. A process-isolated machine (local
+processes, or containers under runc) that serves several people (a
+`trusted` worker, or the control plane itself) refuses them unless its
+operator sets `WORK_PERSONAL_CREDENTIALS=accept` on that machine (the
+worker's own environment, like `WORK_UNENFORCED_EGRESS`), which advertises
+`credentials.personal`. Give such Environments egress to `chatgpt.com`,
+`auth.openai.com` and `api.openai.com` when they restrict it. A company
+that wants Codex or Claude Code for everyone binds a model connection
+instead ([harnesses](harnesses.md)).
+
+The same placements receive the secrets an Environment lists, with each
+member's own value in their own chats (ADR 0206,
+[secrets in Environments](secrets-and-gateway.md#secrets-in-environments)).
+A project chat receives the shared values on a sandboxed machine or on a
+worker whose access names only that project.
 
 ## Unattended agents
 
@@ -2633,6 +3421,35 @@ roles: ["reviewer"] } })`). They get a notification, the chat appears for
 them, and they may answer its approval card without otherwise holding the chat.
 It waits `approvals.waitMinutes` (30 by default) and then is denied with a
 reason. A chat with no approvers refuses at once.
+
+## Terminals and previews
+
+A member works in a chat's workspace beside its agent (ADR 0209): the chat's
+owner, or anyone with `sessions:write` for a project chat. A terminal is a
+login shell (bash, else sh) started as one of the workspace's background
+processes, on a pseudo-terminal when the sandbox has util-linux `script` (or
+the BSD `script` of macOS for local-process there), else an interactive shell
+on a pipe, which the open answer reports as `pty: false`. It starts in the
+project folder with the Environment's secrets (ADR 0206) loaded when the
+workspace has them. A project chat whose workspace holds the project's
+secrets opens a terminal only for someone holding `secrets:write`.
+`POST /api/projects/:id/agent/sessions/:sessionId/terminals`
+opens one, readmitting and starting the chat's workspace when it was given
+back; its output is read with `GET .../terminals/:terminalId/output?cursor&waitMs`,
+and `POST .../input`, `POST .../resize` and `DELETE .../terminals/:terminalId`
+follow. Only the person who opened a terminal reaches it. A terminal ends
+with its workspace. Using a terminal (typing, or reading its output) or a
+preview keeps the workspace from being released as idle, as a turn does.
+
+`/api/projects/:id/agent/sessions/:sessionId/previews/:port/*` forwards any
+HTTP request to that port inside a running workspace, made by the sandbox's
+own Bun or Node (20 or later), so it works on every backend and behind
+restricted egress. Bodies travel as sent, every `Set-Cookie` comes back, and
+a redirect to the server itself stays below the preview. Responses are capped
+at 16 MiB, and WebSocket upgrades (live reload) are not forwarded. A preview
+never starts a workspace. The desktop opens a remote chat's terminal as a
+terminal tab and its preview in a browser tab, adding the member's
+credentials itself; other clients send the member's bearer token.
 
 ## Docker, development services, and private HTTP
 
@@ -2790,7 +3607,8 @@ its supervisor starts a fresh process.
 | `connectionGuards` | Guards that review each gateway action (ADR 0162). Work ships none; a guard is host code (ADR 0183) |
 | `vaultKeys` | Credential vault keys from a key service instead of `WORK_VAULT_KEY` |
 | `directories` | Upstream directories (beyond Google Workspace) that keep accounts active or disable them (ADR 0161) |
-| `machineProvisioner` | Creates and destroys worker machines on a platform, so machine rules give people and teams their own machines (ADR 0167) |
+| `machineProvisioner` | Creates and destroys worker machines on a platform Work does not ship, for `custom` machine classes, so machine rules give people and teams their own machines (ADRs 0167, 0205) |
+| `hetzner` | Hetzner Cloud API options for `hetzner-cloud` machine classes: another endpoint, or a `fetch` for tests (the token is `WORK_HETZNER_TOKEN`) |
 | `projectSeeds` | Changes to the files seeded into new projects |
 | `routes` | Extra routes on the public application |
 
@@ -3041,6 +3859,21 @@ import { startEventDispatcher } from "@catamorphic/core";
 const events = startEventDispatcher({ core: catamorphic.core });
 // on shutdown: await events.stop();
 ```
+
+Directory events (ADR 0210) are Project Events about a whole tenant: register
+`DIRECTORY_TRIGGER_KINDS` from `@catamorphic/server-sdk`, and when an account
+joins, leaves, or changes groups, build
+`directoryProjectEvent({ kind, member, groups, occurredAt, revision })`,
+record it with the change, and once that commits deliver it with
+`core.projectEvents.appendToSubscribers({ tenantId, ...event })`, retrying
+until it succeeds: a failed delivery must never undo the change (a departed
+member stays disabled). Only projects with an active automation of that kind
+store it; `revision` counts the account's transitions, so a replay is stored
+once, and delivering one account's events in revision order keeps a join
+from arriving after the departure that followed it. A kind may require permissions of
+the workflows that bind it (`defineTriggerKind({ requiredPermissions })`);
+these require `memberships:read`, enforced at scan and by the project check.
+The Work server does all of this for every `DirectoryProvider`.
 
 Webhooks are a built-in trigger kind: register `webhook` from
 `@catamorphic/server-sdk` in `triggerKinds`, and pass `publicApiBase` (the
@@ -3788,8 +4621,14 @@ A remote executor owns its node lease (ADR 0192): the host connects it with
 executor's own calls with `renewRemote`, and builds its sandbox provider from
 the row with `remoteProvider`; any host of the authority then claims its
 turns. `workerNode` names only the process's own local node.
-Enable `clientExecution: true` to accept authenticated member sandbox runners;
-`startClientRunner` supplies the transport-independent client loop. See the
+Every operation is sealed to its executor's X25519 public key (ADR 0207):
+register it with `registerExecutorKey({ db, executor: nodeExecutor(id),
+publicKey })` before `connectRemote`, which refuses an executor without one.
+Enable `clientExecution: true` to accept authenticated member sandbox runners,
+which register their public key when they connect; `startClientRunner`
+supplies the transport-independent client loop and opens what it receives
+with `keys: { executor, privateKeys }` (`generateExecutorKeyPair` makes a
+pair; the private key stays on the executor). See the
 [cluster setup reference](skills/setup-work-server/references/cluster-deployment.md)
 for the current limitations and required evidence. Custom hosts continue to
 inject their own infrastructure and auth.
@@ -3896,6 +4735,25 @@ as a process with standard input (providers implement
 runner runs the harness's CLI beside the workspace, with the gateway as its
 only model endpoint, and any replica can read it or reattach to it (ADR
 0198). Harness binaries come from the Environment image.
+
+HTTP APIs through the gateway (ADR 0212): a provider whose connection is an
+HTTP API code in sandboxes may call sets `http: { baseUrl, paths?,
+headers({ material }) }` (`defineHttpApiConnectionProvider` offers it for
+connections without named `actions`; `auth: { basic: true }` sends a
+`user:password` key as HTTP Basic). Its capabilities are the lowercase
+methods. The plugin serves `/gateway/http/:alias` and everything below it
+(public route; the grant is a bearer, the Basic password, or `x-work-grant`):
+GET, HEAD, POST, PUT, PATCH and DELETE below the base URL and inside
+`paths`, the method allowed by the binding (`get` covers HEAD), reads only
+for a contained agent, bodies up to 32 MiB byte for byte, answers streamed,
+the caller's authorization replaced by the stored key. Guards see kind = the
+provider, action = the lowercase method, input = `{ path, query }`; each
+request is audited as `connection.http`. At each sandbox turn core issues a
+`sandbox` grant per HTTP alias and writes `.work-session/env/gateway.sh`
+exporting `WORK_HTTP_<ALIAS>` (`<gatewayUrl>/http/<alias>`) and
+`WORK_HTTP_<ALIAS>_GRANT_FILE`; the runner (`AttemptStart.envFiles`),
+host harnesses' commands, setup and terminals load it beside `secrets.sh`.
+Grants rotate on renewal, so code reads the file per request.
 
 Personal credentials (ADRs 0184, 0199): a member's listed files may reach
 sandboxes that run only that member's work. The member's client calls
