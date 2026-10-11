@@ -26,22 +26,29 @@ The website does not promise unavailable platform releases.
 
 ## Desktop film
 
-The homepage plays `site/assets/work-desktop-film.mp4`, a silent
-1920x1200 H.264 recording of the actual desktop app at 60 fps (a 16:10 frame,
-matching the `aspect-ratio` of the orange panel it sits in). It follows one scenario in the prepared project "Aster
-launch": read a reference page in Work's browser, open a chat beside it and ask
-for a Launch section in the sidebar with the four docs, then ask for a small
-app that shows the person's own chats by day. The app is opened from the
-sidebar, Work asks once before it reads the chats, and the app is used.
+The homepage plays `site/assets/work-desktop-film.mp4`, a silent 1680x1050
+H.264 recording of the actual desktop app at 60 fps (a 16:10 frame, matching
+the `aspect-ratio` of the orange panel it sits in). The window lays out at
+1280x800 and renders at 1.3125x, so text stays sharp at the size the page
+shows it. It follows one scenario in a prepared project, "Product Night", a
+fictional meetup: the plan has two open to-dos (meal counts for the caterer,
+a check-in app for the door). Sam opens a chat over the plan, asks the agent
+to take care of them and puts the chat away. When the agent is done, both
+to-dos tick themselves in the open document and a Door check-in app opens in
+a new tab; Sam reads the agent's short answer, opens the app and checks three
+guests in.
 
-Both agent turns are real (Claude Code, this machine's login); the app is built
-by the agent from the project skills and declares `catamorphic.access.sessions`.
-Typing, navigation and app use run at 1x; the agent's working time is
-accelerated with a visible "Sped up" label. The five earlier conversations in
-the project were seeded through the normal chat.
+The agent turn is real (Claude Code on this machine's login, with the
+person's own connectors denied in the demo project), and the app and its
+workflows are the ones the agent built from the project skills. Typing,
+clicks and app use run at 1x; the agent's minutes of work and the app's first
+load are cut, each bridged by a short dissolve, and nothing is sped up. The
+pointer is drawn from the recorded input, since scripted input shows none.
+The three earlier chats in the sidebar were real turns seeded through the
+normal chat. Guests, companies and the venue are fictional.
 
-Raw frames, markers, the cut list (`edit.json`), renderer and production notes
-are in `../work-product-film/activity-demo/`. The reusable skill is
+Raw takes, markers, the cut list (`edit.json`), renderer and production notes
+are in `../work-product-film/v5/`. The reusable skill is
 `.agents/skills/announcement-video/` in the Catamorphic repo, with a
 Work-specific story reference.
 
