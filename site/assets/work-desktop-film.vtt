@@ -1,19 +1,31 @@
 WEBVTT
 
-00:00:00.000 --> 00:00:11.524
-Sam's plan for Product Night has two open to-dos. Sam opens a chat and asks the agent to take care of them.
+00:00:00.000 --> 00:00:11.478
+Sam is planning a team offsite in Lisbon. From the palette, Sam opens a travel guide beside the plan.
 
-00:00:11.524 --> 00:00:19.174
-The agent reads the plan and the RSVP list and gets to work. Sam puts the chat away.
+00:00:11.478 --> 00:00:25.750
+Sam asks the agent to open Belém in the guide and fill Friday afternoon.
 
-00:00:19.174 --> 00:00:27.977
-Minutes later the agent is done. The meal counts land in the plan, both to-dos are ticked, and a Door check-in app opens in a new tab.
+00:00:25.750 --> 00:00:32.565
+The agent opens the Belém page in the guide and writes three stops into the plan.
 
-00:00:27.977 --> 00:00:39.064
-The agent says what it did, in a few plain sentences.
+00:00:32.565 --> 00:00:41.620
+Sam asks for light mode.
 
-00:00:39.064 --> 00:00:41.872
-Sam opens the app.
+00:00:41.620 --> 00:00:48.928
+Work turns light, everywhere at once.
 
-00:00:41.872 --> 00:01:03.869
-The check-in app the agent built: search a name, tap a guest to check them in, and the count goes up.
+00:00:48.928 --> 00:01:02.528
+Sam asks for a workflow that checks Friday's forecast every morning.
+
+00:01:02.528 --> 00:01:09.306
+The workflow is saved to the project. Sam opens it: a schedule, the forecast check, a message to the chat.
+
+00:01:09.306 --> 00:01:23.439
+Sam asks for an app for the team with the plan, the forecast and who's joining what.
+
+00:01:23.439 --> 00:01:29.310
+The app is ready. From the palette, Sam opens it beside the workflow.
+
+00:01:29.310 --> 00:01:41.095
+In the app, Sam picks a name, sees Friday's live forecast, and joins a stop on the Belém walk.
