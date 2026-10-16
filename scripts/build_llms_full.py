@@ -24,6 +24,7 @@ DOCUMENTS = [
     ("skills/setup-work-server/references/members-over-mcp.md", "Working on a project from Claude Code or any MCP client"),
     ("skills/setup-work-server/references/cluster-deployment.md", "Machines: workers, per-person machines, and replicas"),
     ("packages/work-server/README.md", "Extending the Work server with your own code"),
+    ("apps/desktop/docs/sidebar-sources.md", "Customizing the sidebars and palette modes: sidebar sources"),
     ("INTEGRATION.md", "Embedding the framework in your own product"),
 ]
 SITE = Path(__file__).resolve().parent.parent / "site"
