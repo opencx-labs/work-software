@@ -44,14 +44,14 @@ We built Work because we believe one well-built piece of software can replace mo
 - Agents write durable workflows (TypeScript, run in sandboxes, resumable) and apps (small React screens built from Work's component kit). An app can read your own chats in a project after you allow it once; it never sees anyone else's.
 - Automations run for you or for the whole project. A workflow starts from a schedule, a chat event, or a webhook sent to your server (GitHub's included; on the desktop, GitHub is polled into the same events), and can message your chat or a shared project chat that anyone in the project can continue (one per pull request review, one per inbound request). On a Work server, people joining, leaving, or changing groups in the company directory start workflows too, so a new engineer's keys are issued as they join and revoked as they leave. Projects define their own triggers, such as "a pull request was merged" or "someone mentioned the app in Slack", on top of webhooks, with filters that decide which events start a run; webhooks check each sender's signature scheme and answer its setup handshake.
 - Slack is built the same way, from project code rather than a built-in integration: mentioning the app in a Slack thread starts or continues a shared project chat for that thread, the agent reads the thread (and, given a search token, searches Slack) through the gateway, which holds the tokens, and its answer is posted back to the thread. Slack's retries of an event start no second run.
-- Pull request review is built the same way: every pull request in a connected repository gets a code and security review in its own shared chat on a dedicated review pool. The reviewer checks out the pull request's head, installs, builds, and runs the tests and the change's services in its own sandbox, checks migrations against a read-only production replica, and posts a review with inline comments and a check run; each push moves the same chat to the new head, mentions in comments are answered on the pull request, and merging or closing it releases everything the review held. The whole automation is plain files in the project that the team can edit.
+- Pull request review is built the same way: every pull request in a connected repository gets a code and security review in its own shared chat on a dedicated review pool. The reviewer checks out the pull request's head, installs, builds, and runs the tests and the change's services in its own sandbox, checks migrations against a read-only production replica, and reports what it found; a workflow outside the review's sandbox checks that report and posts the review with inline comments, a check run, and a summary in the pull request's description, so the machine running the pull request's code holds no GitHub write access, not even a push. Because that code runs where the review is written, the review is advice and a person still approves the merge. Each push moves the same chat to the new head, mentions in comments are answered on the pull request, and merging or closing it releases everything the review held. Reviews and Slack threads are ready-made packs: an agent installs one into a project when someone asks for it, and from then on the whole automation is plain files in the project that the team can edit.
 - Agents run long commands in the background, on the desktop and on the Work server, where they run inside the agent's own workspace and stop when the chat closes. On the desktop agents can also watch a command (a deploy, a file, a status page); the chat wakes when it finishes, succeeds or changes, including after the computer sleeps.
 - People work beside their agents on the Work server: from the desktop, a chat that runs there opens a terminal in its workspace (a login shell with the environment's secrets) and previews a server running there, such as a dev server, in a browser tab by its port. Previews reload by hand; live reload does not reach them.
 - The mobile companion (a PWA) pairs with the desktop by QR code over your LAN, or connects to your server, so a chat can continue from your phone.
-- The Work server is a company brain in one image. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys, and code running in an agent's sandbox (a dev server, a script, tests) calls the same HTTP APIs through it with a short-lived session grant instead of a pasted key; database access is read-only with cost and row limits, and a company can add its own guards in code (a model reviewer, a person's approval, or both) to review each action. Organization administrators connect each system once, from the app or the server, and projects choose which of those connections each environment may use in a reviewed project file. Project secrets are sealed in an encrypted vault. Enrolled workers add execution capacity holding only a machine credential, which rotates, and the key their queued work is sealed to, never the database or secrets; each worker serves everyone, named people and groups, or one project's own automations and shared chats, so a person's agents run on their own machine first, and machine rules can give every member of a directory group a machine of their own: a Hetzner Cloud server created for them, or one of the company's own servers enrolled into a pool, each set up by the same install script. A departed person's machine stops taking work at once and is kept for a set number of days, then destroyed or wiped and returned to its pool. Agents use Git in their sandboxes the ordinary way: fetches and pushes go through the gateway with a short-lived session grant, never the remote's credential, pushes are limited to the project's work branches, and automations can start a chat's checkout at any ref of the project's remote, such as a pull request's head, and move it when the pull request changes. Project agents can be Claude Code or Codex on the server too: the CLI runs in the chat's sandbox, on a worker or the server, and reaches its model through the gateway, which holds the organization's model key, allows only the models the environment names, and records usage per chat. Developers can instead use their own ChatGPT subscription for Codex in their own remote chats: they sign in from the app on a machine of their own, approving a one-time code in their browser, and the sign-in stays on that machine; Work never copies or forwards it, and a machine holds one person's sign-in only. Claude Code subscriptions stay on each person's own computer. Files such as `.env` that are never committed can travel with them; they reach only that person's chats, in environments that allow it, on machines that isolate that person. Projects list the secrets each environment sets as environment variables, with a shared value and a value of each person's own, such as a key issued to every engineer, set by that person, an administrator, or an onboarding workflow; values are write-only and masked in chat transcripts. A chat started on their own computer moves to a server environment and continues there with its history. A single machine stays one `docker run`.
-- On the Work server each machine runs sandboxes in the best isolation it has, chosen at start: a microVM where it has hardware virtualization, else a gVisor container on any Linux machine with Docker and gVisor, which the machine install script sets up. Each project Environment chooses the image its agents run in (a registry image or a Dockerfile reviewed in the project), whether they get their own Docker and Docker Compose, which hosts they may reach, a setup command every new workspace runs (installing the project's dependencies), and directories kept on the machine for each person, such as a package store or a Docker data root, so later workspaces start warm. An agent's sandboxing is enforced by the server: a contained reviewer can run anything in its sandbox but changes nothing outside it and only reads through connections, a propose agent proposes but does not publish, and a publish agent may deploy and publish. Sandboxing is separate from the harness's own permission mode, which each agent also chooses. When an unattended agent needs approval, the people its automation named get a notification and answer from their own chats.
+- The Work server is a company brain in one image. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys, and code running in an agent's sandbox (a dev server, a script, tests) calls the same HTTP APIs through it with a short-lived session grant instead of a pasted key; database access is read-only with cost and row limits, and a company can add its own guards in code (a model reviewer, a person's approval, or both) to review each action. Organization administrators connect each system once, from the app or the server, and projects choose which of those connections each environment may use in a reviewed project file. Project secrets are sealed in an encrypted vault. Enrolled workers add execution capacity holding only a machine credential, which rotates, and the key their queued work is sealed to, never the database or secrets; each worker serves everyone, named people and groups, or one project's own automations and shared chats, so a person's agents run on their own machine first, and machine rules can give every member of a directory group a machine of their own: a Hetzner Cloud server created for them, or one of the company's own servers enrolled into a pool, each set up by the same install script. Bursty work such as pull request reviews can wait for a machine instead of failing, and a machine rule on demand creates machines while work waits, up to a limit, and destroys them once idle. A departed person's machine stops taking work at once and is kept for a set number of days, then destroyed or wiped and returned to its pool. Agents use Git in their sandboxes the ordinary way: fetches and pushes go through the gateway with a short-lived session grant, never the remote's credential, pushes are limited to the project's work branches, and automations can start a chat's checkout at any ref of the project's remote, such as a pull request's head, and move it when the pull request changes. Project agents can be Claude Code, Codex or an Agent Client Protocol agent such as OpenCode or Hermes on the server too: the agent runs in the chat's sandbox, on a worker or the server, and reaches its model through the gateway, which holds the organization's model key, allows only the models the environment names, can pin which providers an aggregator such as OpenRouter routes to (with a few lines of the company's own code), and records usage per chat. Developers can instead use their own ChatGPT subscription for Codex in their own remote chats: they sign in from the app on a machine of their own, approving a one-time code in their browser, and the sign-in stays on that machine; Work never copies or forwards it, and a machine holds one person's sign-in only. Claude Code subscriptions stay on each person's own computer. Files such as `.env` that are never committed can travel with them; they reach only that person's chats, in environments that allow it, on machines that isolate that person. Projects list the secrets each environment sets as environment variables, with a shared value and a value of each person's own, such as a key issued to every engineer, set by that person, an administrator, or an onboarding workflow; values are write-only and masked in chat transcripts. A chat started on their own computer moves to a server environment and continues there with its history. A single machine stays one `docker run`.
+- On the Work server each machine runs sandboxes in the best isolation it has, chosen at start: a microVM where it has hardware virtualization, else a gVisor container on any Linux machine with Docker and gVisor, which the machine install script sets up. Each project Environment chooses the image its agents run in (a registry image or a Dockerfile reviewed in the project), whether they get their own Docker and Docker Compose, which hosts they may reach, a setup command every new workspace runs (installing the project's dependencies), which may reach hosts of its own such as package registries while the agent's turns reach only the gateway, and directories kept on the machine for each person, such as a package store or a Docker data root, so later workspaces start warm. An agent's sandboxing is enforced by the server: a contained reviewer can run anything in its sandbox but changes nothing outside it and only reads through connections, a propose agent proposes but does not publish, and a publish agent may deploy and publish. Sandboxing is separate from the harness's own permission mode, which each agent also chooses. When an unattended agent needs approval, the people its automation named get a notification and answer from their own chats.
 - Shares send customers or partners a sign-in link to one document, folder or live app. They sign in with their own account (for example your product's own sign-in over OpenID Connect) and see only what was shared.
-- A company adds its own code (guards, directories, connection providers, routes) by extending the image with `@catamorphic/work-server` hooks instead of forking. Anyone can ask their coding agent to set up a Work server with the setup skill, and members work from Claude Code or any MCP client connected to the project's MCP endpoint with their own roles: read and search the project, draft, check and deploy workflows and apps, run workflows and read their runs, ask the project's agents, and share with customers.
+- The stock Work server is one file. A company that needs more (guards, model request rewrites, directories, connection providers, a machine provisioner for its cloud, routes) has its agent copy that file into the company's own image and add `@catamorphic/work-server` hooks, instead of forking or configuring. Anyone can ask their coding agent to set up a Work server with the setup skill, and members work from Claude Code or any MCP client connected to the project's MCP endpoint with their own roles: read and search the project, draft, check and deploy workflows and apps, run workflows and read their runs, ask the project's agents, and share with customers.
 - Privacy: incognito chats stay on the device and are never mirrored; a project's private working files are separate from shared project source.
 
 ## Install
@@ -71,7 +71,8 @@ We built Work because we believe one well-built piece of software can replace mo
 - Working on a Work server project from Claude Code or any MCP client: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/members-over-mcp.md
 - Connecting a project to Slack: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/connect-slack.md
 - Reviewing pull requests with Work: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/review-pull-requests.md
-- Claude Code and Codex as project agents on a Work server: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/harnesses.md
+- Ready-made packs an agent installs into a project (pull request reviews, Slack threads, UI components): https://github.com/opencx-labs/catamorphic/blob/main/packages/registry/README.md
+- Claude Code, Codex and ACP agents (OpenCode, Hermes) as project agents on a Work server: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/harnesses.md
 - Embedding the framework in your own product: https://github.com/opencx-labs/catamorphic/blob/main/INTEGRATION.md
 - How agents are expected to work inside the repository itself: https://github.com/opencx-labs/catamorphic/blob/main/AGENTS.md and https://github.com/opencx-labs/catamorphic/blob/main/apps/desktop/AGENTS.md
 - What is being worked on next: https://github.com/opencx-labs/catamorphic/blob/main/TODO.md
@@ -125,8 +126,10 @@ brew install --cask opencx-labs/tap/work
 You can also download the signed and notarized DMG from
 [GitHub Releases](https://github.com/opencx-labs/catamorphic/releases) and drag
 Work into Applications. Installed builds let you choose when to download and
-restart. Switch channels under **Help > Update Channel**, or use `brew upgrade`
-with the same cask you installed. Work keeps a pre-migration database backup.
+restart, and a restart never waits on running agents: they continue where they
+left off once Work reopens. Switch channels under **Help > Update Channel**, or
+use `brew upgrade` with the same cask you installed. Work keeps a
+pre-migration database backup.
 
 Work uses a fresh application identity and storage directory. Alpha data and
 credentials from the previous app are not migrated automatically. Project
@@ -137,8 +140,8 @@ folders remain ordinary files you can import.
 ### Desktop app
 
 The desktop app ([`apps/desktop`](apps/desktop)) is a local-first workspace and
-the framework's reference implementation. Claude Code, Codex, and API models
-can work side by side in durable sessions. Agents use the browser, terminals,
+the framework's reference implementation. Claude Code, Codex, Hermes, and API
+models can work side by side in durable sessions. Agents use the browser, terminals,
 editors, project files, apps, and connectors you can also use yourself. You can
 take over a surface at any moment, inspect diffs when a change deserves your
 eyes, or trust routine work to continue.
@@ -168,8 +171,14 @@ The accepted multi-machine architecture uses server instances sharing one
 Postgres and one authority, with machines exposed as permitted Environments.
 Postgres mode shares origins, artifacts, credentials, auth, and leased execution.
 Each Environment can choose its sandbox image, give agents their own Docker,
-and limit which hosts they reach; an agent's sandboxing decides what leaves
-its sandbox, apart from its harness's own permission mode. See
+and limit which hosts they reach, with a wider list for its setup alone
+(package registries) while agents reach only the gateway; an agent's
+sandboxing decides what leaves its sandbox, apart from its harness's own
+permission mode. Claude Code, Codex and ACP agents such as OpenCode run in
+those sandboxes on the organization's model keys, held by the gateway, which
+can pin the providers an aggregator routes to; work that needs a machine can
+wait for one, and machine rules can create machines on demand and remove
+them when idle. See
 [the machine setup and recovery model](skills/setup-work-server/references/cluster-deployment.md).
 The Work server is single-tenant because its local-process execution can access
 the host machine. Run one trusted organization or household per deployment.
@@ -275,7 +284,9 @@ git verbs (`sync_project`, `create_pull_request`) rather than raw git.
 
 One agent-session engine over pluggable harnesses: the built-in
 `@catamorphic/ai-sdk` tool loop (any API model), Claude Code
-(`@catamorphic/claude-code`), and Codex (`@catamorphic/codex`), selectable
+(`@catamorphic/claude-code`), Codex (`@catamorphic/codex`), and any Agent
+Client Protocol agent such as Hermes or OpenCode (`@catamorphic/acp`, on
+the desktop or in a Work server's sandbox), selectable
 per session and switchable mid-session, with a normalized effort scale.
 Agents run either in a sandbox or directly on the host filesystem.
 `ask_user` questions, durable sessions that survive restarts, and
@@ -484,6 +495,7 @@ Supporting packages (consumed through the surface above, importable directly for
 | `@catamorphic/ai-sdk` | Built-in harness adapter: Vercel AI SDK tool loop on any API model, running in the host and driving the session's sandbox through its tools. |
 | `@catamorphic/claude-code` | Harness adapter backed by the Claude Code (Claude Agent SDK) CLI, with per-turn MCP servers, portable native state and full settings-source fidelity. |
 | `@catamorphic/codex` | Harness adapter backed by the pinned OpenAI Codex app-server protocol. |
+| `@catamorphic/acp` | Harness adapter for Agent Client Protocol agents (Hermes and others): runs the agent's own command and serves it Work's tools over MCP. |
 | `@catamorphic/mcp` | MCP client infrastructure: both protocol generations with auto-negotiation, elicitation, the official MCP registry search, and plugin-marketplace install. |
 | `@catamorphic/otel` | Tiny OpenTelemetry helpers (`@opentelemetry/api` only: the host owns the SDK/exporters). |
 | `@catamorphic/runtime` | Execution harness that runs *inside* the sandbox and reports step results. |
@@ -664,21 +676,24 @@ Projects define their own kinds on top of the host's in `.work/triggers/`
 (`defineTrigger({ name, from: trigger("webhook", { ... }), where })`), and
 every binding may add a `where` filter the host checks before a run starts,
 so a GitHub or Slack integration is project code on the webhook kind, whose
-verification schemes and handshakes are declared in its config. The host
-skill `slack` is the worked example: a chat per Slack thread, replies posted
-back through a gateway connection whose named operations are its
-capabilities ([Connect Slack](skills/setup-work-server/references/connect-slack.md)).
-The host skill `reviewing-pull-requests` is the larger one: a code and
+verification schemes and handshakes are declared in its config. The
+`slack-threads` pack is the worked example, which an agent installs into a
+project and adapts: a chat per Slack thread, replies posted back through a
+gateway connection whose named operations are its capabilities
+([Connect Slack](skills/setup-work-server/references/connect-slack.md)).
+The `pull-request-reviews` pack is the larger one: a code and
 security review of every pull request, in a chat per pull request on a
-dedicated review pool, verified by running the change and posted as a review
-and a check run
+dedicated review pool, verified by running the change and reported to a
+workflow outside the sandbox that posts it as a review, a check run, and a
+summary in the description
 ([Review pull requests](skills/setup-work-server/references/review-pull-requests.md)).
 See [`INTEGRATION.md`](INTEGRATION.md) and ADRs
 [0039](docs/decisions/0039-custom-trigger-kinds.md) /
 [0042](docs/decisions/0042-parameterized-trigger-kinds-and-workflow-tools-mcp.md) /
 [0171](docs/decisions/0171-project-trigger-kinds-and-declarative-webhook-ingress.md) /
 [0179](docs/decisions/0179-integrations-from-project-code-slack.md) /
-[0181](docs/decisions/0181-project-chats-use-their-environments-bindings.md).
+[0181](docs/decisions/0181-project-chats-use-their-environments-bindings.md) /
+[0259](docs/decisions/0259-reviews-post-from-a-workflow.md).
 
 ### Long-lived journeys: correlation keys, signals, shared rate budgets
 
@@ -932,9 +947,9 @@ Direction, not shipped. Tracked in [`TODO.md`](TODO.md):
 
 - **More desktop platforms**: Intel Mac validation, then signed Windows and
   Linux packages.
-- **ACP harness**: project agent definitions already accept `kind: "acp"`;
-  the Agent Client Protocol client (local command and remote endpoint
-  transports) is the planned harness behind it.
+- **ACP beyond the desktop**: the desktop runs a project's local ACP agents
+  (`kind: "acp"` with `acp.command`, such as Hermes); the remote endpoint
+  transport and ACP agents on the Work server are next.
 - **TS `defineAgent`**: a typed authoring layer that compiles to the
   committed `.work/agents/<slug>.json` substrate.
 - **Review-mode collaboration**: PR-first sync for shared projects, invites,
@@ -999,7 +1014,10 @@ Each worker takes work for everyone or for named people and directory groups,
 so a person's agents run on their own machine first; machine rules give every
 member of a group a machine of their own (ADR 0167), on Hetzner Cloud, from a
 pool of machines you enrolled with `GET /api/workers/install.sh`, or through a
-provisioner hook, and keep a released machine for a few days (ADR 0205).
+provisioner hook, and keep a released machine for a few days (ADR 0205). A
+rule on demand creates machines while work waits for one, up to a limit, and
+destroys them once idle (ADR 0258), so bursty work such as pull request
+reviews gets a fresh machine without paying for idle ones.
 See [ADR 0164](../../docs/decisions/0164-control-plane-and-enrolled-workers.md)
 and the [machines reference](../../skills/setup-work-server/references/cluster-deployment.md).
 
@@ -1072,9 +1090,12 @@ the same vault; their database rows hold only references.
 
 Agents and workflows reach company systems through the connection gateway:
 `WORK_GATEWAY_CONFIG` declares MCP endpoints, HTTP APIs, Git hosts, model APIs,
-and read-only database connections. The image ships no guards: a company that
-wants each action reviewed (a model classifier, a required approval) adds a
-guard in a small custom server with `@catamorphic/work-server` (ADR 0183). See
+and read-only database connections. The image ships no guards and changes no
+model request: a company that wants each action reviewed (a model
+classifier, a required approval) or its model routing pinned copies
+[`src/index.ts`](src/index.ts), the whole stock server, into its own image
+and adds hooks (ADRs 0183, 0261;
+[your own image](../../packages/work-server/README.md#your-own-image)). See
 [secrets and the gateway](../../skills/setup-work-server/references/secrets-and-gateway.md).
 
 Service connections are named and administered (ADR 0172). Organization
@@ -1187,8 +1208,8 @@ Start small and add only what the situation needs:
   configured sign-in provider (or local sign-in), and invitations.
 - **A company brain:** Google Workspace sign-in with directory
   deprovisioning and groups as roles ([company identity](references/company-identity.md));
-  credentials only through the gateway, with guards in a small custom server
-  on anything touching production
+  credentials only through the gateway, with guards in the company's own
+  server image on anything touching production
   ([secrets and the gateway](references/secrets-and-gateway.md));
   a private GitHub App you register for the company from the server, as the
   `github` service connection ([Connect GitHub](references/connect-github.md)),
@@ -1216,8 +1237,8 @@ Start small and add only what the situation needs:
 | More execution capacity, workers, replicas for availability; a machine for every engineer on Hetzner Cloud or from a pool of the company's own servers | [Machines: control plane, replicas, and workers](references/cluster-deployment.md) |
 | Sharing documents, folders, or apps with customers behind a sign-in | [Sharing outside the company](references/sharing.md) |
 | Members working from Claude Code, Codex, or another MCP client | [Working from your own agent](references/members-over-mcp.md) |
-| Project agents that are Claude Code or Codex, running on the server with a model key the gateway holds, or on a member's own subscription signed in on the machine | [Harnesses on the server](references/harnesses.md) |
-| Work server plus company code (a guard or classifier, a directory, a connection provider, seeds, or a route) | [`@catamorphic/work-server`](../../packages/work-server/README.md): extend the published image with hooks; never fork the server |
+| Project agents that are Claude Code, Codex or an ACP agent (OpenCode, Hermes), running on the server with a model key the gateway holds (and providers it pins), or Codex on a member's own subscription signed in on the machine | [Harnesses on the server](references/harnesses.md) |
+| Anything the stock server does not do: company code such as a guard or classifier, model request rewrites (pinning an aggregator's providers), a directory, a connection provider, a machine provisioner, seeds, or a route | [Your own image](../../packages/work-server/README.md#your-own-image): copy the one-file stock server, fill in its hooks, build on the published image; never fork the server |
 | Existing or custom application | [Custom host](references/custom-host.md) |
 | Sign-in, OIDC, invitations, roles, permissions | [Auth and identity](references/auth-and-identity.md) |
 | PGlite, Postgres, migrations, backup | [Database and migrations](references/database-and-migrations.md) |
@@ -1242,6 +1263,12 @@ disagree with the installed source, the source wins.
   server's own operations. Organization administrators manage the named
   service connections (ADR 0172) and the workers and machine rules
   (ADR 0205); they gain nothing inside projects.
+- **Beyond the stock server, write code, not configuration.** The stock
+  server is one file and its configuration does not grow (ADR 0261). When a
+  company needs more than it does, copy `apps/server/src/index.ts` into the
+  company's own image and fill in its hooks
+  ([your own image](../../packages/work-server/README.md#your-own-image));
+  do not look for a variable or file field that does the same.
 - **After setup, configuration is project code.** Roles, agents,
   `.work/workspace.js`, and `.work/project.json` change through
   ordinary review. Do not create a parallel bootstrap config.
@@ -2072,12 +2099,12 @@ that does not answer within `connectionGuardTimeoutMs` (default 30 seconds)
 escalates. Every verdict is in the connection audit. Give each guard `kinds`
 so it reviews only the connections it judges.
 
-A custom server (ADR 0160) passes guards as `hooks.connectionGuards`. Place it
-under `apps/server/` in an image built from the published one
-([extending the image](../../../packages/work-server/README.md#extending-the-image)),
+Your own server (ADRs 0160, 0261) passes guards as `hooks.connectionGuards`:
+copy `apps/server/src/index.ts` into an image built from the published one
+([your own image](../../../packages/work-server/README.md#your-own-image)),
 add the model client for the classifier there
-(`RUN cd /app/apps/server && bun add @anthropic-ai/sdk zod`), and copy
-listening and signal handling from `apps/server/src/index.ts`:
+(`RUN cd /app/apps/server && bun add @anthropic-ai/sdk zod`), and fill in
+the file's `hooks` with these:
 
 ```ts
 // apps/server/custom/server.ts
@@ -2515,6 +2542,7 @@ deployment.
 | A person or a small trusted team | One Work server, PGlite, default execution (`WORK_SANDBOX=auto`). Nothing below applies. |
 | More agent capacity, or agents that must not run beside the server's secrets | One server (the control plane) plus enrolled **workers** |
 | Each person or team gets their own machine | Workers with **access** lists, created by hand or by **machine rules** |
+| Bursty work (pull request reviews) needs big machines only while it runs | **Machines on demand**: a machine rule that creates machines for waiting work and destroys them once idle |
 | Cloud VMs or dedicated servers without hardware virtualization | Workers with the **container backend** under gVisor (see [sandbox backends](#sandbox-backends)) |
 | The brain must survive a machine failure | Control-plane **replicas** on shared Postgres, plus workers |
 
@@ -2755,6 +2783,20 @@ admits a fresh workspace and restores it. Closing a chat
 deletes its session branch, and frees the key. Capacity follows activity,
 not open chats.
 
+When no machine open to a chat has room, or none is online, a new chat
+fails at once unless an Environment says how long work may wait:
+`"waitMinutes": 30` starts the chat without a workspace (in the first
+Environment, in admission order, that lets work wait), its turns wait
+(tried again every 5 to 30 seconds, and at once when a worker connects), and
+fail after 30 minutes saying why; the next message waits again. A chat whose
+workspace was given back always waits for a machine, and with `waitMinutes`
+gives up after that long too. A waiting chat whose Environment was removed
+or can no longer take it fails its turns with that error, and `ask_agent`
+answers at once that the chat waits for a machine. Waiting work is recorded
+in Postgres (`placement_waits`, ADR 0258) until it is placed or its chat is
+closed or archived; with a turn queued, it is what
+[machines on demand](#machines-on-demand) read.
+
 Groups come from the Google Workspace directory (see [company
 identity](company-identity.md)): the server checks the groups that access
 lists, machine rules, and project role mappings name.
@@ -2789,16 +2831,30 @@ the JSON file `WORK_MACHINES_CONFIG` names:
   `firewalls` and `networks` (ids) and extra server `labels` are optional;
   `snapshot: true` keeps an image of a machine's disk when it is destroyed.
   The API token is `WORK_HETZNER_TOKEN` (read and write), never the file.
+- `sandbox` (Hetzner and custom classes): the backend the machines run,
+  passed to the [install script](#the-install-script) as `--sandbox`:
+  `auto` (default), `microsandbox`, or `container`, which runs gVisor even
+  where KVM is usable. Give `container` to classes for Environments whose
+  setup has its own network ([setup and volumes](#setup-and-volumes)),
+  which microVMs cannot host.
 - `pool`: machines you enrolled yourself ([pools](#dedicated-servers-and-other-machines-pools)).
 - `custom`: a custom server's `machineProvisioner` hook creates and destroys
-  them (`create({ name, class, labels, enrollment })` returns a platform
-  reference, `destroy({ name, ref })` destroys by the reference, or by the
-  name when it is `null`). `enrollment.cloudInit` is the same cloud-init a
-  Hetzner machine gets. `create` throws `MachineProvisioningRefusedError`
-  when the platform made nothing, so its code is withdrawn and the next pass
-  tries again; after any other error the code waits for the machine to
-  enroll. A server with the hook and no classes file treats every class as
-  custom.
+  them (`create({ name, class, rule, options, waiting, labels, enrollment })`
+  returns a platform reference; `destroy({ name, ref })` removes the machine
+  the reference names and every machine with that name, and answers
+  `{ done }`: Work asks again on later passes until it is done). `options` is the class's own
+  object from the file, passed through unread (an instance type, an image, a
+  subnet: `"review": { "platform": "custom", "options": { ... } }`);
+  `waiting` is what the work a machine on demand is made for needs
+  (`resources`, `capabilities`). `enrollment.cloudInit` is the same
+  cloud-init a Hetzner machine gets. `create` throws
+  `MachineProvisioningRefusedError` when the platform made nothing, so its
+  code is withdrawn and the next pass tries again; after any other error the
+  code waits for the machine to enroll. Work never calls `create` twice with
+  one code, so make it idempotent per code: pass `enrollment.idempotencyKey`
+  (a hash of the code) as the platform's idempotency token,
+  never the name, which a later machine of the rule reuses. A server with
+  the hook and no classes file treats every class as custom.
 
 The server refuses to start when a class needs what it lacks (a Hetzner
 class without the token, a custom class without the hook), and refuses a
@@ -2863,12 +2919,65 @@ no longer configured, whose machines are then left as they are; and a
 `failure` (`{ error, at }`) when something failed for the rule's machines
 in the latest pass.
 
+### Machines on demand
+
+A rule with `{ "machines": { "demand": { "max": 9 } } }` creates machines
+while work waits for one and destroys them once idle (ADR 0258), for bursty
+work such as [pull request reviews](review-pull-requests.md):
+
+```json
+{
+  "projects": ["<project id>"],
+  "machines": { "demand": { "max": 9, "min": 0, "idleMinutes": 10, "enrollMinutes": 15 } },
+  "class": "review",
+  "labels": { "pool": "review" }
+}
+```
+
+- Name exactly one of `group` (machines for its members' chats, which must
+  isolate with microsandbox or gVisor unless `"trusted": true`) or
+  `projects` (machines opened to those projects' own work: project chats
+  and automations).
+- Work counts for the rule when it has a turn queued, the rule's `labels`,
+  its class and `plane: worker` satisfy the work's Environment `pool`, and
+  the rule's access takes the work's owner. Each piece of waiting work
+  counts for one rule: the first by name whose connected machines can take
+  it. When they report they cannot (too little memory, no `containers`),
+  the rule's status says so and the work goes to the next rule. Give the
+  Environment a `waitMinutes`, or new chats fail before they wait.
+- A pass keeps machines still enrolling or connecting, holding work, or idle
+  for less than `idleMinutes` (default 10, at least 1), then the most
+  recently idle up to `min` (default 0). Work no connected machine has room
+  for (charged its resources, or the machine's per-workspace defaults),
+  beyond one piece for each machine still enrolling or connecting, gets new
+  machines, up to `max` (at most 100, counting machines the rule served
+  under an earlier group or projects until they go). A machine that does
+  not enroll within `enrollMinutes` (default 15), or is not seen for that
+  long (since it enrolled, when it never connected), is destroyed and
+  replaced. A machine no longer wanted is destroyed at once: `retainDays`
+  does not apply.
+- A machine that enrolled but never connected within `enrollMinutes` stops
+  the rule: it makes no more machines until you write the rule again (after
+  fixing the cause), and its status says why. A machine serving a group, or
+  several projects, must isolate its agents (microsandbox or gVisor) unless
+  the rule says `"trusted": true`; such a rule is refused when it is written
+  if machines of its class are known to run plain processes.
+- Only `hetzner-cloud` and `custom` classes scale; a pool class is refused.
+- A machine is revoked only while nothing holds it: the drain and a new
+  Allocation take the same lock, so work never lands on a machine being
+  destroyed. One holding workspaces goes anyway only once it has been
+  disconnected and unseen for `enrollMinutes`.
+- With a rule on demand, each replica looks at waiting work every 10 seconds
+  and starts a pass when it changed since its latest pass looked. The rule's
+  status adds `queued`: work waiting for one of its machines.
+
 ### The install script
 
 `GET /api/workers/install.sh` is public and holds no secret: a POSIX sh
 script with this server's public URL and worker image in it. Run it as root
 with `--code` (required) and optionally `--image`, `--data-dir` (default
-`/var/lib/work`) and `--name` (the container's, default `work-worker`). The
+`/var/lib/work`), `--name` (the container's, default `work-worker`) and
+`--sandbox` (`auto`, `microsandbox` or `container`, default `auto`). The
 data directory must be new, or an empty one (or a worker's) under
 `/var/lib`, `/srv`, `/opt`, `/data` or `/home/<user>`; the script refuses
 system directories. It:
@@ -2876,17 +2985,18 @@ system directories. It:
 - installs Docker with Docker's convenience script when `docker` is missing,
   downloaded to a file and checked first, waiting up to ten minutes for
   another package installation (a cloud machine's first boot) to finish;
-- with a usable `/dev/kvm`, gives the worker the device and its group, so
-  agents run in microVMs. libkrun needs nothing more: never `--privileged`
-  or added capabilities;
-- without KVM, installs gVisor from its apt repository (Debian and Ubuntu;
+- with a usable `/dev/kvm`, unless `--sandbox container`, gives the worker
+  the device and its group, so agents run in microVMs. libkrun needs
+  nothing more: never `--privileged` or added capabilities;
+- otherwise installs gVisor from its apt repository (Debian and Ubuntu;
   elsewhere install `runsc` first) and registers the `runsc` runtime with
   `--host-uds=open --net-raw` (ADR 0204), restarting Docker only when that
   changed;
 - creates the data directory for the image's user (uid 1000, mode 0700),
   pulls the image, replaces any container of that name, and runs the worker
   with `--restart unless-stopped`, the Docker socket and its group, the data
-  directory mounted at the same path, and `WORK_SANDBOX=auto`.
+  directory mounted at the same path, and `WORK_SANDBOX` set to
+  `--sandbox`.
 
 Running it again is safe: the worker keeps its enrollment in its data
 directory. The endpoint answers 503 naming what is missing when the server
@@ -2922,7 +3032,8 @@ each worker's `state` (`serving`, `released`, `resetting`, `free`,
 
 ### Passes
 
-The server reconciles every minute and when an account is disabled. One
+The server reconciles every minute, when an account is disabled, and, with
+[machines on demand](#machines-on-demand), when waiting work changed. One
 replica at a time runs a pass, under a claim in Postgres (ADR 0193) renewed
 while platform calls run and checked before every change; a replica whose
 claim moved stops changing anything. A machine whose enrollment code is
@@ -3327,7 +3438,7 @@ An Environment chooses its sandbox (ADR 0176) in `.work/project.json`:
   directory, as the stock server and workers do.
 
 Machines advertise `images`, `images.build`, `containers`,
-`network.policy`, and `volumes`, `sign-ins` and one
+`network.policy`, `network.setup`, and `volumes`, `sign-ins` and one
 `sign-in:<harness>:<member>` per member signed in on them, and a
 local-process machine `harness.claude-code` and `harness.codex` when those
 CLIs are on its `PATH`; `GET /_work/operator/machines` shows them with the
@@ -3349,8 +3460,10 @@ caches (ADR 0208):
       "workloads": ["agent"],
       "image": ".work/images/dev.Dockerfile",
       "requirements": { "containers": true },
-      "setup": "corepack enable && pnpm install --frozen-lockfile",
-      "setupTimeoutMinutes": 45,
+      "setup": {
+        "command": "corepack enable && pnpm install --frozen-lockfile",
+        "timeoutMinutes": 45
+      },
       "volumes": {
         "pnpm": "~/.local/share/pnpm/store",
         "docker": { "path": "/var/lib/docker", "exclusive": true, "sizeMb": 20480 }
@@ -3360,18 +3473,38 @@ caches (ADR 0208):
 }
 ```
 
-- `setup` is a shell command run in the project folder of every new
-  workspace before its first turn, once the chat's secrets and the member's
-  personal files are in place, and again when the command changes. A
-  workspace rebuilt after idle release runs it again. Its first failing
-  command stops it. Output is appended to `.work-session/setup.log` beside
-  the project, and the chat shows that the workspace is being set up. A
-  failure, or a run longer than `setupTimeoutMinutes` (30 by default), is
-  told to the agent with the end of the log; the turn goes on, and setup
-  runs again before the next turn. A member may add their own `setup` in
-  `.work/personal/environment.json`: it runs after the Environment's, only
-  in their own chats in Environments with `"personalCredentials": true`,
-  and only for turns they wrote.
+- `setup.command` is a shell command run in the project folder of every
+  new workspace before its first turn, once the chat's secrets and the
+  member's personal files are in place, again when the command changes,
+  and again when the workspace's base moves (a review chat reset to each
+  push). A workspace rebuilt after idle release runs it again. Its first
+  failing command stops it. Output is appended to `.work-session/setup.log`
+  beside the project, and the chat shows that the workspace is being set
+  up. A failure, or a run longer than `setup.timeoutMinutes` (30 by
+  default), is told to the agent with the end of the log; the turn goes
+  on, and setup runs again before the next turn. A member may add their
+  own `setup` in `.work/personal/environment.json`: it runs after the
+  Environment's, only in their own chats in Environments with
+  `"personalCredentials": true`, and only for turns they wrote.
+- `setup.network.allow` lists the only hosts the Environment's setup
+  reaches while it runs (ADR 0257), for an Environment whose `network` is
+  `gateway` or `allowlist`; `setup.secrets` names the Environment's secrets
+  it runs with: `"setup": { "command": "pnpm install --frozen-lockfile",
+  "network": { "allow": ["registry.npmjs.org", "npm.pkg.github.com"] },
+  "secrets": ["NPM_TOKEN"] }`. It runs in a new sandbox holding the
+  workspace's base commit alone, with no grant, gateway variable or other
+  secret, widened to those hosts (not even the gateway), and narrowed again
+  before the session's work, grants, secrets and files arrive; a setup that
+  must run again gets a new sandbox in the same Allocation. Only workspaces
+  at a ref of the project's remote (a delivery's `workspace: { ref }`) run
+  it; elsewhere the agent is told it did not run. Such an Environment
+  declares no volumes, which would carry what agents wrote into the next
+  setup: put caches in its image. It needs a machine that advertises
+  `network.setup`: the container backend wherever it enforces
+  `network.policy` (the worker narrows by itself when the setup's time is
+  up), or local-process under `WORK_UNENFORCED_EGRESS=accept`. Microsandbox
+  fixes a VM's network when it is created and does not offer it. The hosts
+  you list could receive the base checkout and the secrets the setup names.
 - `volumes` name directories kept on the machine for each owner (a member,
   or the project for its own chats and runs) and project: the owner's next
   sandbox on that machine mounts the same directory, and nobody else's does.
@@ -3624,7 +3757,7 @@ its supervisor starts a fresh process.
 | `connectionGuards` | Guards that review each gateway action (ADR 0162). Work ships none; a guard is host code (ADR 0183) |
 | `vaultKeys` | Credential vault keys from a key service instead of `WORK_VAULT_KEY` |
 | `directories` | Upstream directories (beyond Google Workspace) that keep accounts active or disable them (ADR 0161) |
-| `machineProvisioner` | Creates and destroys worker machines on a platform Work does not ship, for `custom` machine classes, so machine rules give people and teams their own machines (ADRs 0167, 0205) |
+| `machineProvisioner` | Creates and destroys worker machines on a platform Work does not ship, for `custom` machine classes, so machine rules give people and teams their own machines, or machines on demand for waiting work. `create` gets the class's `options`, the rule, and what the waiting work needs, and is idempotent per enrollment code (`enrollment.idempotencyKey`); `destroy` removes every machine with the name and answers `{ done }` (ADRs 0167, 0205, 0258) |
 | `hetzner` | Hetzner Cloud API options for `hetzner-cloud` machine classes: another endpoint, or a `fetch` for tests (the token is `WORK_HETZNER_TOKEN`) |
 | `projectSeeds` | Changes to the files seeded into new projects |
 | `routes` | Extra routes on the public application |
@@ -3644,22 +3777,42 @@ is in the connection audit. Name `kinds` so a guard only sees the connections
 it judges. Examples:
 [secrets and the gateway](../../skills/setup-work-server/references/secrets-and-gateway.md#guards-are-host-code).
 
-## Extending the image
+## Your own image
 
-Keep the published image as the base so security fixes arrive with each
-release:
+The stock server is one file,
+[`apps/server/src/index.ts`](../../apps/server/src/index.ts). Anything it
+does not do is code in your own image built from that file (ADR 0261):
+guards, model request rewrites (pinning the providers an aggregator routes
+to), your own connection providers, a machine provisioner for your cloud,
+seeds, routes. The stock configuration does not grow to cover them, so this
+is the path a setup agent takes whenever the stock server is not enough:
 
-```dockerfile
-FROM ghcr.io/<owner>/work-server:<version>
-COPY server.ts /app/apps/server/custom/server.ts
-CMD ["bun", "apps/server/custom/server.ts"]
-```
+1. Copy `apps/server/src/index.ts` from the release you run to `server.ts`
+   and fill in its `hooks: {}`. It imports only `@catamorphic/work-server`,
+   which also exports the guard and rewrite types, the connection provider
+   definers, and `ConnectionActionRefusedError`.
+2. Build it on the published image, so security fixes arrive with each
+   release:
 
-The image's workspace uses isolated installs, so place the file under
-`apps/server/`: from there it resolves `@catamorphic/work-server` and the
-server's other dependencies. Pin an exact version and rebuild on every
-release. Copy the process concerns you need (listening, signals) from
-[`apps/server/src/index.ts`](../../apps/server/src/index.ts).
+   ```dockerfile
+   FROM ghcr.io/<owner>/work-server:<version>
+   COPY server.ts /app/apps/server/custom/server.ts
+   # More packages, when the hooks need them:
+   # RUN cd /app/apps/server && bun add @anthropic-ai/sdk zod
+   CMD ["bun", "apps/server/custom/server.ts"]
+   ```
+
+   The image's workspace uses isolated installs, so place the file under
+   `apps/server/`: from there it resolves `@catamorphic/work-server`.
+3. Push the image to your registry and run it in place of the published one,
+   with the same volume and variables.
+
+Workers keep the published image: hooks run on the control plane, and the
+machines the server creates are given the image it was built from. Pin an
+exact version and rebuild on every release, copying that release's
+`index.ts` again when it changed. Examples:
+[guards](../../skills/setup-work-server/references/secrets-and-gateway.md#guards-are-host-code),
+[pinned model routing](../../skills/setup-work-server/references/harnesses.md#pin-what-requests-carry-your-own-server-image).
 
 ## Customizing the sidebars and palette modes: sidebar sources
 
@@ -4842,6 +4995,20 @@ that person or their groups, using `accessTier` and `placementOrder` from
 its host-owned realization, and an Allocation is the immutable decision for
 one root session or workflow run. Machine selection is never a project choice.
 
+When the provider has no machine for a chat (it throws
+`EnvironmentCapacityError`, or answers nothing), an Environment with
+`"waitMinutes": n` starts the chat without an Allocation and its turns wait
+up to `n` minutes; a chat whose Allocation was released waits as long as it
+is queued. Core records each piece of waiting work in `placement_waits`
+(Environment, pool, owner, needs, on the database clock), deletes it in the
+transaction that creates the Allocation and when the chat's queued work is
+withdrawn (close, archive), and exposes
+`core.placementWaits.wake({ tenantId })` for a host to call when a machine
+comes online. A host that scales machines reads the table as demand: rows
+whose chat has a queued turn, tried within `PLACEMENT_WAIT_FRESH_SECONDS`
+([ADR 0258](docs/decisions/0258-machines-on-demand.md)). `sendMessage` on a
+waiting chat throws `AgentTurnUnsettledError` with state `waiting` at once.
+
 The managed multi-machine target is multiple Catamorphic server instances of
 one logical authority, sharing network Postgres and accessible authoritative
 storage ([ADR 0099](docs/decisions/0099-shared-postgres-server-environments.md)).
@@ -4962,7 +5129,19 @@ capability, and a binding may add `model: { allow? }`. The plugin serves
 bearer), a thin pass-through: any method and path below the base URL, the
 body byte for byte, headers but a small denylist (the caller's key, host,
 cookies, hop-by-hop, proxy and forwarding headers), and the answer streamed
-back unchanged. Guards see kind `model` with action = method and path
+back unchanged. Bodies may be rewritten first (ADR 0256): pass
+`modelRequestRewrites` to `createCatamorphic`, each
+`{ name, kinds?, rewrite(request) }`, where `rewrite` gets the method,
+path, query, headers, parsed body and caller (tenant, project, alias,
+provider kind, connection, principal kind, session) and returns the body to
+send or throws `ConnectionActionRefusedError`, and
+`defineModelConnectionProvider({ ..., paths })` limits the endpoints a
+provider serves. Rewrites are the one way a request changes: there is no
+declarative patch. They run before the allowlist and guards, bounded by the
+guard timeout; the gateway sends its own serialization, refuses bodies it
+cannot parse or that arrive content-encoded, and audits each refusal.
+Pinning OpenRouter's providers, per project if need be, is a few lines of
+host code (the Work server takes them in its own image, ADR 0261). Guards see kind `model` with action = method and path
 (`POST v1/messages`) and input = provider, model, stream; endpoint and
 spending rules belong in guards. Usage lands in `model_usage` per session and
 turn, read passively from Anthropic and OpenAI answers (zero when a format is
@@ -4976,7 +5155,11 @@ as a process with standard input (providers implement
 `processes.writeProcessInput` for a process started with `stdin: true`); the
 runner runs the harness's CLI beside the workspace, with the gateway as its
 only model endpoint, and any replica can read it or reattach to it (ADR
-0198). Harness binaries come from the Environment image.
+0198). Harness binaries come from the Environment image. The bundle's
+harnesses are `claude-code`, `codex` and `acp`: an ACP agent registers
+`harness: { placement: "sandbox", id: "acp:<agent>" }` with
+`options: { command }`, and the adapter serves its model connection on the
+sandbox's loopback, reading the grant per request (ADR 0255).
 
 MCP connections (ADR 0225): a provider whose actions are an MCP server's
 tools sets `mcp: true` (`defineMcpConnectionProvider` from `@catamorphic/mcp`
