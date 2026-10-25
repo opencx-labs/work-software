@@ -3940,6 +3940,9 @@ for networked modules), Bash, and unprivileged user/PID/mount namespaces.
 Descriptor mounts stop a path replaced during startup from changing the file
 Work approved. The minimum version also includes safe destination symlink
 resolution during mount setup; older versions are refused.
+Some LTS repositories still ship an older release. Install a current
+[upstream or distribution build](https://github.com/containers/bubblewrap#building)
+as the system `/usr/bin/bwrap` before enabling modules.
 Work packages the pinned arm64/x64 seccomp helper itself. Missing dependencies
 or a blocked namespace stop the module; there is no unconfined fallback.
 On Ubuntu with restricted user namespaces, install the distribution's scoped
