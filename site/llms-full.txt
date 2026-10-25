@@ -3934,6 +3934,9 @@ scripting other apps). It gets nothing of Work's environment, so keys from the
 person's shell and command-line tools that read the home folder (`gh`, `aws`)
 are not available: call a workflow for anything behind a credential. Work's own
 servers are never reachable, whatever is declared. Windows runs no modules yet.
+On both platforms, reads and executable code outside the public OS runtime,
+project, own scratch and approved paths are refused; macOS does not rely on
+guessing which home or temporary folders might contain private data.
 
 Linux requires system Bubblewrap 0.12+ and `socat` (the latter only
 for networked modules), Bash, and unprivileged user/PID/mount namespaces.
