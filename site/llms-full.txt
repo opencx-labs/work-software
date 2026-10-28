@@ -1025,7 +1025,7 @@ Source: https://github.com/opencx-labs/catamorphic/blob/main/apps/server/README.
 The reference process source for `@catamorphic/work-server`
 ([library and deployment guide](../../packages/work-server/README.md)).
 Deployments own their entry point and image, install an exact library release,
-and add hooks for their company and use case (ADR 0287). Work does not publish
+and add hooks for their company and use case (ADR 0294). Work does not publish
 a stock server image. Build on Bun, include git and system CA certificates,
 run unprivileged, and handle shutdown and replica lease loss. `apps/server`
 remains the development host used by the repository's orchestrator and tests.
@@ -1150,7 +1150,7 @@ the same vault; their database rows hold only references.
 Agents and workflows reach company systems through the connection gateway:
 `WORK_GATEWAY_CONFIG` declares MCP endpoints, HTTP APIs, Git hosts, model APIs,
 and read-only database connections. Add company guards and model routing
-policy in the hooks of your own entry point (ADRs 0183, 0287;
+policy in the hooks of your own entry point (ADRs 0183, 0294;
 reference source: [`src/index.ts`](src/index.ts);
 [your own image](../../packages/work-server/README.md#your-own-image)). See
 [secrets and the gateway](../../skills/setup-work-server/references/secrets-and-gateway.md).
@@ -1238,7 +1238,7 @@ description: Use when installing or operating a Work server (a deployment built 
 
 Catamorphic ships as libraries a host mounts. A Work server composes
 `@catamorphic/work-server` in a deployment-owned entry point and image
-(ADR 0287); `apps/server` is reference source. An existing application can
+(ADR 0294); `apps/server` is reference source. An existing application can
 mount the lower-level SDK instead. Adapt
 to what is already there: existing auth, users, organizations, databases,
 deployment, and code hosts are inputs, not things to replace.
@@ -1575,7 +1575,7 @@ In the company's Google Cloud project:
 1. Configure the OAuth consent screen with user type **Internal**. Google then
    refuses accounts outside the organization before the Work server sees them.
 2. Create an OAuth client ID of type **Web application** with the authorized
-   redirect URI `<WORK_PUBLIC_URL>/api/auth/oauth2/callback/google` (use the
+   redirect URI `<WORK_PUBLIC_URL>/api/auth/callback/google` (use the
    provider `id` in place of `google` if you change it). `WORK_PUBLIC_URL` must
    be the HTTPS origin people reach.
 
@@ -2183,7 +2183,7 @@ that does not answer within `connectionGuardTimeoutMs` (default 30 seconds)
 escalates. Every verdict is in the connection audit. Give each guard `kinds`
 so it reviews only the connections it judges.
 
-Your server passes guards as `hooks.connectionGuards` (ADRs 0160, 0287).
+Your server passes guards as `hooks.connectionGuards` (ADRs 0160, 0294).
 Install the model client in your own Bun project, build your own image
 ([deployment guide](../../../packages/work-server/README.md#your-own-image)),
 and add the guard to your entry point's `hooks`:
@@ -2467,7 +2467,7 @@ offered only on share links:
 
 Use the company's own product accounts if they speak OpenID Connect, or a
 general provider such as Google or Microsoft (register the redirect URI
-`<WORK_PUBLIC_URL>/api/auth/oauth2/callback/<id>`). The provider must return a
+`<WORK_PUBLIC_URL>/api/auth/callback/<id>`). The provider must return a
 verified email; shares match on it. Guests never become members, never receive
 API tokens, and never see agents or project files beyond their shares.
 
@@ -3759,7 +3759,7 @@ Source: https://github.com/opencx-labs/catamorphic/blob/main/packages/work-serve
 # @catamorphic/work-server
 
 The Work server as a library (ADR 0160). Deploy it from your own TypeScript
-entry point and image, pinned to the release you run (ADR 0287). Work
+entry point and image, pinned to the release you run (ADR 0294). Work
 publishes libraries; your server supplies its hooks.
 
 ```ts
@@ -5224,7 +5224,7 @@ defineBoundary({ run: ({ input }: BoundaryContext<{ name: string }>) => ... }),
 ```
 
 A boundary attempt's sandbox callback and returned host, documents, or connection
-operation share one five-minute deadline from its persisted start (ADR 0288).
+operation share one five-minute deadline from its persisted start (ADR 0295).
 Job recovery preserves that deadline; a boundary-policy retry gets a new one.
 Host calls receive the combined `signal` and ISO `deadlineAt`; connection providers
 receive them in `invoke`. Pass `signal` to SDK or HTTP transports and check it
