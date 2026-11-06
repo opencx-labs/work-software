@@ -26,22 +26,37 @@ The website does not promise unavailable platform releases.
 
 ## Desktop film
 
-The homepage plays `site/assets/work-desktop-film.mp4`, a silent
-1920x1200 H.264 recording of the actual desktop app at 60 fps (a 16:10 frame,
-matching the `aspect-ratio` of the orange panel it sits in). It follows one scenario in the prepared project "Aster
-launch": read a reference page in Work's browser, open a chat beside it and ask
-for a Launch section in the sidebar with the four docs, then ask for a small
-app that shows the person's own chats by day. The app is opened from the
-sidebar, Work asks once before it reads the chats, and the app is used.
+The homepage plays `site/assets/work-desktop-film.mp4`, a silent 1680x1050
+H.264 recording of the actual desktop app at 60 fps (a 16:10 frame, matching
+the `aspect-ratio` of the orange panel it sits in). The window lays out at
+1280x800 and renders at 1.3125x, so text stays sharp at the size the page
+shows it. It follows one scenario in a prepared project, "Lisbon offsite":
+Sam is planning a three-day team offsite with an open Friday afternoon.
 
-Both agent turns are real (Claude Code, this machine's login); the app is built
-by the agent from the project skills and declares `catamorphic.access.sessions`.
-Typing, navigation and app use run at 1x; the agent's working time is
-accelerated with a visible "Sped up" label. The five earlier conversations in
-the project were seeded through the normal chat.
+- From the palette, Sam opens a travel guide (Wikivoyage's Lisbon page) beside
+  the plan, so the two are tiled.
+- Sam asks the agent to open Belém in the guide and fill Friday afternoon. The
+  agent navigates the guide in its tile and writes three stops into the plan.
+- Sam asks for light mode, and the whole window turns light.
+- Sam asks for a workflow that checks Friday's forecast every morning and
+  posts it to the chat, then opens it: the graph shows its schedule, the
+  forecast check and the message.
+- Sam asks for an app for the team with the plan, the forecast and who is
+  joining what. From the palette, Sam opens it beside the workflow, picks a
+  name, sees Friday's live forecast (Open-Meteo) and joins a stop.
 
-Raw frames, markers, the cut list (`edit.json`), renderer and production notes
-are in `../work-product-film/activity-demo/`. The reusable skill is
+Every agent turn is real (Claude Code on this machine's login, with the
+person's own connectors denied in the demo project), and the workflow and the
+app are the ones the agent built. Typing, clicks, scrolling, the palette and
+app use run at 1x; the agent's minutes of work, the guide's page load and the
+app's first load are cut, each bridged by a short dissolve, and nothing is
+sped up. The pointer is drawn from the recorded input, since scripted input
+shows none. The three earlier chats in the sidebar were real turns seeded
+through the normal chat. The team, the hotel and the plan are fictional; the
+guide and the forecast are real.
+
+Raw takes, markers, the cut list (`edit.json`), renderer and production notes
+are in `../work-product-film/v6/`. The reusable skill is
 `.agents/skills/announcement-video/` in the Catamorphic repo, with a
 Work-specific story reference.
 
