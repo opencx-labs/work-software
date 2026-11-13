@@ -987,6 +987,10 @@ credentialed `.env` wholesale. Add only the individual settings a task needs.
 Root orchestration tests under `scripts/**/*.test.ts` run before the package
 graph. Package-local Vitest commands also select the repository-pinned Node,
 including when the ambient `node` is Node 20.
+`bun install` downloads the official Node release once, verifies its pinned
+SHA256, and caches it in that checkout. Installation needs `tar` with xz support
+(install `xz-utils` on Linux); later test and build commands resolve it offline.
+After an install with `--ignore-scripts`, run `bun scripts/tool-runtime.ts install`.
 
 External integration tests never run merely because credentials are present.
 They require the explicit `bun run test:external` authority, which sets
@@ -4461,15 +4465,16 @@ chats (`sessions:read`) or delivers into them by `sessionId`
 
 ### Observability
 
-Catamorphic libraries use only the OpenTelemetry APIs (`@opentelemetry/api`
-and `@opentelemetry/api-logs`). Register your own tracer, meter, and logger
+Catamorphic libraries use only `@opentelemetry/api`, including its stable logs
+API. Register your own tracer, meter, and logger
 providers and choose any exporters, processors, samplers, resources, or views.
 Libraries do not initialize SDKs, read exporter environment variables, or take
 ownership of your providers. Without providers, instrumentation is a no-op.
 The optional `@catamorphic/otel/node` entry point provides the shipped hosts'
 NodeSDK bootstrap and accepts the complete `NodeSDKConfiguration` for embedders
 who want it. SDK/exporter dependencies are optional peers, required only by that
-entry point. See [OBSERVABILITY.md](OBSERVABILITY.md) for configuration, coverage,
+entry point. The bootstrap uses OpenTelemetry SDK 3.x and requires Node.js
+22.15 or later. See [OBSERVABILITY.md](OBSERVABILITY.md) for configuration, coverage,
 project routing, signal conventions, and the local collector.
 
 
