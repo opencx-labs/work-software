@@ -16,7 +16,7 @@ Work is the product; Catamorphic is the open-source framework it is built on. Bo
 - AI: your own Claude Code or Codex account, your own Hermes Agent, or API keys (Anthropic, OpenAI, OpenRouter); providers bill you directly
 - Data: stays on your Mac by default; optionally on a server you run
 - Work server: install a pinned `@catamorphic/work-server` release, compose a small TypeScript entry point and hooks, and build your own image; Work publishes libraries rather than a stock server image. PGlite needs no external service; network Postgres supports disposable replicas.
-- Connect other tools: MCP (a project on your server is an MCP endpoint)
+- Connect other tools: MCP (your server is an MCP endpoint: your own agent, such as Claude Code or Codex, starts a coding agent on it, keeps working, waits for it, answers its questions and reads its result and pull requests; each project is an endpoint too, with its documents and workflows)
 - Website: https://work.software
 - This guide, with the linked documents inlined: https://work.software/llms-full.txt
 - Source of truth for capabilities: the repository's README and decision records (links below)
@@ -24,7 +24,7 @@ Work is the product; Catamorphic is the open-source framework it is built on. Bo
 ## What matters most
 
 - **Open source and free, no strings attached.** Apache-2.0 license. No account, no subscription, no hosted service required. Nothing leaves your machine unless you send it.
-- **It is a browser.** Work embeds a real Chromium browser: tabs, Chrome-style profiles, bookmarks (pinned tiles and lists, per project too), history, and a password manager: it offers to save sign-ins, suggests saved logins under the field, generates strong passwords for new accounts, and keeps notes with each login, unlocked with Touch ID. It keeps passkeys too: sites can create them, you sign in with Touch ID from a sheet or the field suggestions, and passkeys and passwords import from Bitwarden or KeePassXC (passwords from a CSV file too). Security keys work alongside. Tabs you have not looked at for a while sleep to free memory and reopen where you left off, as in Chrome. Any tab, a chat or terminal too, can be pinned: it stays first in the strip as its icon, Cmd+W and closing all tabs leave it, and it comes back after a restart. Incognito tabs keep no history and run no extensions, and their cookies and sign-ins go when the last one closes. Chrome extensions install from the Chrome Web Store with Chrome's permission prompts and verified packages, with pinned toolbar buttons and popups, side panels, keyboard shortcuts and an Extensions page: uBlock Origin Lite and Dark Reader work, and the Claude and ChatGPT extensions drive Work's tabs as they drive Chrome's. Agents drive it as you would, in your signed-in tabs: real clicks and typing, uploads and downloads, and a page's console, network and JavaScript for web development. You can use it as a clean browser and nothing more.
+- **It is a browser.** Work embeds a real Chromium browser: tabs, Chrome-style profiles, bookmarks (pinned tiles and lists, per project too), history, and a password manager: it offers to save sign-ins, suggests saved logins under the field, generates strong passwords for new accounts, and keeps notes with each login, unlocked with Touch ID. It keeps passkeys too: sites can create them, you sign in with Touch ID from a sheet or the field suggestions, and passkeys and passwords import from Bitwarden or KeePassXC (passwords from a CSV file too). Security keys work alongside. Sites that use Chrome's built-in Translator and LanguageDetector work as in Chrome, on the device: Firefox's translator, its model for a language pair downloaded the first time a page asks, and Google's CLD3 detector, so page text never leaves the computer. Tabs you have not looked at for a while sleep to free memory and reopen where you left off, as in Chrome. Any tab, a chat or terminal too, can be pinned: it stays first in the strip as its icon, Cmd+W and closing all tabs leave it, and it comes back after a restart. Incognito tabs keep no history and run no extensions, and their cookies and sign-ins go when the last one closes. Chrome extensions install from the Chrome Web Store with Chrome's permission prompts and verified packages, with pinned toolbar buttons and popups, side panels, keyboard shortcuts and an Extensions page: uBlock Origin Lite and Dark Reader work, and the Claude and ChatGPT extensions drive Work's tabs as they drive Chrome's. Agents drive it as you would, in your signed-in tabs: real clicks and typing, uploads and downloads, and a page's console, network and JavaScript for web development. You can use it as a clean browser and nothing more.
 - **It uses your existing AI subscriptions.** Sign in with the Claude Code or Codex account you already have, or add API keys (Anthropic, OpenAI, OpenRouter). Providers charge you directly; Work adds nothing.
 - **Completely local, or your own server.** The desktop app runs with an embedded database and local sandboxes; no cloud. When you want your work and agents available from your phone or while the Mac sleeps, run the Work server yourself (your own deployment built on `@catamorphic/work-server`) and keep everything on hardware you control. A company brain on that server can admit only its Google Workspace accounts, revokes a departed person's access within minutes, gives agents reviewed access to company systems without handing them credentials, and shares specific documents, folders, or apps with customers behind their own sign-in.
 - **Easy to get started.** Tutorial opens as a normal tab, with themes, AI agent setup, the dock, keyboard shortcuts, palette modes, sidebars, and combined browser setup. New profiles open in Default Project with the dock collapsed on the right. The default right sidebar contains only the agent customization button. Done opens a normal New Tab palette. Search for onboarding or tutorial in the palette to revisit it. Choose theme opens the same live theme picker from the palette, Settings, or onboarding.
@@ -45,23 +45,25 @@ We built Work because we believe one well-built piece of software can replace mo
 - Voice: hold a microphone or shortcut to talk with your assistant or any chat, then release to send. Pauses never send a message. macOS uses Apple's native speech recognition (SpeechAnalyzer on supported macOS 26 devices, SFSpeechRecognizer on older Macs); Linux uses local Parakeet. Work does not install speech-to-text or speaker-detection models on macOS. Reply voices still use local Kokoro and any agent reply can be read aloud from its button. Pressing again interrupts playback. Dictation inserts your words on release wherever your cursor is: in Work, a web page, or, on macOS once allowed in Accessibility, any app. The microphone and macOS audio lowering stop on release while buffered transcription and replies finish. Voice keeps what was on screen as you pressed, with screen access once allowed. Apple's older recognizer may use Apple's servers when on-device recognition is unavailable.
 - Agents can be Claude Code, Codex, API models, your own Hermes Agent (added in Settings, with its own model, memory and sign-in), or an Agent Client Protocol agent a project names, which runs its own command on the desktop once you approve it, or in its sandbox on a Work server (multi-harness), with per-agent permission mode (each harness's own, such as Claude Code's plan, auto or bypass permissions, or Codex's sandbox and approvals), sandboxing, memory, skills, instructions and effort. Connectors (MCP) attach to profiles and agents.
 - Change a chat's agent at any time between turns, including between Claude and ChatGPT. The same conversation stays open; each harness resumes its own native thread with a bounded summary of the turns it missed and access to full session history.
-- Agents start subagents: copies of themselves, or other agents they are allowed, on the model and effort the work needs (a stronger model for a hard design, a quicker one for a broad search) or read-only for a review (in Claude Code and Codex). Each runs as its own chat you can open. Its reports reach the parent's working turn automatically; routine progress folds into expandable activity with full reports and source links, while failures and requests for your input stay visible. An agent's settings say which agents it may start and which models and efforts it may choose; by default it may start copies of itself on any model and effort.
+- Agents start subagents: copies of themselves, or other agents they are allowed, on the model and effort the work needs (a stronger model for a hard design, a quicker one for a broad search) or read-only for a review (in Claude Code and Codex). Agents on a Work server start them too, from their sandbox. A subagent works in its parent's workspace by default (the same files, as they are, with nothing to set up again; parallel writers ask for one of their own, started where the parent's started). Each runs as its own chat you can open. Its reports reach the parent's working turn automatically, including a result it reaches in a later turn; routine progress folds into expandable activity with full reports and source links, while failures and requests for your input stay visible. An agent's settings say which agents it may start and which models and efforts it may choose; by default it may start copies of itself on any model and effort. An agent's definition can declare typed results (JSON Schemas): it submits them with `submit_result`, only a value the schema accepts is recorded, and parents and workflows read them (with the chat, turn and input that produced each) instead of parsing replies.
 - Chats you run in Claude Code or Codex outside Work can appear among the project's chats (in the palette and any list of them), once you turn it on in that agent's settings: only chats started after that, kept current as the CLI writes, and never synced to a server. Any agent can continue one. An agent on the original harness resumes its native session when available; another harness receives a context handoff.
 - Every chat is a durable log of turns, the same on the desktop, the phone and the server, streamed live. Questions and approvals can be answered from any of them, a message sent while an agent waits on a question reaches it in the same turn, a turn whose machine stopped is picked up by another and continues on the agent's own conversation, and any turn can be undone with the files it changed.
 - Agents write durable workflows (TypeScript, run in sandboxes, resumable) and apps (small React screens built from Work's component kit). An app can read your own chats in a project after you allow it once; it never sees anyone else's.
-- Automations run for you or for the whole project. A workflow starts from a schedule, a chat event, or a webhook sent to your server (GitHub's included; on the desktop, GitHub is polled into the same events), and can message your chat or a shared project chat that anyone in the project can continue (one per pull request review, one per inbound request). On a Work server, people joining, leaving, or changing groups in the company directory start workflows too, so a new engineer's keys are issued as they join and revoked as they leave. Projects define their own triggers, such as "a pull request was merged" or "someone mentioned the app in Slack", on top of webhooks, with filters that decide which events start a run; webhooks check each sender's signature scheme and answer its setup handshake.
+- Automations run for you or for the whole project. A workflow starts from a schedule, a chat event, or a webhook sent to your server (GitHub's included; on the desktop, GitHub is polled into the same events, and on a private server a polling workflow records them, so webhook automations run unchanged), and can message your chat or a shared project chat that anyone in the project can continue (one per pull request review, one per inbound request). On a Work server, people joining, leaving, or changing groups in the company directory start workflows too, so a new engineer's keys are issued as they join and revoked as they leave. Projects define their own triggers, such as "a pull request was merged" or "someone mentioned the app in Slack", on top of webhooks, with filters that decide which events start a run; webhooks check each sender's signature scheme and answer its setup handshake. A workflow can run commands in a chat's workspace (copying a trusted review procedure into it, or adding a new revision beside its checkout) and get their output back, an environment's setup can be a workflow Work runs before a chat's turns, and workflows hear when a chat's workspace is made, moved, given back or lost. Workflows see when a chat's turn last made progress and what it is running; an agent can set how long a turn may go without progress, Work tells workflows when one does, and a workflow can collect diagnostics, then restart the turn, which keeps the runner's and the agent's own error output with each attempt that did not finish.
+- Project automations follow the published program: merging to the project's main (on its code host, or publishing from Work) deploys them, unless the new revision asks for more access than was approved, which waits for a person and tells them. A person's own automations, which use their own accounts, follow only once they choose to. A workflow that does not build at a revision keeps running the previous one, and a passing outage never makes it skip one. A project can name a deploy workflow that runs once at each revision before anything moves, for its own database migrations or nothing; if it fails, nothing moves, and it runs again at the next revision, when someone asks, or once the deploy automation is approved again. A Work server's hooks can give each new project its own credentials, such as a database URL, kept as project secrets, and clean them up when it is deleted.
 - Slack is built the same way, from project code rather than a built-in integration: mentioning the app in a Slack thread starts or continues a shared project chat for that thread, the agent reads the thread (and, given a search token, searches Slack) through the gateway, which holds the tokens, and its answer is posted back to the thread. Slack's retries of an event start no second run.
-- Pull request review is built the same way: every pull request in a connected repository gets a code and security review in its own shared chat on a dedicated review pool. The reviewer checks out the pull request's head, installs, builds, and runs the tests and the change's services in its own sandbox, checks migrations against a read-only production replica, and reports what it found; a workflow outside the review's sandbox calls a deployment-owned hook that validates the report and serializes commit-bound reviews, checks and replies through an application Postgres ledger, so the machine running the pull request's code holds no GitHub write access, not even a push. Because that code runs where the review is written, the review is advice and a person still approves the merge. Each push moves the same chat to the new head, mentions in comments are answered on the pull request, and merging or closing it releases everything the review held. Reviews and Slack threads are ready-made packs: an agent installs one into a project when someone asks for it, the team edits the workflow and agent files in the project, while privileged publication hooks are reviewed and installed in its owned server deployment. Uncertain GitHub writes block later publication until destination receipts are reconciled; the default publisher leaves descriptions, change-request dismissal and thread resolution to people.
+- Pull request review is built the same way: every pull request in a connected repository gets a code and security review in its own shared chat on a dedicated review pool. The reviewer checks out the pull request's head, installs, builds, and runs the tests and the change's services in its own sandbox, checks migrations against a read-only production replica, and reports what it found; a workflow outside the review's sandbox validates the report and posts commit-bound reviews, checks and replies, one publication per pull request at a time: the check shows the review in progress from the moment it is queued (waiting for a machine, preparing the workspace, reviewing), each finding is posted as an inline comment as soon as the reviewer has verified it, and the review completes the check with its verdict, deciding from GitHub and recording each commit's verdict on the review chat, so the machine running the pull request's code holds no GitHub write access, not even a push. The default reviewer runs on Work's control plane, so its model key and Work's tools never enter the review machine, and the pull request's own code (its installs, tests and services) reaches only the checkout, its test services and a read-only Git connection; a project's own Claude Code reviewer runs in a container of its own beside that code, sharing only the checkout, while the open-model OpenCode reviewer runs beside it unprotected. The reviewer still reads what the pull request wrote, so the review is advice and a person still approves the merge. Each push moves the same chat to the new head, mentions in comments are answered on the pull request, and merging or closing it releases everything the review held. Reviews and Slack threads are ready-made packs: an agent installs one into a project when someone asks for it, and the team edits the workflow and agent files in the project; nothing installs into the server. Every GitHub write carries a stamp so a retry finds a write GitHub already accepted, and the recipe leaves descriptions, change-request dismissal and thread resolution to people.
 - Agents run long commands in the background, on the desktop and on the Work server, where they run inside the agent's own workspace and stop when the chat closes. On the desktop agents can also watch a command (a deploy, a file, a status page); the chat wakes when it finishes, succeeds or changes, including after the computer sleeps.
 - Customizations use an installed typed SDK, a static checker and previews through the actual confined runtime. Apps and sidebar sources share workflow call/start/run handles. Member-private workflows, versioned state and notifications use the ordinary workflow engine without requiring a chat or Git repository. Explicitly enabled application services and private schedules continue under a separate background runtime after the desktop UI quits. Private source and data are not uploaded merely by connecting a server. Native action forms support choices, custom dates and repeated entries. Inspectors offer readable facts, copy actions, rich prose and sandboxed app content; persistent project lists retain focus and expansion as context changes.
 - People work beside their agents on the Work server: from the desktop, a chat that runs there opens a terminal in its workspace (a login shell with the environment's secrets) and previews a server running there, such as a dev server, in a browser tab by its port. Previews reload by hand; live reload does not reach them.
 - The mobile companion (a PWA) pairs with the desktop by QR code over your LAN, or connects to your server, so a chat can continue from your phone.
-- The Work server is a company brain composed from libraries and your own hooks. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys, and code running in an agent's sandbox (a dev server, a script, tests) calls the same HTTP APIs through it with a short-lived session grant instead of a pasted key; database access is read-only with cost and row limits, and a company can add its own guards in code (a model reviewer, a person's approval, or both) to review each action. Organization administrators connect each system once, from the app or the server, and projects choose which of those connections each environment may use in a reviewed project file. Project secrets are sealed in an encrypted vault. Enrolled workers add execution capacity holding only a machine credential, which rotates, and the key their queued work is sealed to, never the database or secrets; each worker serves everyone, named people and groups, or one project's own automations and shared chats, so a person's agents run on their own machine first, and machine rules can give every member of a directory group a machine of their own: a Hetzner Cloud server created for them, or one of the company's own servers enrolled into a pool, each set up by the same install script. Bursty work such as pull request reviews can wait for a machine instead of failing, and a machine rule on demand creates machines while work waits, up to a limit, and destroys them once idle. A departed person's machine stops taking work at once and is kept for a set number of days, then destroyed or wiped and returned to its pool. Agents use Git in their sandboxes the ordinary way: fetches and pushes go through the gateway with a short-lived session grant, never the remote's credential, pushes are limited to the project's work branches, and automations can start a chat's checkout at any ref of the project's remote, such as a pull request's head, and move it when the pull request changes. Project agents can be Claude Code, Codex or an Agent Client Protocol agent such as OpenCode or Hermes on the server too: the agent runs in the chat's sandbox, on a worker or the server, and reaches its model through the gateway, which holds the organization's model key, allows only the models the environment names, can pin which providers an aggregator such as OpenRouter routes to (with a few lines of the company's own code), and records usage per chat. New sandbox model requests require the issuing turn attempt and its live lease; between-turn calls and old bearers on a later turn are denied. Git and HTTP background access keep their ordinary grant lifetime. Developers can instead use their own ChatGPT subscription for Codex in their own remote chats: they sign in from the app on a machine of their own, approving a one-time code in their browser, and the sign-in stays on that machine; Work never copies or forwards it, and a machine holds one person's sign-in only. Claude Code subscriptions stay on each person's own computer. Files such as `.env` that are never committed can travel with them; they reach only that person's chats, in environments that allow it, on machines that isolate that person. Projects list the secrets each environment sets as environment variables, with a shared value and a value of each person's own, such as a key issued to every engineer, set by that person, an administrator, or an onboarding workflow; values are write-only and masked in chat transcripts. A chat started on their own computer moves to a server environment and continues there with its history. A deployment owns its entry point, dependencies and image.
-- On the Work server each machine runs sandboxes in the best isolation it has, chosen at start: a microVM where it has hardware virtualization, else a gVisor container on any Linux machine with Docker and gVisor, which the machine install script sets up. Each project Environment chooses the image its agents run in (a registry image or a Dockerfile reviewed in the project), whether they get their own Docker and Docker Compose, which hosts they may reach, a setup command every new workspace runs (installing the project's dependencies), which may reach hosts of its own such as package registries while the agent's turns reach only the gateway, and directories kept on the machine for each person, such as a package store or a Docker data root, so later workspaces start warm. An agent's sandboxing is enforced by the server: a contained reviewer can run anything in its sandbox but changes nothing outside it and only reads through connections, a propose agent proposes but does not publish, and a publish agent may deploy and publish. Sandboxing is separate from the harness's own permission mode, which each agent also chooses. When an unattended agent needs approval, the people its automation named get a notification and answer from their own chats.
+- The Work server is a company brain composed from libraries and your own hooks. People sign in through Google Workspace: only the company domain gets in, people suspended or removed in the directory are signed out within minutes, and directory groups can map to project roles. Agents and workflows reach MCP servers, HTTP APIs and a production database through a gateway that holds the keys, and code running in an agent's sandbox (a dev server, a script, tests) calls the same HTTP APIs through it with a short-lived session grant instead of a pasted key; database access is read-only with cost and row limits, and a company can add its own guards in code (a model reviewer, a person's approval, or both) to review each action. Organization administrators connect each system once, from the app or the server, and projects choose which of those connections each environment may use in a reviewed project file. Project secrets are sealed in an encrypted vault. Enrolled workers add capacity. They receive a rotating machine credential and the key used to seal their work. A worker can serve specific users, projects, or chat keys, or anyone whose role and Environment allow it. The host's machines hook plans capacity and calls its own infrastructure. Work records intent, retries the same operation, drains safely, and retires lost work so chats can continue from their last save. Workers can stop and resume with their disk and sign-ins. Chats wait for capacity and see when a machine is starting. Copyable registry recipes cover EC2, Hetzner Cloud, project workflows, machine policy and worker installation. Work manages disk floors and reservations and sends machine events to the projects the machine serves. Agents use Git in their sandboxes the ordinary way: fetches and pushes go through the gateway with a short-lived session grant, never the remote's credential, pushes are limited to the project's work branches, and automations can start a chat's checkout at any ref of the project's remote, such as a pull request's head, and move it when the pull request changes. Every chat on the server works on a branch of its own that starts from the repository's default branch: Work saves the branch, its commits and its uncommitted changes after each turn and gives them back when the workspace returns, and the agent opens a pull request from its own commits with one tool, which also updates that pull request later and records it on the chat. Project agents can be Claude Code, Codex or an Agent Client Protocol agent such as OpenCode or Hermes on the server too: the agent runs in the chat's sandbox, on a worker or the server, and reaches its model through the gateway, which holds the organization's model key, allows only the models the environment names, can pin which providers an aggregator such as OpenRouter routes to (with a few lines of the company's own code), and records usage per chat: tokens and the cost the provider reported, on OpenTelemetry spans and as totals for a chat and its subagents that projects build their own limits on. New sandbox model requests require the issuing turn attempt and its live lease; between-turn calls and old bearers on a later turn are denied. Git and HTTP background access keep their ordinary grant lifetime. Developers can instead use their own Claude subscription for Claude Code and their own ChatGPT subscription for Codex in their own remote chats: they sign in from the app on a machine of their own, in their own browser, with the harness's own login, and the sign-in stays on that machine; Work never copies or forwards it, model traffic goes straight to the provider, and a machine holds one person's sign-ins only. The machine has to persist, and whether that use is allowed under the provider's terms is the operator's to decide. Files such as `.env` that are never committed can travel with them; they reach only that person's chats, in environments that allow it, on machines that isolate that person. Projects list the secrets each environment sets as environment variables, with a shared value and a value of each person's own, such as a key issued to every engineer, set by that person, an administrator, or an onboarding workflow; values are write-only and masked in chat transcripts. A chat started on their own computer moves to a server environment and continues there with its history. A deployment owns its entry point, dependencies and image.
+- On the Work server each machine runs sandboxes in the best isolation it has, chosen at start: a microVM where it has hardware virtualization, else a gVisor container on any Linux machine with Docker and gVisor, which the machine install script sets up. Each project Environment chooses the image its agents run in (a registry image or a Dockerfile reviewed in the project), whether they get their own Docker and Docker Compose, which hosts they may reach, a setup command every new workspace runs (installing the project's dependencies), which may reach hosts of its own such as package registries while the agent's turns reach only the gateway, and directories kept on the machine for each person, such as a package store or a Docker data root, so later workspaces start warm. An Environment can run its agents' commands apart from them: every command the agent's shell, setup, workflows and terminals run executes in a container of its own that shares only the checkout with the agent's, reaching just the connections the Environment lists for it, never the agent's grants, model or tools. An Environment can also declare read-only caches, such as a package store, that every sandbox mounts and that only a trusted fill from the published main writes, so even pull request reviews install from warm caches. An agent's sandboxing is enforced by the server: a contained reviewer can run anything in its sandbox but changes nothing outside it and only reads through connections, a propose agent proposes but does not publish, and a publish agent may deploy and publish. Sandboxing is separate from the harness's own permission mode, which each agent also chooses. When an unattended agent needs approval, the people its automation named get a notification and answer from their own chats.
 - Shares send customers or partners a sign-in link to one document, folder or live app. They sign in with their own account (for example your product's own sign-in over OpenID Connect) and see only what was shared.
 - Glue code is normal: workflows compose ordinary TypeScript, npm SDKs, durable boundaries, webhooks, schedules and external Postgres state. Work server hooks supply privileged operations, authorization and callbacks. A missing native integration such as AWS is not a blocker when these primitives express the use case; an external runner need not enroll as a Work worker. The deployment pins `@catamorphic/work-server` and builds its own image. Agents should distinguish core defects from application orchestration and prove recovery with the final deployment. Anyone can ask their coding agent to set up a Work server with the setup skill. Members can use Claude Code, Codex or another MCP client with their own roles to read and search the project, draft, check and deploy workflows and apps, run workflows, read results and work with project agents.
 - A workflow boundary and its returned host, document or connection operation share one persisted five-minute attempt deadline. Providers receive cancellation and the deadline, recovered jobs retain the budget, and late results are fenced. Accepted external effects still need application reconciliation.
 - Named workflow signals can buffer before their matching pause, scoped to an existing active run id and correlation key. Durable receipts deduplicate callbacks, each signal resumes one pause, and pending values are cleared when the run ends. Signals never follow a restart; callbacks carry the enrollment generation. Ordinary workflow and server-hook glue code composes external services.
+- A workflow can make its runs about one subject take turns: `concurrency: { key, onConflict: "queue" }` names the subject from the run's input, and a run whose subject already has a live run waits as `queued`, holding no machine, then starts in arrival order once the runs ahead settle. Workflows read and set a chat's metadata, so state about a chat (a verdict, a posted comment's id) lives on the chat. A delivery (a webhook, a schedule occurrence, an event) starts at most one run of a workflow.
 - Durable workflow waits give back physical workspace capacity after confirmed teardown. A continuation receives fresh admission with current owner and connection authority and keeps the same deployed revision and journal. Children and batch work share capacity until all their compute waits; workspace files and processes do not survive parking.
 - Privacy: incognito chats stay on the device and are never mirrored; a project's private working files are separate from shared project source.
 
@@ -80,7 +82,7 @@ We built Work because we believe one well-built piece of software can replace mo
 - Setting one up with an agent, end to end: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/SKILL.md (start with references/first-brain.md; company identity, secrets and the gateway, machines, and sharing each have a reference beside it)
 - Extending the Work server with your own code: https://github.com/opencx-labs/catamorphic/blob/main/packages/work-server/README.md
 - Composing services, external runners and Postgres state, with current guarantees and recovery tests: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/workflow-composition.md
-- Working on a Work server project from Claude Code or any MCP client: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/members-over-mcp.md
+- Running the server's coding agents from Claude Code, Codex or any MCP client (start, wait, answer, read): https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/members-over-mcp.md
 - Connecting a project to Slack: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/connect-slack.md
 - Reviewing pull requests with Work: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-server/references/review-pull-requests.md
 - Ready-made packs an agent installs into a project (pull request reviews, Slack threads, UI components): https://github.com/opencx-labs/catamorphic/blob/main/packages/registry/README.md
@@ -218,15 +220,23 @@ Postgres and one authority, with machines exposed as permitted Environments.
 Postgres mode shares origins, artifacts, credentials, auth, and leased execution.
 Each Environment can choose its sandbox image, give agents their own Docker,
 and limit which hosts they reach, with a wider list for its setup alone
-(package registries) while agents reach only the gateway; an agent's
+(package registries) while agents reach only the gateway, run the agent's
+commands in a container of their own that shares only the checkout, out of
+reach of the agent's grants, model and tools, and mount read-only caches
+that only a trusted fill from the published main writes; an agent's
 sandboxing decides what leaves its sandbox, apart from its harness's own
 permission mode. Claude Code, Codex and ACP agents such as OpenCode run in
 those sandboxes on the organization's model keys, held by the gateway. New model
 calls require the turn's exact attempt and live lease; Git and HTTP
 background access keep their normal grant lifetime. The gateway
 can pin the providers an aggregator routes to; work that needs a machine can
-wait for one, and machine rules can create machines on demand and remove
-them when idle. See
+wait for one. The host's machine plan can create, stop, resume, and
+destroy machines on its own infrastructure. Copyable recipes cover EC2,
+Hetzner Cloud, project workflows and worker installation. Machines manage their disk too:
+each keeps a floor of free space below which it takes no new workspace,
+reserves what an Environment's `storageMb` asks, removes the images and
+leftovers Work no longer uses, names a full disk in the failures it causes,
+and tells its project once when it runs short. See
 [the machine setup and recovery model](skills/setup-work-server/references/cluster-deployment.md).
 The Work server is single-tenant because its local-process execution can access
 the host machine. Run one trusted organization or household per deployment.
@@ -328,7 +338,9 @@ changed files ends in a **checkpoint commit**, its sha stamped on the chat
 message, so every reply's diff is addressable forever. Work never updates
 the default branch of a repository it did not create, or any branch there
 it did not make: sync fetches and fast-forwards, and local work reaches a
-shared repository as a `work/` branch plus a **pull request**. A repository
+shared repository as a `work/` branch plus a **pull request**, opened from
+the chat's own commits by one tool on the desktop and on a Work server,
+where every chat works on a branch of its own. A repository
 Work created itself syncs automatically (fetch, fast-forward, merge, push),
 and a conflicting divergence lands on a **rescue branch** instead of a stuck
 state. A code host acts through an ordinary connection: the person's own
@@ -354,8 +366,10 @@ per-profile agent rosters work across harnesses. A chat can change agents across
 harnesses while keeping its history, with a bounded handoff of missing context.
 MCP goes both directions:
 agents consume MCP connectors (registry search, plugin marketplaces,
-elicitation via `@catamorphic/mcp`), and a project's workflows are served
-*as* MCP tools to any MCP client. In the desktop, agents also drive the
+elicitation via `@catamorphic/mcp`), and a server is an MCP endpoint itself:
+a person's own agent (Claude Code, Codex, any MCP client) starts a coding
+agent on it, keeps working, waits for it, answers its questions and reads
+its result, and a project's workflows are served *as* MCP tools. In the desktop, agents also drive the
 workspace itself: browser tabs (real input, uploads, downloads, and a page's
 console and network for web development), terminals, `open_surface`,
 `point_at`. Local harnesses get the person's login-shell PATH, so they reach
@@ -399,13 +413,32 @@ A result starts a new turn if the parent has finished. An agent starts a copy of
 another agent it is granted, on the model and effort the work needs, or
 read-only for a review (on harnesses with a read-only mode); grants in its
 definition limit whom it may start and what it may choose, and by default it
-may start copies of itself on any model and effort.
+may start copies of itself on any model and effort. Agents on a Work server
+delegate the same way, from their sandbox. A subagent works in its parent's
+workspace by default, on the same files with nothing to set up again, or in
+one of its own started where the parent's started; a result it reaches in a
+later turn reaches the parent too.
+An agent's definition can also declare typed results, each a JSON Schema: the
+agent submits them with `submit_result`, Work records only a value its schema
+accepts and returns field errors to the agent in the same turn, and parents,
+workflows (`results`, `session.result-recorded`), the project MCP and REST read
+them with the chat, turn and input that produced them.
+A running turn shows when it last made progress and the tool calls and
+commands it is in; an agent's definition can set a stall threshold
+(`"stall": { "minutes": 20 }`), after which Work emits
+`session.turn-stalled` once per silence, and a workflow (or person, over REST
+and the project MCP) can `restart` the turn: its attempt is killed and the same
+turn runs again, while each unfinished attempt keeps the masked tail of its
+runner's and harness's own output (ADR
+[0333](docs/decisions/0333-stalled-turns-are-visible-and-restartable.md)).
 Archive recursively stops active work only after reporting its impact, while
 keeping the session tree restorable and searchable. Session source records
 whether a conversation began on desktop, mobile, Slack, Claude, MCP, or API.
 (ADRs [0089](docs/decisions/0089-project-shaped-member-shell.md),
 [0090](docs/decisions/0090-first-class-subsessions-and-delegation.md),
-[0271](docs/decisions/0271-agents-delegate-by-naming-an-agent-and-its-settings.md))
+[0271](docs/decisions/0271-agents-delegate-by-naming-an-agent-and-its-settings.md),
+[0322](docs/decisions/0322-server-agents-start-subagents-in-their-workspace.md),
+[0323](docs/decisions/0323-agents-submit-typed-results.md))
 
 ## Durable workflows
 
@@ -426,7 +459,21 @@ below.
 Role access is separate from unattended consent. Each member previews and
 enables an exact deployed workflow with its trigger, Environment, agent, and
 connection requirements. Connecting an account may complete that chosen flow;
-it never silently enables every compatible automation.
+it never silently enables every compatible automation. A workflow also
+declares the project permissions and the store paths it reads or writes
+(`documents`), and consent lists both. Every run reaches only those paths
+of the store, whoever starts it: a project automation exactly those, any
+other run the part of them its caller reaches
+([0335](docs/decisions/0335-workflows-declare-their-store-documents.md)).
+
+Project automations follow the published program: each revision of `main`
+that builds and asks for no new authority goes live by itself, after the
+project's deploy workflow (named in `.work/project.json`) runs once at that
+revision; a revision that needs new consent waits for its owner. A member's
+own automation follows once the member turns it on. Host project hooks can return
+per-project secrets on create and are retried on delete until done
+([0330](docs/decisions/0330-enablements-follow-the-published-program.md),
+[0331](docs/decisions/0331-project-deploy-workflow-and-host-project-hooks.md)).
 
 ## Apps
 
@@ -564,11 +611,10 @@ Supporting packages (consumed through the surface above, importable directly for
 | `@catamorphic/agent-runner` | The harness-agnostic runner that drives one attempt of a turn on an adapter, in-process or over stdio. |
 | `@catamorphic/runner-bundle` | The runner and its Claude Code and Codex adapters as one hash-addressed file a sandbox runs with Bun or Node. |
 | `@catamorphic/microsandbox` | Local sandbox provider over the microsandbox SDK: the desktop's default execution. |
-| `@catamorphic/container` | Sandboxes as OCI containers through the Docker Engine API, under gVisor (`runsc`) or runc: images, Dockerfile builds, CPU and memory limits, egress policy through a proxy socket, nested Docker, and volumes (ADR 0204). |
+| `@catamorphic/container` | Sandboxes as OCI containers through the Docker Engine API, under gVisor (`runsc`) or runc: images, Dockerfile builds, CPU and memory limits, egress policy through a proxy socket, nested Docker, volumes, and read-only caches (ADRs 0204, 0334). |
 | `@catamorphic/local-process` | Sandboxless execution as plain subprocesses with an explicit env. Trusted single-tenant hosts only (ADR 0047). |
 | `@catamorphic/cloudflare` | Cloudflare backend plugin: `CloudflareSandboxProvider` (execution via Bridge Worker) + `ArtifactsRemoteBackend` (Cloudflare-native code storage when available). |
 | `@catamorphic/s3` | S3-compatible git origin backend for Cloudflare R2, AWS S3, MinIO, and similar stores. |
-| `@catamorphic/hetzner` | Hetzner Cloud client and machine provisioner behind the Work server's `hetzner-cloud` machine classes (ADR 0205). |
 | `@catamorphic/ai-sdk` | Built-in harness adapter: Vercel AI SDK tool loop on any API model, running in the host and driving the session's sandbox through its tools. |
 | `@catamorphic/claude-code` | Harness adapter backed by the Claude Code (Claude Agent SDK) CLI, with per-turn MCP servers, portable native state and full settings-source fidelity. |
 | `@catamorphic/codex` | Harness adapter backed by the pinned OpenAI Codex app-server protocol. |
@@ -748,7 +794,8 @@ Workflows subscribe to trigger kinds in code (`triggers:
 `defineTriggerKind` (typed payloads and configs via zod, generated
 `work-triggers.d.ts` per project) and fire them sync or async; a kind
 whose payload varies per workflow uses typed holes, and kinds declared via
-`mcpToolKinds` are served as MCP tools from `POST /projects/:id/mcp`.
+`mcpToolKinds` are served as MCP tools from `POST /projects/:id/mcp`, beside
+the chat tools `POST /mcp` serves for every project.
 Projects define their own kinds on top of the host's in `.work/triggers/`
 (`defineTrigger({ name, from: trigger("webhook", { ... }), where })`), and
 every binding may add a `where` filter the host checks before a run starts,
@@ -761,18 +808,27 @@ gateway connection whose named operations are its capabilities
 The `pull-request-reviews` pack is the larger one: a code and
 security review of every pull request, in a chat per pull request on a
 dedicated review pool, verified by running the change and reported to a
-workflow outside the sandbox that calls a deployment-owned publisher hook.
-The hook serializes commit-bound reviews, check runs and replies through an
-application Postgres ledger, reconciles uncertain writes, and leaves mutable
-PR descriptions, dismissals and thread resolution to people
+workflow outside the sandbox. Its check shows the review in progress from
+the moment it is queued, and each finding posts as soon as it is verified.
+It queues per pull request, so overlapping turns, progress and findings
+publish commit-bound reviews, check runs and replies one at a time,
+records each commit's verdict on the review chat, stamps every write so a retry
+finds it, and leaves mutable PR descriptions, dismissals and thread
+resolution to people
 ([Review pull requests](skills/setup-work-server/references/review-pull-requests.md)).
+A server no sender can reach polls instead: a workflow with `events:write`
+records events of the project's own kinds
+(`host["catamorphic.events"].record`), checked against each kind's filters,
+deduplicated by id and dispatched like deliveries; the `github-polling` pack
+feeds the GitHub kinds this way, so the review pack runs on a private server.
 See [`INTEGRATION.md`](INTEGRATION.md) and ADRs
 [0039](docs/decisions/0039-custom-trigger-kinds.md) /
 [0042](docs/decisions/0042-parameterized-trigger-kinds-and-workflow-tools-mcp.md) /
 [0171](docs/decisions/0171-project-trigger-kinds-and-declarative-webhook-ingress.md) /
 [0179](docs/decisions/0179-integrations-from-project-code-slack.md) /
 [0181](docs/decisions/0181-project-chats-use-their-environments-bindings.md) /
-[0259](docs/decisions/0259-reviews-post-from-a-workflow.md).
+[0259](docs/decisions/0259-reviews-post-from-a-workflow.md) /
+[0326](docs/decisions/0326-workflows-record-project-events.md).
 
 ### Long-lived journeys: correlation keys, signals, shared rate budgets
 
@@ -1043,9 +1099,9 @@ Direction, not shipped. Tracked in [`TODO.md`](TODO.md):
 
 - **More desktop platforms**: Intel Mac validation, then signed Windows and
   Linux packages.
-- **ACP beyond the desktop**: the desktop runs a project's local ACP agents
-  (`kind: "acp"` with `acp.command`, such as Hermes); the remote endpoint
-  transport and ACP agents on the Work server are next.
+- **ACP, the rest**: ACP agents run on the desktop and in a Work server's
+  sandbox; the remote endpoint transport, a warm process between turns,
+  and carrying an agent's own session store across sandboxes are next.
 - **TS `defineAgent`**: a typed authoring layer that compiles to the
   committed `.work/agents/<slug>.json` substrate.
 - **Review-mode collaboration**: PR-first sync for shared projects, invites,
@@ -1106,16 +1162,22 @@ others, `/readyz` answers 503 while its lease is not renewing, and
 leases (ADR 0192): any replica runs any worker's agents, so stopping a replica
 interrupts only the turns it was running itself.
 `WORK_CONTROL_PLANE_WORKLOADS=workflow` keeps agent code off the control plane.
-Each worker takes work for everyone or for named people and directory groups,
-so a person's agents run on their own machine first; machine rules give every
-member of a group a machine of their own (ADR 0167), on Hetzner Cloud, from a
-pool of machines you enrolled with `GET /api/workers/install.sh`, or through a
-provisioner hook, and keep a released machine for a few days (ADR 0205). A
-rule on demand creates machines while work waits for one, up to a limit, and
-destroys them once idle (ADR 0258), so bursty work such as pull request
-reviews gets a fresh machine without paying for idle ones.
+A worker serves specific users, projects or chat keys, or anyone whose role
+and Environment allow it. A custom Work server supplies a machines hook
+to plan capacity, create workers, and stop or destroy them once their work
+is saved. Hand enrollment is available on the stock server. The registry
+offers optional installation and cloud recipes.
 See [ADR 0164](../../docs/decisions/0164-control-plane-and-enrolled-workers.md)
 and the [machines reference](../../skills/setup-work-server/references/cluster-deployment.md).
+
+Every machine measures its disk and keeps some of it free (ADR 0336). A single
+server running its work as local processes keeps only a small critical floor
+by default (1% of its disk, at most 1 GiB), so its chats are not held back on
+a full disk where holding them frees nothing; enrolled workers and a server
+whose sandboxes are containers or microVMs keep 10%, at most 10 GiB, so one
+busy workspace cannot take the room the others need. `WORK_DISK_FLOOR_MB` and
+`WORK_DISK_CRITICAL_MB` set them. Work that a full disk refuses says what the
+machine has free and keeps: free space on it, then try again.
 
 ## First brain
 
@@ -1268,7 +1330,7 @@ Source: https://github.com/opencx-labs/catamorphic/blob/main/skills/setup-work-s
 
 ---
 name: setup-work-server
-description: Use when installing or operating a Work server (a deployment built on the server library), provisioning its first project and user, company sign-in and deprovisioning, credentials and the connection gateway, connecting Slack, reviewing pull requests on a review pool, enrolling workers or replicas, giving every engineer a machine on Hetzner Cloud or from a pool of servers, sharing with customers, embedding Catamorphic in an existing application, mapping host authentication to Catamorphic identity, or configuring Postgres or PGlite.
+description: Use when installing or operating a Work server (a deployment built on the server library), provisioning its first project and user, company sign-in and deprovisioning, credentials and the connection gateway, connecting Slack, reviewing pull requests on a review pool, enrolling workers or replicas, giving every engineer a machine on Hetzner Cloud, on AWS EC2 or another cloud through a project's workflows, or from a pool of servers, sharing with customers, embedding Catamorphic in an existing application, mapping host authentication to Catamorphic identity, or configuring Postgres or PGlite.
 ---
 
 # Setting up a Work server or a Catamorphic host
@@ -1329,7 +1391,7 @@ Start small and add only what the situation needs:
 | GitHub: a GitHub App, company repositories, pull requests, webhooks | [Connect GitHub](references/connect-github.md) |
 | Slack: a project answering mentions in threads, reading and searching Slack | [Connect Slack](references/connect-slack.md) |
 | Code and security review of every pull request on a dedicated review pool | [Review pull requests with Work](references/review-pull-requests.md) |
-| More execution capacity, workers, replicas for availability; a machine for every engineer on Hetzner Cloud or from a pool of the company's own servers | [Machines: control plane, replicas, and workers](references/cluster-deployment.md) |
+| More execution capacity, workers, replicas for availability; a machine for every engineer on Hetzner Cloud, on any cloud through a project's workflows (EC2 recipe pack), or from a pool of the company's own servers | [Machines: control plane, replicas, and workers](references/cluster-deployment.md) |
 | Sharing documents, folders, or apps with customers behind a sign-in | [Sharing outside the company](references/sharing.md) |
 | Members working from Claude Code, Codex, or another MCP client | [Working from your own agent](references/members-over-mcp.md) |
 | Project agents that are Claude Code, Codex or an ACP agent (OpenCode, Hermes), running on the server with a model key the gateway holds (and providers it pins), or Codex on a member's own subscription signed in on the machine | [Harnesses on the server](references/harnesses.md) |
@@ -1357,7 +1419,7 @@ disagree with the installed source, the source wins.
 - **No super-admin.** The operator credential is machine access, not a user.
   A setup agent provisions the first ordinary user and membership through the
   server's own operations. Organization administrators manage the named
-  service connections (ADR 0172) and the workers and machine rules
+  service connections (ADR 0172) and the worker inventory and machine plan
   (ADR 0205); they gain nothing inside projects.
 - **Glue code is normal.** Compose ordinary TypeScript workflows, SDKs and
   application storage; put privileged calls and callbacks in the host's hooks.
@@ -1371,7 +1433,12 @@ disagree with the installed source, the source wins.
 - **Unattended work needs explicit consent.** Each member reviews and enables
   a deployed workflow and authorizes its connections. Project automations
   (`automations:write`) run as the project, not as whoever enabled them
-  (ADR 0156).
+  (ADR 0156). Project automations follow `main`: merging on the code host
+  deploys them once the project syncs, unless the revision asks for new
+  authority, which waits for a person. A member's own automation follows
+  only once the member turns it on. A project's deploy workflow
+  (`.work/project.json` `deploy`) runs first, for migrations (ADRs 0330,
+  0331); do not write a watcher that updates enablements.
 - **Workflows reach chats with `catamorphic.sessions.deliver`**, by session id
   or by a stable `key`. Clients show `attentionRequired` on the ordinary
   session list and acknowledge on open. Web Push is an optional transport,
@@ -1395,9 +1462,13 @@ disagree with the installed source, the source wins.
   their sandbox and reach their model through the gateway with the chat's
   grant (ADR 0180); the server's own model variables never reach them.
 - **Sign-ins stay on the machine.** A member's Claude Code or Codex
-  subscription runs only where they signed in with the CLI's own login
-  (`work worker sign-in`), in an Environment with `"personalCredentials":
-  true`; Work never copies, stores, or forwards a sign-in (ADR 0199).
+  subscription runs only where they signed in with the CLI's own login,
+  from the Work app or `work worker sign-in`, on a machine of their own
+  that persists (one person's sign-ins per machine), in an Environment with
+  `"personalCredentials": true`. Work never copies, stores, or forwards a
+  sign-in, and its model traffic never passes through the gateway (ADRs
+  0199, 0213, 0342). Whether that use is allowed under the provider's
+  terms is the operator's to decide.
 - **GitHub is a connection.** The organization's GitHub App installation is
   the `github` service connection; sync, proposals, and agents' GitHub
   actions all go through it (ADR 0177). There is no GitHub token variable
@@ -1484,7 +1555,7 @@ const r = await fetch("http://127.0.0.1:4701/_work/operator/projects", {
   body: JSON.stringify({
     name: "Company brain",
     roles: [
-      { slug: "admin", definition: { version: 1, name: "Admin", agents: ["*"], workflows: ["*"], apps: ["*"], permissions: ["*"], environments: ["default"] } },
+      { slug: "admin", definition: { version: 1, name: "Admin", agents: ["*"], workflows: ["*"], apps: ["*"], permissions: ["*"], environments: ["default"], documents: [{ path: "store/**", access: "write" }] } },
       { slug: "member", definition: { version: 1, name: "Member", agents: ["*"], environments: ["default"] } },
     ],
     admission: { mode: "invitation_only", defaultRole: "member" },
@@ -1536,7 +1607,7 @@ and pass them without writing them into shell history or a file.
   `project_overview` shows their roles, agents, Environments, workflows, and
   apps. An admin sees the whole builder's loop: `program_write`,
   `program_check`, `program_deploy`, `workflow_run`, and `run_details`, plus
-  documents, skills, `ask_agent`, shares, and one tool per deployed
+  documents, skills, the chat tools, shares, and one tool per deployed
   `ai.tool-call` workflow.
 
 ## 4. Run a first workload
@@ -1544,8 +1615,9 @@ and pass them without writing them into shell history or a file.
 Prove the brain works before handing it over. From the connected client, as
 the admin:
 
-1. `ask_agent` with `agent: "assistant"` and a short message; the reply
-   proves agents run (on a worker when the server runs agents only there).
+1. `session_start` with `agent: "assistant"` and a short message, then
+   `session_wait` with the returned cursor; the reply proves agents run (on
+   a worker when the server runs agents only there).
 2. Ask the client to add a small workflow with an `ai.tool-call` trigger,
    following the project's `work-projects` and `writing-workflows`
    skills, then `program_check`, `program_deploy`, and `workflow_run` it.
@@ -1729,8 +1801,7 @@ Each run's input is the event: `input.id`, `input.occurredAt`, and
 null; `domain`, the email's domain), `groups` (their groups, lowercased; for a
 departure, the groups they last held) and, for `groups-changed`, `added` and
 `removed`. Groups are the ones the server asks the directory about: groups
-that map roles, worker access and machine rules, and groups a directory
-trigger names. A group the server starts or stops asking about is not a
+that map project roles and groups a directory trigger names. A group the server starts or stops asking about is not a
 change in anyone's groups.
 
 - `trigger("directory.member-joined", { groups: ["engineering@example.com"] })`
@@ -2346,10 +2417,22 @@ sandbox's Git talks to the gateway:
 - Every fetch and push is reviewed by any host guards for the connection's
   kind (action `fetch` or `push`, with the repository and refs) and audited with
   the session's owner, the refs, and the outcome.
-- Workflows start a chat's checkout at a ref of the project's remote with
-  `deliver({ key, workspace: { ref: "refs/pull/42/head" } })`; the server
-  fetches it into its mirror with the binding's (or code host's) credential
-  and seeds the sandbox from there, with no Git traffic from the sandbox.
+- Every chat's checkout is a branch of its own (`work/<id>`) that starts
+  from a commit: the default branch of the project's repository, or the
+  project's own `main` when it has none. Workflows start one at another ref
+  with `deliver({ key, workspace: { ref: "refs/pull/42/head" } })`. The
+  server fetches the ref into its mirror with the binding's (or code
+  host's) credential and seeds the sandbox from there, with no Git traffic
+  from the sandbox. History is shallow at that commit; `git fetch --deepen`
+  brings more through the gateway.
+- Work saves the branch the agent is on, its commits and its uncommitted
+  changes after every turn, and gives them back when the workspace
+  returns. Other local branches, ignored files and a rebase in progress
+  are not kept.
+- An agent opens a pull request with `project.create_pull_request`: the
+  server pushes the chat's commits as its own `work/` branch with the
+  caller's or the organization's connection, so the Environment needs no
+  Git binding for it, and records the pull request on the chat.
 
 Verify: from a chat in that Environment, `git fetch origin` succeeds,
 `git push origin work/<name>` succeeds, `git push --force origin HEAD:main` is
@@ -2557,14 +2640,21 @@ Code, Codex, or any other MCP client instead of (or beside) the Work app
 
 ## Connect
 
-The project's MCP address is `<server>/api/projects/<projectId>/mcp`
-(stateless Streamable HTTP). A member finds the project id in the Work app,
-in an invitation link (`project=`), or from whoever set the project up.
+The server has one MCP address for everything a member runs on it:
+`<server>/api/mcp` (stateless Streamable HTTP). It serves `project_list`
+and the chat tools, with the project as an argument, so one entry starts,
+watches and answers coding agents in every project the member may use.
 
-- Claude Code: `claude mcp add --transport http work <server>/api/projects/<projectId>/mcp`,
-  then `/mcp` and sign in. Add `--scope project` to share the entry with a
+- Claude Code: `claude mcp add --transport http work <server>/api/mcp`, then
+  `/mcp` and sign in. Add `--scope project` to share the entry with a
   repository's collaborators; each person still signs in as themselves.
-- Other clients: add the same address as a remote HTTP server.
+- Codex and other clients: add the same address as a remote HTTP server.
+
+A project also has its own address, `<server>/api/projects/<projectId>/mcp`,
+which adds that project's documents, program and workflows to the same chat
+tools. Add it when the member builds in that project. A member finds the
+project id with `project_list`, in the Work app, or in an invitation link
+(`project=`).
 
 The client discovers sign-in from the server's 401, registers itself, and
 opens the server's sign-in page (company sign-in or local password). Access
@@ -2572,9 +2662,34 @@ tokens last 15 minutes and refresh while the member stays active and in the
 company; a member removed from the directory loses access within minutes.
 Never paste a token into a configuration file.
 
-At `initialize` the server sends instructions that name the tools this
-member has. `project_overview` answers the rest: roles, permissions, agents,
+Both addresses speak the current protocol revision (2026-07-28) and the
+earlier handshake revisions, so any client connects. The server sends
+instructions that name the tools this member has. On a project's address,
+`project_overview` answers the rest: roles, permissions, agents,
 Environments, workflows, apps, and the member's draft.
+
+## What a client is granted
+
+The sign-in page lists what the client may do, and the member unticks what
+they do not want it to have. A client that asks for nothing is offered
+everything below except approving and full access, ticked. Every client
+holds the member's roles narrowed by the scopes it was granted, over MCP and
+the API alike, and is shown only the tools they cover:
+
+| Scope | Lets the client |
+| --- | --- |
+| `work:full` | Full access as the member, approving included. The Work app and the phone ask for it; it is one line to allow or deny |
+| `work:read` | Read projects, documents, chats and runs |
+| `sessions:run` | Start, message, answer, stop and close chats, and run workflows |
+| `sessions:approve` | Approve or deny what an agent asks to do. Never ticked for you |
+| `documents:write` | Write and delete documents in the project store |
+| `program:write` | Change a draft of the project's program |
+| `program:publish` | Publish program changes and shared links |
+
+A client without a token is told to ask for `work:read sessions:run`. A call
+that needs more answers 403 with the scope to ask for, and the client signs
+in again for it. A sign-in from before scopes existed names none: it is
+refused, and its client signs in again.
 
 ## What each role can do
 
@@ -2584,7 +2699,7 @@ does not allow:
 
 | Member holds | Tools |
 | --- | --- |
-| Any role | `project_overview`, `documents_*` (reads what the role may read; writes and deletes only the `store/` paths it may write), `list_skills` / `read_skill`, `ask_agent` for their agents, `workflow_run` / `workflow_runs` / `run_details` for their workflows, every deployed `ai.tool-call` workflow as its own tool, `propose_change`, and the share tools (which need `publications:write`, or `publications:read` for `shares_list`) |
+| Any role | `project_overview`, `documents_*` (reads what the role may read; writes and deletes only the `store/` paths it may write), `list_skills` / `read_skill`, the chat tools (`session_start`, `session_wait`, `session_answer` and the rest) for their agents, `workflow_run` / `workflow_runs` / `run_details` for their workflows, every deployed `ai.tool-call` workflow as its own tool, `propose_change`, and the share tools (which need `publications:write`, or `publications:read` for `shares_list`) |
 | `program:write` | `program_files`, `program_write`, `program_check` (their private draft) |
 | `program:write` and `program:publish` | `program_deploy` |
 
@@ -2617,16 +2732,54 @@ A member without `program:publish` drafts the same way and ends with
 
 ## Agents, workers, and production systems
 
-`ask_agent` runs a project agent on the server and returns its reply. It runs
-on the member's own machine when the operator gave them one, otherwise on a
-team or shared machine; pass `environment` to choose another Environment
-(`project_overview` lists them and what each runs for you).
-Continue a conversation with its `sessionId`; the same chat appears in the
-Work app. Server agents reach connected systems, such as a read-only
-production database, through the gateway, reviewed by any guards the
-company added ([secrets and the gateway](secrets-and-gateway.md)). A member's own client
-never receives those credentials; ask a project agent instead. An action a
-guard escalates waits for approval in the Work app.
+A chat is a project agent working on the server. The member's own agent
+controls it with eight tools, the same operations the Work app, the API and
+workflows use:
+
+| Tool | Does |
+| --- | --- |
+| `session_start` | Starts a chat with its first message and returns its `sessionId` at once. `ref` starts the workspace at a branch or pull request |
+| `session_wait` | Returns when a chat is `idle`, `failed`, `needs_input` or `closed`, within 50 seconds. `changed: false` means nothing happened yet: call it again with the same `cursor` |
+| `session_answer` | Answers a question the agent asked (`needs_input` lists `requests`) |
+| `session_send` | Sends a follow-up: queued, steering the turn in progress, or interrupting it |
+| `session_read` | Reads the reply, typed results, pull requests, and on request the transcript, usage or a turn's attempts |
+| `session_interrupt` | Stops the turn in progress; the chat stays open |
+| `session_close` | Ends the chat and releases its workspace |
+| `session_list` | Lists the member's chats with their state |
+
+The loop is: `session_start`, keep working, `session_wait` with the returned
+`cursor`, then read or answer. Every changing call takes an
+`idempotencyKey` (any unique string): repeated after a timeout, it returns
+the first result, so a chat is never started twice or lost. A turn that
+fails is `state: "failed"` with its `error`. A chat still waiting for a
+machine says so in `waiting`. The same chat appears in the Work app.
+
+The agent runs on the member's own machine when the operator gave them one,
+otherwise on a team or shared machine; pass `environment` to choose another
+Environment (`project_overview` lists them and what each runs for you).
+Server agents reach connected systems, such as a read-only production
+database, through the gateway, reviewed by any guards the company added
+([secrets and the gateway](secrets-and-gateway.md)). A member's own client
+never receives those credentials; ask a project agent instead.
+
+When an agent asks something, the chat needs its person: the Work app and
+the phone show it and send a notification. Questions are the client's to
+answer. An approval (an action a guard or a tool policy escalates) is the
+member's own: it waits in the Work app unless the member granted their
+client `sessions:approve`.
+
+Clients that support more get more, with nothing else to learn:
+
+- A client that declares the tasks extension gets a task from
+  `session_wait` and polls `tasks/get`; the task asks for input as an
+  elicitation and ends with the chat's state. Cancelling it stops the
+  watching, never the agent.
+- A client that can ask its person (elicitation) and passes
+  `onInput: "ask"` to `session_wait` is asked the agent's question in the
+  same call.
+- `work://sessions/<sessionId>` reads as the chat's state and
+  `work://attention` lists the chats that need the member; a client that
+  listens (`subscriptions/listen`) hears when either changes.
 
 ## Sharing with customers
 
@@ -2637,11 +2790,15 @@ name the `environment` its workflows run in. See [sharing](sharing.md).
 ## When something fails
 
 - 401 after a while: sign in again from the client (`/mcp` in Claude Code).
+- 403 naming a scope: the client was not granted it. Sign in again and
+  tick it.
+- A tool call fails with `{"error":{"code","message","retryable"}}`:
+  `retryable` says whether calling again with the same `idempotencyKey`
+  can help.
 - "Your roles do not allow that": the role lacks the permission; ask a
   project manager, who changes `.work/roles/*.json` through review.
-- `ask_agent` answers that no Environment satisfies the workload: the
-  project has no Environment for agents that this member may use and that
-  is online. Check `project_overview`, the role's `environments`, and the
+- `session_start` answers `environment_unavailable`: the project has no
+  Environment for agents that this member may use and that is online. Check `project_overview`, the role's `environments`, and the
   workers (`GET /_work/operator/machines` on the server).
 - `program_deploy` returns `blocked`: its `findings` are `program_check`
   errors.
@@ -2663,8 +2820,8 @@ deployment.
 | --- | --- |
 | A person or a small trusted team | One Work server, PGlite, default execution (`WORK_SANDBOX=auto`). Nothing below applies. |
 | More agent capacity, or agents that must not run beside the server's secrets | One server (the control plane) plus enrolled **workers** |
-| Each person or team gets their own machine | Workers with **access** lists, created by hand or by **machine rules** |
-| Bursty work (pull request reviews) needs big machines only while it runs | **Machines on demand**: a machine rule that creates machines for waiting work and destroys them once idle |
+| Each person or team gets their own machine | Workers with named principals, enrolled by hand or supplied by the host plan |
+| Bursty work (pull request reviews) needs big machines only while it runs | A host plan sizes machines to waiting work and stops or destroys them once idle |
 | Cloud VMs or dedicated servers without hardware virtualization | Workers with the **container backend** under gVisor (see [sandbox backends](#sandbox-backends)) |
 | The brain must survive a machine failure | Control-plane **replicas** on shared Postgres, plus workers |
 
@@ -2751,19 +2908,13 @@ brain become replicas. Never add a replica just for capacity.
    operator listener (port 4701) with the operator bearer:
    `POST /_work/operator/workers` with `{ "name": "build-1" }`. Names are
    lowercase letters, digits, and dashes. The code expires in 30 minutes.
-   Add placement in the same request (see [placement](#placement-labels-and-access)):
-   `labels` (`{ "class": "gpu" }`), `access` (`{ "everyone": true }`, the
-   default, or `{ "people": ["dana@example.com"], "groups": ["eng@example.com"] }`,
-   or `{ "projects": ["<project id>"] }` for one project's own work),
-   and `trusted`.
-2. On a Linux worker machine, run the control plane's
-   [install script](#the-install-script) as root with the code
-   (`curl -fsSL https://brain.example.com/api/workers/install.sh | sudo sh -s -- --code <code>`;
-   the enrollment response's `install` is that command). It installs Docker,
-   and gVisor on a machine without KVM, and starts the worker. Or run the
-   your pinned worker image with its worker command yourself. With the container
-   backend the worker drives the machine's Docker daemon, so it gets the
-   daemon's socket (and its group, since the image runs as an unprivileged
+   Add `labels`, `for` principals and `trusted` as needed. An administrator
+   may use `{ "email": "dana@example.com" }` to name a verified account.
+2. On the worker, start the pinned worker image with the enrollment code
+   and the control-plane URL. The `machines-install` registry recipe can
+   install Docker and gVisor, generate cloud-init or mount an optional
+   install-script route in your host. With the container backend, give
+   the worker access to the daemon's socket (and its group, since the image runs as an unprivileged
    user) and its data directory from the machine at the same path:
 
    ```bash
@@ -2805,7 +2956,11 @@ brain become replicas. Never add a replica just for capacity.
    and an agent command runs on the worker.
 
 Revoke a worker with `DELETE /_work/operator/workers/:name`; its credential and
-node stop working at once. Re-enroll the same name with a new code.
+node stop working at once, and what it held is retired: its chats' workspaces
+are released and their next messages run on another machine open to their
+owner, from their last save ([Lost machines](#waiting-stopping-and-recovery)). Re-enroll the
+same name with a new code: it starts as a new machine, with nothing of the
+old one's.
 
 ### Sealed operations and credential rotation
 
@@ -2859,328 +3014,93 @@ machines offering workflows) and agents on workers, with no project change.
 Label the control plane with `WORK_MACHINE_LABELS=pool=agents,class=large`
 when an Environment should select it.
 
-## Placement: labels and access
+## Placement and machine policy
 
-Every machine carries labels: the server's own `node` and `plane`, plus the
-operator's. An Environment's `pool` selects machines whose labels all match.
-Each worker also has **access**, which only the operator sets: everyone,
-named people and directory groups by email, or named projects. The server
-places a piece of work for its owner (the session's member). Project chats
-and automation runs have no owner: they use machines opened to their project
-(`"projects": ["<project id>"]`) and machines open to everyone, never a
-person's machine. A machine opened only to projects takes no member's chat.
+An Environment's `pool` matches machine labels, including Work's reserved
+`node` and `plane` labels. A machine's `for` lists principals that may run
+work on it. Use `{ user: id }` for a person's work in any eligible project,
+`{ project: id }` for a project's own work, or `{ project: id, key }` for
+one project chat. Omit `for` to allow anyone whose role and Environment
+permit it. An empty list serves nobody. Work prefers a matching chat-key
+machine, then a dedicated owner, then a shared machine and then open
+capacity. The Environment's `strict` setting limits fallback.
 
-1. the owner's own machine (access naming only them), or for a project's own
-   work a machine opened to that project alone,
-2. then a machine shared with named people, their groups, or several projects,
-3. then machines open to everyone.
+Shared workers need sandbox isolation unless their host sets `trusted: true`.
+Only a machine for a single person can hold that person's harness sign-ins.
+When a chat idles past `idleReleaseMinutes`, Work saves its workspace and
+gives back the reservation. The next turn restores it. Closing a chat
+releases its workspace and key for good.
 
-A dedicated review pool for one project is a labelled worker opened to that
-project: `{ "labels": { "pool": "review" }, "access": { "projects": ["<id>"] },
-"trusted": true }`. The project selects it with an Environment
-(`"review": { "pool": { "pool": "review" }, "workloads": ["agent"] }`) and its
-reviewing agent prefers it (`"environment": { "preferred": ["review"],
-"allowed": ["review"] }`). A workflow on the control plane that delivers to
-that agent's chat places the chat on the review pool: each workload is placed by
-its own Environment, so control-plane machines need no `review` label.
+### A machine plan
 
-When the narrowest tier is full, work falls back to the next unless the
-Environment sets `"strict": true`. A worker serving more than one person must
-isolate its sandboxes (microsandbox, or gVisor containers); the control plane
-refuses to connect a process-isolated shared worker (local processes, or
-containers under runc) unless the operator vouches for the people it serves
-with `"trusted": true`. A machine opened to exactly one project counts
-as serving one owner. Change placement with
-`PATCH /_work/operator/workers/:name` (`labels`, `access`, `trusted`); it
-applies to the next placement, and an existing session re-checks it on its
-next turn.
+On a custom Work server, pass one `hooks.machines` object. Its `plan`
+takes `{ now, people, machines, work }` and returns the whole set of desired
+machines. Names are stable. Each entry can include principals, placement
+labels, an opaque cloud shape, a reason, a loss threshold and a desired
+state. The infrastructure verbs `create`, `destroy`, `stop`, `start`
+and `describe` belong to the host. Work records intent and enrollment
+first and retries with stable operation identities under a replica claim.
 
-Chats give their workspace back while they wait. An Environment's
-`idleReleaseMinutes` (default 30, `0` keeps it) says how long a chat may go
-without a turn before its sandbox is saved to its session branch and
-destroyed, freeing the slot and CPU and memory reservation. The next turn
-admits a fresh workspace and restores it. Closing a chat
-(`close({ key })` from a workflow, `session_close` over MCP, or
-`DELETE /api/projects/:id/agent/chats/:key`) releases the workspace for good,
-deletes its session branch, and frees the key. Capacity follows activity,
-not open chats.
+This plan gives a solo operator's signed-in account a machine. The
+deployment supplies `provisioner` using a registry recipe or its own code.
 
-When no machine open to a chat has room, or none is online, a new chat
-fails at once unless an Environment says how long work may wait:
-`"waitMinutes": 30` starts the chat without a workspace (in the first
-Environment, in admission order, that lets work wait), its turns wait
-(tried again every 5 to 30 seconds, and at once when a worker connects), and
-fail after 30 minutes saying why; the next message waits again. A chat whose
-workspace was given back always waits for a machine, and with `waitMinutes`
-gives up after that long too. A waiting chat whose Environment was removed
-or can no longer take it fails its turns with that error, and `ask_agent`
-answers at once that the chat waits for a machine. Waiting work is recorded
-in Postgres (`placement_waits`, ADR 0258) until it is placed or its chat is
-closed or archived; with a turn queued, it is what
-[machines on demand](#machines-on-demand) read.
-
-Groups come from the Google Workspace directory (see [company
-identity](company-identity.md)): the server checks the groups that access
-lists, machine rules, and project role mappings name.
-
-## A machine for every person or team
-
-Machine rules keep workers in step with the directory (ADRs 0167, 0205):
-every active member of a group gets a machine of their own, or the group
-shares a fixed number. A rule names a machine **class**, and classes live in
-the JSON file `WORK_MACHINES_CONFIG` names:
-
-```json
-{
-  "classes": {
-    "desk": {
-      "platform": "hetzner-cloud",
-      "serverType": "cpx41",
-      "location": "fsn1",
-      "image": "ubuntu-24.04",
-      "sshKeys": ["ops"],
-      "firewalls": [1234567],
-      "labels": { "team": "eng" },
-      "snapshot": true
-    },
-    "office": { "platform": "pool" }
-  }
-}
+```ts
+const machines = {
+  ...provisioner,
+  plan: async ({ people }) => people
+    .filter(person => person.active && person.email === operatorEmail)
+    .map(person => ({ name: "operator-desk", for: [{ user: person.id }] })),
+} satisfies MachinesHook;
 ```
 
-- `hetzner-cloud`: one Hetzner Cloud server per machine. `serverType`,
-  `location` and `image` are Hetzner's names; `sshKeys` (names or ids),
-  `firewalls` and `networks` (ids) and extra server `labels` are optional;
-  `snapshot: true` keeps an image of a machine's disk when it is destroyed.
-  The API token is `WORK_HETZNER_TOKEN` (read and write), never the file.
-- `sandbox` (Hetzner and custom classes): the backend the machines run,
-  passed to the [install script](#the-install-script) as `--sandbox`:
-  `auto` (default), `microsandbox`, or `container`, which runs gVisor even
-  where KVM is usable. Give `container` to classes for Environments whose
-  setup has its own network ([setup and volumes](#setup-and-volumes)),
-  which microVMs cannot host.
-- `pool`: machines you enrolled yourself ([pools](#dedicated-servers-and-other-machines-pools)).
-- `custom`: a custom server's `machineProvisioner` hook creates and destroys
-  them (`create({ name, class, rule, options, waiting, labels, enrollment })`
-  returns a platform reference; `destroy({ name, ref })` removes the machine
-  the reference names and every machine with that name, and answers
-  `{ done }`: Work asks again on later passes until it is done). `options` is the class's own
-  object from the file, passed through unread (an instance type, an image, a
-  subnet: `"review": { "platform": "custom", "options": { ... } }`);
-  `waiting` is what the work a machine on demand is made for needs
-  (`resources`, `capabilities`). `enrollment.cloudInit` is the same
-  cloud-init a Hetzner machine gets. `create` throws
-  `MachineProvisioningRefusedError` when the platform made nothing, so its
-  code is withdrawn and the next pass tries again; after any other error the
-  code waits for the machine to enroll. Work never calls `create` twice with
-  one code, so make it idempotent per code: pass `enrollment.idempotencyKey`
-  (a hash of the code) as the platform's idempotency token,
-  never the name, which a later machine of the rule reuses. A server with
-  the hook and no classes file treats every class as custom.
+A company can read its own directory and join it to Work's accounts.
+Keep the directory lookup in the plan and use stable Work account IDs.
 
-The server refuses to start when a class needs what it lacks (a Hetzner
-class without the token, a custom class without the hook), and refuses a
-rule that names a class it does not know.
-
-### Hetzner Cloud
-
-1. Set `WORK_PUBLIC_URL` (the HTTPS origin machines dial),
-   `WORK_HETZNER_TOKEN`, `WORK_MACHINES_CONFIG`, and `WORK_WORKER_IMAGE`
-   (your pinned worker image). The image must provide the worker entry point
-   described in [Your own image](../../../packages/work-server/README.md#your-own-image).
-   Without an explicit image, no machine is created and the rule says why.
-2. Write a rule: `PUT /_work/operator/machine-rules/desks` with
-   `{ "group": "eng@example.com", "machines": "each-member", "class": "desk" }`.
-   `{ "machines": { "shared": 3 } }` gives the group three shared machines
-   instead (add `"trusted": true` only for process-isolated machines among
-   people who trust each other). The request answers once the rule is
-   stored, and a pass starts at once; `GET /_work/operator/machine-rules`
-   shows how it went.
-3. Each machine is a server named after it and labeled `work-machine`,
-   `work-rule` and `work-class`. Cloud-init writes the
-   [install script](#the-install-script) to it with the machine's one-time
-   enrollment code and runs it; nothing is fetched to start it, but the
-   machine must reach the control plane and the container registry. A
-   machine that does not enroll within an hour is destroyed and replaced.
-
-Creation is idempotent: a server already named for the machine and labeled
-as it is that machine. When Hetzner refuses a server (a wrong server type,
-an exhausted quota), its code is withdrawn, the rule's status shows the
-error, and the next pass tries again. Destruction finds the server by its
-id, or by its label when no id was recorded, and succeeds when it is
-already gone; the machine stays listed (`state: "destroying"`) until then.
-A snapshot is started by one pass and the server destroyed by a later one,
-once the snapshot is written.
-
-### Dedicated servers and other machines: pools
-
-Machines that cannot be created on demand (dedicated servers, machines on
-premises, existing VMs) join a pool:
-
-1. Declare a pool class: `"office": { "platform": "pool" }`.
-2. Create an enrollment code for each machine:
-   `POST /_work/operator/workers` with
-   `{ "name": "office-1", "pool": true, "labels": { "class": "office" } }`.
-   A pooled machine has no access of its own; leave out `access` and
-   `trusted`. The response's `install` is the command for that machine.
-3. On the machine: `curl -fsSL https://brain.example.com/api/workers/install.sh | sudo sh -s -- --code <code>`.
-4. A rule on the pool's class assigns one free machine of that class to each
-   member, or `{ "shared": n }` of them to the group, with the access the
-   rule gives. A rule on a pool takes no `labels`: pooled machines keep the
-   labels they enrolled with.
-
-A pooled machine nobody holds takes no work. A group's shared machine
-belongs to that group: change a rule's group and its machines are released
-(and later reset), never handed to the new group. When no machine is free,
-a member waits: `GET /_work/operator/machine-rules` reports, for each rule,
-`desired`, `ready`, `starting` (created, not yet enrolled), `waiting` (no
-machine yet) and `released`; a `problem` when a rule names a class that is
-no longer configured, whose machines are then left as they are; and a
-`failure` (`{ error, at }`) when something failed for the rule's machines
-in the latest pass.
-
-### Machines on demand
-
-A rule with `{ "machines": { "demand": { "max": 9 } } }` creates machines
-while work waits for one and destroys them once idle (ADR 0258), for bursty
-work such as [pull request reviews](review-pull-requests.md):
-
-```json
-{
-  "projects": ["<project id>"],
-  "machines": { "demand": { "max": 9, "min": 0, "idleMinutes": 10, "enrollMinutes": 15 } },
-  "class": "review",
-  "labels": { "pool": "review" }
-}
+```ts
+const machines = {
+  ...provisioner,
+  plan: async ({ people }) => {
+    const engineers = new Set(await directory.engineerEmails());
+    return people.filter(person => person.active && engineers.has(person.email))
+      .map(person => ({
+        name: nameOf(person.id), for: [{ user: person.id }],
+        labels: { pool: "engineering" },
+      }));
+  },
+} satisfies MachinesHook;
 ```
 
-- Name exactly one of `group` (machines for its members' chats, which must
-  isolate with microsandbox or gVisor unless `"trusted": true`) or
-  `projects` (machines opened to those projects' own work: project chats
-  and automations).
-- Work counts for the rule when it has a turn queued, the rule's `labels`,
-  its class and `plane: worker` satisfy the work's Environment `pool`, and
-  the rule's access takes the work's owner. Each piece of waiting work
-  counts for one rule: the first by name whose connected machines can take
-  it. When they report they cannot (too little memory, no `containers`),
-  the rule's status says so and the work goes to the next rule. Give the
-  Environment a `waitMinutes`, or new chats fail before they wait.
-- A pass keeps machines still enrolling or connecting, holding work, or idle
-  for less than `idleMinutes` (default 10, at least 1), then the most
-  recently idle up to `min` (default 0). Work no connected machine has room
-  for (charged its resources, or the machine's per-workspace defaults),
-  beyond one piece for each machine still enrolling or connecting, gets new
-  machines, up to `max` (at most 100, counting machines the rule served
-  under an earlier group or projects until they go). A machine that does
-  not enroll within `enrollMinutes` (default 15), or is not seen for that
-  long (since it enrolled, when it never connected), is destroyed and
-  replaced. A machine no longer wanted is destroyed at once: `retainDays`
-  does not apply.
-- A machine that enrolled but never connected within `enrollMinutes` stops
-  the rule: it makes no more machines until you write the rule again (after
-  fixing the cause), and its status says why. A machine serving a group, or
-  several projects, must isolate its agents (microsandbox or gVisor) unless
-  the rule says `"trusted": true`; such a rule is refused when it is written
-  if machines of its class are known to run plain processes.
-- Only `hetzner-cloud` and `custom` classes scale; a pool class is refused.
-- A machine is revoked only while nothing holds it: the drain and a new
-  Allocation take the same lock, so work never lands on a machine being
-  destroyed. One holding workspaces goes anyway only once it has been
-  disconnected and unseen for `enrollMinutes`.
-- With a rule on demand, each replica looks at waiting work every 10 seconds
-  and starts a pass when it changed since its latest pass looked. The rule's
-  status adds `queued`: work waiting for one of its machines.
+Copy `machines-policies` for on-demand, per-person and per-chat-key
+policies with idle and retention limits. Choose `machines-ec2` or
+`machines-hetzner` for cloud verbs, `machines-workflows` to call an admin
+project's enabled workflows, and `machines-install` for pinned Linux
+worker images and user data. The `@catamorphic/work-server/testing` contract
+kit runs a plan and verbs against a simulated Work server.
 
-### The install script
+### Waiting, stopping and recovery
 
-`GET /api/workers/install.sh` is public and holds no secret: a POSIX sh
-script with this server's public URL and worker image in it. Run it as root
-with `--code` (required) and optionally `--image`, `--data-dir` (default
-`/var/lib/work`), `--name` (the container's, default `work-worker`) and
-`--sandbox` (`auto`, `microsandbox` or `container`, default `auto`). The
-data directory must be new, or an empty one (or a worker's) under
-`/var/lib`, `/srv`, `/opt`, `/data` or `/home/<user>`; the script refuses
-system directories. It:
-
-- installs Docker with Docker's convenience script when `docker` is missing,
-  downloaded to a file and checked first, waiting up to ten minutes for
-  another package installation (a cloud machine's first boot) to finish;
-- with a usable `/dev/kvm`, unless `--sandbox container`, gives the worker
-  the device and its group, so agents run in microVMs. libkrun needs
-  nothing more: never `--privileged` or added capabilities;
-- otherwise installs gVisor from its apt repository (Debian and Ubuntu;
-  elsewhere install `runsc` first) and registers the `runsc` runtime with
-  `--host-uds=open --net-raw` (ADR 0204), restarting Docker only when that
-  changed;
-- creates the data directory for the image's user (uid 1000, mode 0700),
-  pulls the image, replaces any container of that name, and runs the worker
-  with `--restart unless-stopped`, the Docker socket and its group, the data
-  directory mounted at the same path, and `WORK_SANDBOX` set to
-  `--sandbox`.
-
-Running it again is safe: the worker keeps its enrollment in its data
-directory. The endpoint answers 503 naming what is missing when the server
-does not know its worker image or has no public URL.
-
-### Retention
-
-When a member leaves the group or is disabled, or the rule is removed or
-changes class, their machine is **released**: it takes no new work from
-that moment (a chat already on it keeps reaching its workspace there until
-it idles and gives it back; its next turn after that lands elsewhere), and
-it keeps its disk for the rule's `retainDays` (0 to 365, default 7;
-kept with the machine, so it outlives the rule; counted by the database's
-clock). A member back within that time gets the same machine again.
-Afterwards:
-
-- a cloud machine is destroyed, after a snapshot when its class says
-  `snapshot: true`;
-- a pooled machine is reset: its worker destroys every sandbox on it and
-  deletes every volume and every member's sign-in, and the machine returns
-  to its pool. A machine that is not connected is reset when it reconnects;
-  a pass waits a few minutes for a reset and asks again on the next pass
-  when it takes longer.
-
-Chats on a released machine give their workspaces back, saved to their
-session branch, once they idle (`idleReleaseMinutes`, ADR 0173): a connected
-machine is destroyed or reset only after that, so a chat that keeps its
-workspace (`idleReleaseMinutes: 0`) holds it until the chat is closed or
-moved. `retainDays: 0` acts in the same pass otherwise. A machine that never
-enrolled holds nothing and goes at once. `GET /_work/operator/workers` shows
-each worker's `state` (`serving`, `released`, `resetting`, `free`,
-`destroying`, or `revoked`) and `released: { at, retainDays }`.
-
-### Passes
-
-The server reconciles every minute, when an account is disabled, and, with
-[machines on demand](#machines-on-demand), when waiting work changed. One
-replica at a time runs a pass, under a claim in Postgres (ADR 0193) renewed
-while platform calls run and checked before every change; a replica whose
-claim moved stops changing anything. A machine whose enrollment code is
-still waiting is never provisioned twice, and one machine's failure is
-recorded for its rule while the pass goes on with the others. A person gets
-a machine after their first sign-in, once the directory has placed them in
-the group. `POST /_work/operator/machine-rules/reconcile` runs a pass now
-and answers with what it did; `PUT` and `DELETE
-/_work/operator/machine-rules/:name` answer once the rule is stored or
-removed and start a pass (a removed rule's machines are released).
+With a machines hook, chats wait when eligible capacity is unavailable.
+The Environment's `waitMinutes` overrides `WORK_MACHINE_WAIT_MINUTES`
+(default 30 minutes). The chat shows when its machine is starting or
+resuming. Work stops or destroys a machine only after it has released
+its live work. A stop retains the worker's data directory, volumes and
+sign-ins. A missing worker becomes unreachable and then lost. Work
+retires its work and chats continue from their last save when capacity
+returns. The plan gets the loss facts and can keep the name to replace it.
+A change of principals that would expose the previous owner's state
+waits for safe reset before the new owner can use it.
 
 ### Through the API
 
-Organization administrators (ADR 0172) manage machines with their own
-sign-in, through the same handlers as the operator:
+Use `GET /_work/operator/workers` for inventory and the latest plan result,
+and `POST /_work/operator/machines/plan` to run a pass. Administrators
+can use `GET /api/work/machines/workers` and `POST /api/work/machines/plan`.
+A failing plan is visible in the inventory with its time and error.
 
-| Operator listener | Administrators |
-| --- | --- |
-| `GET /_work/operator/machines` | `GET /api/work/machines` |
-| `GET`, `POST /_work/operator/workers` | `GET`, `POST /api/work/machines/workers` |
-| `PATCH`, `DELETE /_work/operator/workers/:name` | `PATCH`, `DELETE /api/work/machines/workers/:name` |
-| `GET /_work/operator/machine-rules` | `GET /api/work/machines/rules` |
-| `PUT`, `DELETE /_work/operator/machine-rules/:name` | `PUT`, `DELETE /api/work/machines/rules/:name` |
-| `POST /_work/operator/machine-rules/reconcile` | `POST /api/work/machines/rules/reconcile` |
-
-Members are refused (403). Enabling and disabling machines and confirming
-destroyed workspaces stay on the operator listener.
+Hand-enrolled machines are visible to the plan. It can update their
+placement and reason. Use `POST /_work/operator/workers` to issue a code
+and `PATCH /_work/operator/workers/:name` for placement changes. Use
+`DELETE /_work/operator/workers/:name` to revoke the worker immediately.
 
 ## Add a control-plane replica
 
@@ -3249,7 +3169,10 @@ fresh one with an empty disk at any time.
    stopped. One replica at a time publishes a project, creates a deployment
    runtime, or syncs a company project, under a claim in Postgres. A deploy
    applies on every replica at once: roles and program reads follow the
-   published commit.
+   published commit. Following workflow enablements move to each published
+   revision one project at a time, after the project's deploy workflow, under
+   a per-project claim, so no two replicas move one twice or out of order
+   (ADRs 0330, 0331).
 
 A restarted worker process connects under a new epoch. The operations it had
 in flight fail as uncertain and are never replayed; its sandboxes and chats
@@ -3301,11 +3224,12 @@ replica checks for lost replicas every ten seconds and recovers their work:
   Logical tenant run capacity is freed when the run ends. A parked run keeps
   its deployed artifact and journal, not its workspace files or processes.
   A runnable continuation with no available machine records ordinary placement
-  demand, including for on-demand machine rules;
+  demand, including work the host plans machines for;
 - each chat's workspace on that replica is released; its next turn is
   admitted on a live machine and restores the workspace from its
   `sessions/<id>` branch. Chats on workers and on members' machines keep
-  their workspaces: any replica runs their turns;
+  their workspaces: any replica runs their turns. A worker that is itself
+  lost is handled the same way ([Lost machines](#waiting-stopping-and-recovery));
 - the lost machine disappears from `GET /_work/operator/machines`.
 
 Server agent sessions checkpoint to isolated `sessions/<id>` branches in the
@@ -3415,9 +3339,11 @@ agent resource configuration file. For example, merge this into an ordinary
 Microsandbox enforces whole-core CPU limits (multiples of 1000 millicores),
 memory in MiB, and `storageMb` as the size of the VM's root disk, which holds
 the workspace. The container backend enforces CPU in any millicores and
-memory in MiB (Docker's `NanoCpus` and `Memory`, without swap), and rejects
-`storageMb`: Docker's default storage cannot cap one container's disk. GPU
-limits are rejected by the stock providers.
+memory in MiB (Docker's `NanoCpus` and `Memory`, without swap). It cannot
+cap a workspace's disk (the workspace is a Docker volume), so there
+`storageMb` is reserved at admission and the machine's disk measured, not
+enforced (ADR 0336; see [Disk](#disk)). GPU limits are rejected by the stock
+providers.
 Native host CLI execution does not enforce these sandbox limits; use controller
 agents for this setup. The stock controller and connection broker remain outside
 the sandbox. `resources.commandTimeoutSeconds` bounds one foreground command, an
@@ -3456,15 +3382,77 @@ Member runners report their actual isolation and supported limits at registratio
 This machine remains local trust even when it uses a VM. Unsupported requirements
 are rejected before use, and requested limits travel with sandbox creation.
 
+### Disk
+
+Disk is a resource Work manages on each machine (ADR 0336). Every 30
+seconds a machine measures the filesystems its sandboxes write to (the
+backend's state and, for the container backend, Docker's data root where the
+worker sees it at the same path; a worker in its own container measures its
+state, which is on the machine's disk; a server's database is not measured
+for itself) and reports the one with the least room above its floor, with its
+renewals. Set the floor and how long
+Work's own leftovers stay:
+
+```dotenv
+WORK_DISK_FLOOR_MB=10240         # kept free on each filesystem; 0 keeps none
+WORK_DISK_CRITICAL_MB=1024       # workflow runs start down to this; 0 keeps none
+WORK_IMAGE_RETENTION_HOURS=24    # unused images and sandboxes' Docker data
+```
+
+Without `WORK_DISK_FLOOR_MB` the floor is 10% of the filesystem, at most 10
+GiB, on every machine many workspaces share: an enrolled worker, and a
+server whose own sandboxes are containers or microVMs. A server that runs its
+work as local processes (a single stock server's default) keeps only the
+critical floor by default: its chats share one disk with its database and its
+people's files, and holding them back would free nothing. A machine whose
+free space is under its floor takes no new workspace or cache fill: the work
+waits as it does for CPU or memory, and the refusal says what the machine has
+free and keeps, and that freeing space on it is what helps. On demand it still
+counts toward the rule's `max` and is destroyed once it holds no work, and
+Work makes another machine within `max`. A rule whose machines come up short
+within 30 minutes of enrolling makes no new machines for an hour (or until
+it is written again) and says the class's disk is too small; a workflow
+class's project hears `machine.disk-too-small`. Workflow runs start down to the lower critical
+floor (by default 1%, at most 1 GiB), so a server whose chats stopped still
+runs the workflows that free or replace machines, and nothing starts into a
+truly full disk. A cache fill reserves its cache's size. A stock server's
+database usually shares the measured filesystem: its growth counts too. An Environment's `storageMb` is reserved like memory, within
+the disk less its floor, and admitted only while free space less it stays
+above the floor; it is enforced only by microsandbox. A report the server
+heard over 5 minutes ago (dated on arrival, not by the machine's clock) does
+not hold a machine back.
+
+The machine removes what Work left that nothing used for
+`WORK_IMAGE_RETENTION_HOURS`, hourly and at once while under its floor:
+images it pulled or built itself that no container uses and no other machine
+sharing the Docker daemon still claims (a claim is a tag each machine renews
+daily while it uses the image, ignored after a week; never its default image, one it
+found there, or a build from before builds carried their builder), and the
+dangling images and build cache of each running sandbox with containers. A workspace keeps one `$WORK_PROGRAM` copy per
+program commit it ran; a copy goes once no `exec` there used it for a day,
+none used it since the workspace's oldest active turn began (at most a week
+back), and none
+starting or running uses it, and each `exec`'s output files go once its
+result is recorded. Volumes and caches keep their own retention. A failed turn,
+run, `exec` or cache fill on a machine under its floor says so with the
+machine's numbers (the turn's error kind is `out_of_disk`, and its attempt's
+diagnostics keep the line); output that says `ENOSPC` gets the same
+explanation, but only the machine's own measurement starts an episode. The
+first report under the floor logs it and, for a machine of a `workflow`
+class, records `machine.disk-low` once per episode for its class's project,
+with the report and the class's options; the episode ends once free space is
+back above 1.1 times the floor. `GET /_work/operator/machines` shows each
+machine's `disk`, `diskLowSince` and `usage.storageMb`.
+
 ## Assign a development machine to one user
 
 Environments say what work needs; they never name a machine (ADR 0167). A
-machine for one person is a worker whose access names only them: enroll it
+machine for one person is a worker whose principals name only them: enroll it
 with `"access": { "people": ["dana@example.com"] }`, change an enrolled
 worker's access with `PATCH /_work/operator/workers/:name`, or let a machine
 rule give every member of a group one ([above](#a-machine-for-every-person-or-team)).
 Their chats prefer it to shared machines, nobody else's work lands on it, and
-it may run their own Codex sign-in and files (ADRs 0184, 0213). Access decides placement,
+it may run their own Claude Code and Codex sign-ins and files (ADRs 0184, 0213, 0342). Access decides placement,
 not OS accounts or network access on the machine.
 
 Choose the trust boundary before provisioning. Control-plane replicas carry
@@ -3565,7 +3553,8 @@ An Environment chooses its sandbox (ADR 0176) in `.work/project.json`:
   directory, as the stock server and workers do.
 
 Machines advertise `images`, `images.build`, `containers`,
-`network.policy`, `network.setup`, and `volumes`, `sign-ins` and one
+`network.policy`, `network.setup`, `commands.separate`, `caches`, `disk`
+(it reports its disk, ADR 0336), and `volumes`, `sign-ins` and one
 `sign-in:<harness>:<member>` per member signed in on them, and a
 local-process machine `harness.claude-code` and `harness.codex` when those
 CLIs are on its `PATH`; `GET /_work/operator/machines` shows them with the
@@ -3622,16 +3611,50 @@ caches (ADR 0208):
   workspace's base commit alone, with no grant, gateway variable or other
   secret, widened to those hosts (not even the gateway), and narrowed again
   before the session's work, grants, secrets and files arrive; a setup that
-  must run again gets a new sandbox in the same Allocation. Only workspaces
-  at a ref of the project's remote (a delivery's `workspace: { ref }`) run
-  it; elsewhere the agent is told it did not run. Such an Environment
+  must run again gets a new sandbox in the same Allocation. Every chat's
+  workspace stands on a commit (the ref a delivery gave it with
+  `workspace: { ref }`, else the repository's default branch), so every
+  chat runs it; a chat whose sandbox holds its owner's sign-in from the
+  start is told it did not run. Such an Environment
   declares no volumes, which would carry what agents wrote into the next
-  setup: put caches in its image. It needs a machine that advertises
+  setup; it declares read-only `caches` instead (below). It needs a machine that advertises
   `network.setup`: the container backend wherever it enforces
   `network.policy` (the worker narrows by itself when the setup's time is
   up), or local-process under `WORK_UNENFORCED_EGRESS=accept`. Microsandbox
   fixes a VM's network when it is created and does not offer it. The hosts
   you list could receive the base checkout and the secrets the setup names.
+- `commands: { "separate": true, "connections": ["github"] }` runs the
+  agent's commands apart from it (ADR 0332): each sandbox is an agent
+  container (the harness, its grants, model and Work tool endpoints, its
+  state) and a command container (setup, `exec`, terminals, background
+  processes, the agent's shell commands, Docker) sharing only the checkout.
+  The worker serves each sandbox's command socket into the agent container
+  alone and runs what arrives there in the command container. Commands hold
+  grants only for the bindings `connections` lists, never a model's. It
+  needs `commands.separate`: the container backend wherever it enforces
+  `network.policy` and runs no privileged containers. The command container
+  gets the Environment's `requirements.resources`; the agent container its
+  own share, `"agentResources": { "cpuMillis": 1000, "memoryMb": 2048 }` by
+  default, and the Allocation reserves both, so size `capacity` for the
+  pair. A chat whose harness runs outside the sandbox (the built-in agent)
+  and a workflow's sandbox get the command container alone and reserve no
+  agent share. In the agent container the runner runs as root and the harness as
+  uid 10001; the checkout's group is gid 10001, and every `git` in the
+  image is replaced there by Work's, which runs in the command container.
+  Codex cannot run in such an Environment (it picks its own shell);
+  Claude Code loads no settings files there; an ACP agent needs
+  `"acp": { "shell": true, "projectConfig": false }` in its definition,
+  which OpenCode cannot honestly state.
+- `setup.workflow` names a project workflow Work runs after `setup.command`,
+  at the same points, before the turn (ADR 0324): `"setup": { "command":
+  "pnpm install --frozen-lockfile", "workflow": "prepareReview" }`, or a
+  workflow alone. Enable it for the project as a project automation; it
+  runs with the connections and permissions consented there, and one no one
+  enabled fails the setup. It typically calls `exec` to run commands in the
+  workspace being set up: `in: "setup"` on the setup's network as above,
+  `in: "session"` on the chat's own. `$WORK_PROGRAM` names a read-only copy
+  of the run's `.work/` folder for trusted files. A failure or timeout is a
+  failed setup. Chats in folders on people's computers do not run it.
 - `volumes` name directories kept on the machine for each owner (a member,
   or the project for its own chats and runs) and project: the owner's next
   sandbox on that machine mounts the same directory, and nobody else's does.
@@ -3650,29 +3673,74 @@ caches (ADR 0208):
   keeps only paths under `~`. A machine forgets volumes nobody used for 30
   days (`WORK_VOLUME_RETENTION_DAYS`) and a member's volumes when a pooled
   machine is reset.
+- `caches` name directories every sandbox of the Environment mounts read
+  only, setup's on its own network included, and that only a trusted fill
+  writes (ADR 0334): `"caches": { "pnpm": { "path":
+  "~/.cache/work/pnpm-store", "sizeMb": 16384, "fill": { "command": "pnpm
+  fetch --store-dir ~/.cache/work/pnpm-store", "timeoutMinutes": 30 } } }`.
+  A fill runs at the revision of `main` that last went live (`applied`
+  after the deploy gate), with that revision's cache command, path, size and
+  setup network and secrets, in a fresh sandbox of the Environment's image
+  holding that revision alone, with no grant, in an Allocation of its own on
+  that machine, which reserves `sizeMb` of its disk (ADR 0336). Work
+  publishes the new
+  generation only when the fill exited 0, stayed within `sizeMb` (10 GiB by
+  default) and holds none of its setup secrets' values, both checked once
+  the fill's sandbox is gone from a fresh helper that mounts the generation
+  read only and has no network and no setup (Work's own sandbox), so a
+  sandbox sees the old cache or the new one; a failed or refused fill's
+  generation is emptied, and a helper a stopped replica left is removed on
+  the next pass. The secret check catches a trusted fill command's
+  accidents, not a hostile command. A workflow with `caches:write` asks for one with
+  `host["catamorphic.environments"].fillCache({ environment, cache,
+  commit?, idempotencyKey })`, on a schedule; it cannot name a command, nor
+  any revision but one that went live (a deploy workflow runs before its own
+  revision does, so it cannot fill from it).
+  Copies live on each machine as Docker volumes, one per generation. A
+  machine with no copy, or one that lost it, mounts none (setup installs
+  from the network as before) and Work queues a fill for it; one fill per
+  cache and machine runs at a time, and each mount retires the generations
+  that are neither published nor being filled. A setup that may mount (a
+  sandbox with its own Docker) can lay a writable overlay over a cache, so a
+  changed lockfile fetches only what is new (the review pack does). Each copy holds `.work-cache.json` (the commit of `main`
+  that filled it and when), and a new workspace's agent is told the same.
+  A copy no sandbox mounted for `WORK_VOLUME_RETENTION_DAYS` is evicted,
+  and a pooled machine's reset forgets them all. `GET
+  /projects/:id/environment-caches` (`automations:read`) lists each cache's
+  copies, sizes, last use and recent fills with their errors. Only the
+  container backend offers `caches`, and it refuses them in a privileged
+  runc sandbox, whose root could remount one writable; under gVisor they
+  are enforced.
 
 ## Members' own sign-ins and files
 
 An Environment with `"personalCredentials": true` lets a member's chats run
-Codex on the member's own ChatGPT sign-in, made from the Work app on a
-machine of their own (ADRs 0199, 0213,
+Claude Code and Codex on the member's own Claude and ChatGPT sign-ins, made
+from the Work app on a machine of their own (ADRs 0199, 0213, 0342,
 [harnesses](harnesses.md#members-own-sign-ins)), and lets their listed files
 reach their own chats. The sign-in never leaves that machine: the worker
-reports only `sign-in:codex:<member>` in its offer, and placement takes only
-a machine reporting the chat owner's. A sign-in runs only on the member's
-own machine: a worker whose access names only that person, or a single
-server's own machine whose operator set `WORK_PERSONAL_CREDENTIALS=accept`.
-A machine holds one person's Codex sign-in at most, so a shared machine runs
-Codex on keys whatever its isolation. Claude Code subscriptions never run on
-servers or workers (ADR 0213). Personal files follow the isolation rule:
-microsandbox, gVisor containers, a worker whose access names only that
+reports only `sign-in:claude-code:<member>` and `sign-in:codex:<member>` in
+its offer, and placement takes only a machine reporting the chat owner's. A
+sign-in runs only on the member's own machine: a worker whose principals name
+only that person, or a single server's own machine whose operator set
+`WORK_PERSONAL_CREDENTIALS=accept`. A machine holds one person's sign-ins at
+most (that person may hold both), so a shared machine runs Claude Code and
+Codex on keys whatever its isolation. The sign-in lives on that machine's
+disk, so the machine has to persist: a desk the host plan keeps for the member,
+or a hand-enrolled worker whose principals name only that person, not a
+machine the host plan destroys when idle. Whether a member's use of
+their plan this way is allowed under the provider's terms remains the
+operator's responsibility. Personal files follow the isolation rule:
+microsandbox, gVisor containers, a worker whose principals name only that
 person, or the member's device. A process-isolated machine (local
 processes, or containers under runc) that serves several people (a
 `trusted` worker, or the control plane itself) refuses them unless its
 operator sets `WORK_PERSONAL_CREDENTIALS=accept` on that machine (the
 worker's own environment, like `WORK_UNENFORCED_EGRESS`), which advertises
-`credentials.personal`. Give such Environments egress to `chatgpt.com`,
-`auth.openai.com` and `api.openai.com` when they restrict it. A company
+`credentials.personal`. Give such Environments egress to `api.anthropic.com`,
+`claude.ai`, `claude.com`, `platform.claude.com` and `console.anthropic.com`
+for Claude Code, and to `chatgpt.com`, `auth.openai.com` and `api.openai.com`
+for Codex, when they restrict it. A company
 that wants Codex or Claude Code for everyone binds a model connection
 instead ([harnesses](harnesses.md)).
 
@@ -3680,7 +3748,7 @@ The same placements receive the secrets an Environment lists, with each
 member's own value in their own chats (ADR 0206,
 [secrets in Environments](secrets-and-gateway.md#secrets-in-environments)).
 A project chat receives the shared values on a sandboxed machine or on a
-worker whose access names only that project.
+worker whose principals name only that project.
 
 ## Unattended agents
 
@@ -3895,8 +3963,8 @@ current schema. See [ADR 0296](../../docs/decisions/0296-one-oauth-token-endpoin
 | `connectionGuards` | Guards that review each gateway action (ADR 0162). Work ships none; a guard is host code (ADR 0183) |
 | `vaultKeys` | Credential vault keys from a key service instead of `WORK_VAULT_KEY` |
 | `directories` | Upstream directories (beyond Google Workspace) that keep accounts active or disable them (ADR 0161) |
-| `machineProvisioner` | Creates and destroys worker machines on a platform Work does not ship, for `custom` machine classes, so machine rules give people and teams their own machines, or machines on demand for waiting work. `create` gets the class's `options`, the rule, and what the waiting work needs, and is idempotent per enrollment code (`enrollment.idempotencyKey`); `destroy` removes every machine with the name and answers `{ done }` (ADRs 0167, 0205, 0258) |
-| `hetzner` | Hetzner Cloud API options for `hetzner-cloud` machine classes: another endpoint, or a `fetch` for tests (the token is `WORK_HETZNER_TOKEN`) |
+| `machines` | Host policy and infrastructure. `plan` returns desired workers from facts about people, machines and waiting work. Idempotent `create`, `destroy` and optional `stop`, `start`, and `describe` act on that plan. Work handles enrollment, placement, draining and loss recovery (ADRs 0349 and 0350). |
+| `projectHooks` | Named code run when a project is created and deleted (ADRs 0046, 0331); each needs a unique `name`. `onProjectCreated` may return `{ secrets }`, kept sealed as the project's shared secrets (for example a `DATABASE_URL` for a schema and role it made on the host's Postgres; see `INTEGRATION.md`). `onProjectDeleted` cleans up; one that throws or answers `{ done: false }` is retried with backoff until done, and never blocks the delete |
 | `projectSeeds` | Changes to the files seeded into new projects |
 | `routes` | Extra routes on the public application |
 
@@ -3977,8 +4045,7 @@ For enrolled workers, build a worker image with the same pinned library.
 The installer currently starts `bun apps/server/src/worker.ts`, so include
 that release's `worker.ts`, `worker-cli.ts` and `work.ts` at those paths,
 plus the complete reference manifest dependencies described above. Install a `work` command forwarding to `work.ts` for
-machine-local sign-in commands. Set `config.workerImage` or
-`WORK_WORKER_IMAGE` to that exact image. Control-plane hooks and credentials
+machine-local sign-in commands. Supply the exact worker image in your host installer or user-data recipe. Control-plane hooks and credentials
 stay off workers. A workflow launching its own external runner does not need
 this enrollment or image contract.
 
@@ -3994,12 +4061,13 @@ authenticated callbacks. `agentCapabilities` serves agent tools and is a
 different contract. Check caller identity and project authority inside each
 host function; registering a function is not an authorization policy.
 
-Do not expose allocator, database or GitHub write credentials to untrusted
-review code. Launching an external runner through an AWS SDK does not
-require a Work machine provisioner. Use `machineProvisioner` when Work's own
-machine rules should provision enrolled execution capacity. See
+Keep allocator, database and GitHub write credentials out of review code.
+For workers that enroll with Work, compose a host plan with the
+`machines-ec2`, `machines-hetzner` or `machines-workflows` recipe.
+Use `machines-install` to set up the worker and
+`@catamorphic/work-server/testing` to check your hook. See
 [workflow composition](../../skills/setup-work-server/references/workflow-composition.md)
-for the guarantees, recovery design and acceptance tests.
+and [the machine plan](../../skills/setup-work-server/references/cluster-deployment.md#a-machine-plan).
 
 ## Compose services from workflows, host hooks and external storage
 
@@ -4076,6 +4144,14 @@ AWS `RunInstances` idempotency is scoped by Region and, when a subnet or AZ is
 specified, Availability Zone. Preserve that scope along with the token and
 parameters; changing zones with the same token can create another instance.
 See [AWS's idempotency contract](https://docs.aws.amazon.com/ec2/latest/devguide/ec2-api-idempotency.html).
+
+When a runner should enroll as Work execution capacity, pass
+`hooks.machines` to the server. The host plan selects names and principals,
+and idempotent verbs act on them. The `machines-workflows` recipe calls an
+administrator project's consented workflows through the public server SDK.
+The enrollment key remains the cloud create key across retries. Work
+sequences the calls and handles draining and lost workspace recovery.
+See [the machine plan](cluster-deployment.md#a-machine-plan).
 
 ## Current guarantees and limits
 
@@ -4167,7 +4243,11 @@ and `satisfies WorkspaceConfig`; generic collections and workflow run handles
 come from `@catamorphic/app`.
 
 Source handlers receive optional current `surface` and `session` independently
-from visibility predicates. Opening an addressless row reaches its action as
+from visibility predicates. A section reads its rows again when what its
+source lists from changes: a module is sent both with every call, so its
+section reads again as either changes; each of Work's lists says what it
+lists from (`listsFrom` in `src/renderer/sources/contract.ts`), and a list
+that names neither is not read again for every tab that comes forward. Opening an addressless row reaches its action as
 `action: "open"` with a separate `mode`. Ordinary successful actions return
 nothing. An optional `{ open, mode?, message? }` effect requests navigation or
 explicit feedback.
@@ -4364,7 +4444,12 @@ connection from `core.connections.beginPersonalAuthorization`), else the
 service connection named like the provider. An imported repository is attached
 (ADR 0170): every network push passes the guard in `@catamorphic/git`, so
 Work only creates `work/` branches there and shares changes as pull
-requests, whichever host embeds it. Every public
+requests, whichever host embeds it. Pull requests open through
+`core.pullRequests` (ADR 0345): a host hands `openForChat` a chat's
+checkout and gets the pushed branch, the pull request and its record on
+the chat; `pullRequestTool` and `pullRequestCapability` are the one
+`create_pull_request` agents call, which a host builds over how it finds
+that checkout (a server chat's is `agentSessions.createPullRequest`). Every public
 method takes one keyed object parameter, for example
 `scoped.projects.get({ projectId })`,
 `scoped.workflows.get({ projectId, workflowName })`, and
@@ -4388,6 +4473,17 @@ inline until the workflow's first durable wait, then detaches with an honest
 (`list`), and projects the generated `work-triggers.d.ts` into a
 workspace (`syncTypes`). A trigger firing starts ordinary Runs — no new run
 family. See `docs/decisions/0039-custom-trigger-kinds.md`.
+
+A kind may name each delivery's identity with `deliveryKey: (payload) => id`
+(a webhook's delivery id, an event id): a workflow starts at most one run for
+it, whatever that run's status (ADR 0325). The subject a run is about is the
+workflow's own choice: `concurrency: { key: "<dot path into the input>",
+onConflict }` in `defineWorkflow`, or an explicit `correlationKey` from a host
+caller, which wins. `onConflict` adds `queue` to `ignore`, `restart` and
+`error`: the run is recorded `queued`, holds no Allocation or active-run slot,
+and starts in arrival order when the runs ahead of it settle; every worker's
+maintenance sweep starts heads, so hosts run nothing extra. A key holds at
+most 100 queued runs (`RunQueueFullError`, 409).
 
 Projects compose their own kinds from the host's (ADR 0171): an export of
 `defineTrigger({ name, from: trigger("webhook", { ... }), where })` in
@@ -4449,7 +4545,29 @@ holders of `webhooks:write` rotate one with
 
 Enablements belong to a member or to the project (`owner: { type: "project"
 }`). A project enablement runs as the project principal with shared
-connections. Workflows reach chats with one operation,
+connections. A project automation of `main` follows the published program
+by default; a member's own follows only once that member turns it on, since
+it uses their connections (`follow`, ADR 0330; `POST <api>/projects/:projectId/workflow-enablements/:enablementId/follow`
+with `{ follow }` changes it): every publication (a deploy, a code-host sync
+that receives commits) is recorded in `published_revisions`, and the event
+dispatch pass (`startEventDispatcher`, which every host already runs) moves
+each follower to it when the workflow builds there and its authority digest
+(the consent digest without the artifact) is unchanged. Otherwise it stays
+on its commit with `updateAvailable` and its owner gets a user notification.
+The digest also covers each trigger's kind, configuration and filters and the
+project's declared run secret names. Only a parse, missing-workflow or
+trigger-registration failure skips a revision; other errors are retried with
+backoff. Revisions are recorded only by deploys and the code-host sync, and
+only when the commit is what `main` points to then.
+A project's deploy workflow (`.work/project.json` `deploy.workflow`) runs
+once at each revision, through its own project automation, before anything
+moves; a failure moves nothing (ADR 0331). `GET <api>/projects/:projectId/published-revisions`
+lists revisions with their status, deploy run and per-enablement report, and
+`POST <api>/projects/:projectId/published-revisions/retry`
+(`automations:write`) tries the latest failed one again; Work also retries it
+once when the deploy workflow's project automation is consented to again.
+Replicas coordinate through a per-project replica claim and compare-and-set
+status changes, so none moves an enablement twice or out of order. Workflows reach chats with one operation,
 `catamorphic.sessions.deliver`, naming the chat by `sessionId` or by a `key`
 that starts the chat on first use; a project automation's keyed chats are
 project chats every member of the agent's role sees (`AgentSession.owner ===
@@ -4600,7 +4718,7 @@ Most hosts do not want to hand-write scopes. Commit roles into the project — `
   "documents": ["docs/**", { "path": "store/customers/{customer}/**", "access": "write" }]
 }
 // .work/roles/admin.json
-{ "version": 1, "name": "Admin", "agents": ["*"], "workflows": ["*"], "apps": ["*"], "environments": ["*"], "permissions": ["*"], "documents": ["store/**"] }
+{ "version": 1, "name": "Admin", "agents": ["*"], "workflows": ["*"], "apps": ["*"], "environments": ["*"], "permissions": ["*"], "documents": [{ "path": "store/**", "access": "write" }] }
 // .work/roles/brain-maintainer.json
 { "version": 1, "name": "Brain Maintainer", "permissions": ["brain:maintain"], "agents": ["brain-maintainer"] }
 ```
@@ -4685,6 +4803,11 @@ and the pure reducer are `@catamorphic/agent-protocol`.
 - `GET .../events?after=<sequence>` streams events over SSE (`events`,
   `reset` with a fresh snapshot when the gap is too large, `heartbeat`).
   Fold them with `applySessionEvents`; resume from the last sequence.
+- `GET .../events/missed?after=<sequence>` answers once with the messages a
+  stream opens with (`{ messages }`: the events since, or a `reset`; empty
+  when current). A reader that holds no stream (off screen, or past a
+  browser's connection limit) follows a long session with it, never by
+  reading the snapshot again (ADR 0338). `@catamorphic/react` does this.
 - `POST .../commands` takes one `SessionCommand` (`send` with `dispatch:
   queue | steer | interrupt`, `interrupt`, `retry`, `edit_queued`,
   `cancel_queued`, `send_now`, `steer_now`, `respond`, `rollback`) with a
@@ -4724,7 +4847,16 @@ its grants allow, and `readOnly` and `delegate` that need no grant (a host
 tool marks itself `readOnly` to stay with a read-only chat); a registry's optional `models()`
 lets core check the model against the agent's harness catalog. A native
 harness subagent is only an execution optimization when it preserves these
-durable identities and policies.
+durable identities and policies. `workspace` (ADR 0322) is `shared` by
+default: the child works in its parent's workspace (its Allocation, sandbox
+or checkout, as it stands; `workspaceSessionId` names that session) with no
+admission or setup of its own; `own` gives it its own workspace at the
+parent's base. Core serves `spawn_subsession`, `wait_for_subsessions` and
+`interrupt_subsession` (`subsessionTools`) to every agent whose host serves
+none of them, so agents placed in a sandbox delegate; a host that builds its
+own uses the same definition. A child's turn that something other than a
+person started (its parent, its own background command, a workflow) reports
+its result to the parent like the first.
 
 Archive is a recursive server operation, not a local hidden flag. It reports
 the session ids, running work, Watchers, and processes that would stop and
@@ -4735,7 +4867,7 @@ necessary. Unarchive restores navigation. React hosts use `useArchiveAgentSessio
 
 ### The project MCP endpoint: bring your own agent
 
-`POST /api/projects/:id/mcp` serves the caller's whole scope as one MCP server: the project's `mcpToolKinds` workflow tools (roster filtered to the caller's workflow refs), `documents_list/read/search/write/delete/history` (the documents surface, per the caller's document refs; `documents_write` takes `text` or `base64` for binaries), `publish_document/revoke_publication/list_publications`, `propose_change`, `list_skills/read_skill`, `ask_agent` (a synchronous turn with a project agent the caller may open sessions on), and, on a session's own connection (`?sessionId=`), `set_session_metadata` (one key of that session's metadata; `remove: true` removes it, no value reads it). Claude Code, Cursor, or the host's own assistant connect with a host-issued token through `identityFromBearer`; the desktop's harnesses mount the same URL on every turn through their harness's `mcpServers(context)` hook. Being invited *is* receiving this URL.
+`POST /api/projects/:id/mcp` serves the caller's whole scope as one MCP server: the project's `mcpToolKinds` workflow tools (roster filtered to the caller's workflow refs), `documents_list/read/search/write/delete/history` (the documents surface, per the caller's document refs; `documents_write` takes `text` or `base64` for binaries), `publish_document/revoke_publication/list_publications`, `propose_change`, `list_skills/read_skill`, the session operations of core's registry (`session_start`, `session_send`, `session_wait`, `session_read`, `session_answer`, `session_interrupt`, `session_close`, `session_list` and the rest: a chat is started and returns at once, then waited on, never held open; ADRs 0346, 0347), and, on a session's own connection (`?sessionId=`), `set_session_metadata` (one key of that session's metadata; `remove: true` removes it, no value reads it). Claude Code, Cursor, or the host's own assistant connect with a host-issued token through `identityFromBearer`; the desktop's harnesses mount the same URL on every turn through their harness's `mcpServers(context)` hook. Being invited *is* receiving this URL. `POST /api/mcp` is the server-wide endpoint: `project_list` and the same session operations with `project` as an argument, the one address a person gives their own agent. Both endpoints speak the 2026-07-28 revision and the earlier handshake revisions on one URL (`mcp-server.ts`): `server/discover`, result types, caching hints, `subscriptions/listen` over the `work://sessions/{id}` and `work://attention` resources, and the tasks extension for `session_wait`. A host with replicas passes `mcp: { stateSecret }` to the plugin so every replica verifies the state a wait hands out, and `mcp: { resourceMetadataUrl }` for the step-up challenge; `Identity.tokenScopes` (see `withTokenScopes`) narrows what a token may do on every route and which tools it is shown; a host passes every grant's scopes through it, and `work:full` is the person themself. `/apps-mcp`, `/connection-mcp` and `serveForwardedTools` (`@catamorphic/fastify-plugin/mcp`, which now takes the `request`) run on the same dispatcher.
 
 The generated HTTP client lives in `@catamorphic/api-client`; construct it with `createApiClient({ baseUrl, fetch })`.
 
@@ -4935,10 +5067,17 @@ Run-time env resolves through one bindings chain:
   credentials here.
 - Attaching a plugin whose non-optional requirement has no registered
   provider fails closed with a 400 at attach time.
-- **Project lifecycle hooks** provision per-project infrastructure:
-  `onProjectCreated` failures roll the create back; `onProjectDeleted` runs
-  before deletion and a failure aborts it (retryable, nothing leaks). Hooks
-  must be idempotent.
+- **Project lifecycle hooks** provision per-project infrastructure (ADRs
+  0046, 0331): `onProjectCreated` failures roll the create back, and it may
+  return `{ secrets: { NAME: value } }`, which Work keeps sealed as the
+  project's shared secrets without reading them (a workflow uses one once it
+  declares the name with `defineSecrets`). `onProjectDeleted` never blocks
+  the delete: one that throws or returns `{ done: false }` is retried with
+  backoff from the event dispatch pass until it reports done. Each hook has a
+  unique `name` (a plugin's defaults to the plugin's) that owed cleanups find
+  it by after restarts; a create rolled back after some hooks ran queues
+  their cleanups, and `core.projects.listCleanups()` shows the ones that keep
+  failing. Hooks must be idempotent.
 
 ```ts
 import {
@@ -4974,6 +5113,38 @@ export const catamorphic = createCatamorphic({
   // capabilityProviders: [...], projectHooks: [...],
 });
 ```
+
+A host that keeps project data on its own Postgres can instead mint a schema
+and role per project and hand the project its URL. This is an example, not a
+Work feature; Work never interprets the secret:
+
+```ts
+const projectDatabases: ProjectLifecycleHooks = {
+  name: "project-databases",
+  async onProjectCreated({ project }) {
+    const name = `project_${project.id.replaceAll("-", "")}`;
+    const password = randomBytes(24).toString("base64url");
+    await hostPool.query(`CREATE ROLE ${name} LOGIN PASSWORD '${password}'`);
+    await hostPool.query(`CREATE SCHEMA ${name} AUTHORIZATION ${name}`);
+    return {
+      secrets: {
+        DATABASE_URL: `postgres://${name}:${password}@db.internal/app?options=-csearch_path%3D${name}`,
+      },
+    };
+  },
+  async onProjectDeleted({ project }) {
+    const name = `project_${project.id.replaceAll("-", "")}`;
+    await hostPool.query(`DROP SCHEMA IF EXISTS ${name} CASCADE`);
+    await hostPool.query(`DROP ROLE IF EXISTS ${name}`);
+    return { done: true };
+  },
+};
+```
+
+The project migrates that database from its deploy workflow
+(`"deploy": { "workflow": "migrateDatabase" }` in `.work/project.json`), which
+Work runs once at each published revision before following enablements move
+there (ADRs 0330, 0331).
 
 Workflow code stays vendor-blind — it imports the plugin's client and reads
 `process.env.DATABASE_URL`. Providers must not return `CATAMORPHIC_`-prefixed
@@ -5028,14 +5199,13 @@ know who asked. The same surface is served over HTTP at
 base64 with `ifVersion`, `history`, `search?q=&mode=grep|text&prefix=`).
 Store bytes live inline in Postgres unless `documentBlobStore` (a
 filesystem or S3-compatible store) is configured; metadata, versions, text
-and the search index always stay in the database. On a hosting backend,
-agents' `store/` writes in their working folder are **pulled before and
-shipped after every turn as the caller** (`storeSyncAroundTurns`, default
-on; the turn's message metadata carries `storeSync` with what shipped, was
-refused, or conflicted) — a member's agent can only land what the member
-may write. Hosts whose folders are the truth (the desktop's local projects)
-set it `false` and sync explicitly. The framework's
-`searching-documents` host skill carries the recipe agents follow.
+and the search index always stay in the database. A chat's workspace is a
+Git checkout of the program (ADR 0344), so it never holds the store: agents
+read and write `store/` through the documents surface as the caller, and a
+member's agent can only land what the member may write. A desktop's local
+project keeps its store in its own folder and syncs it explicitly. The
+framework's `searching-documents` host skill carries the recipe agents
+follow.
 
 ### Local checkouts and document storage (ADR 0104)
 
@@ -5201,9 +5371,11 @@ is queued. Core records each piece of waiting work in `placement_waits`
 transaction that creates the Allocation and when the chat's queued work is
 withdrawn (close, archive), and exposes
 `core.placementWaits.wake({ tenantId })` for a host to call when a machine
-comes online. A host that scales machines reads the table as demand: rows
-whose chat has a queued turn, tried within `PLACEMENT_WAIT_FRESH_SECONDS`
-([ADR 0258](docs/decisions/0258-machines-on-demand.md)). `sendMessage` on a
+comes online. Work server hosts can provide `hooks.machines`: the
+plan reads waiting work, people and machine facts and declares the desired
+set; Work sequences the host's infrastructure verbs under a fenced claim.
+See [the machine plan](skills/setup-work-server/references/cluster-deployment.md#a-machine-plan).
+`sendMessage` on a
 waiting chat throws `AgentTurnUnsettledError` with state `waiting` at once.
 
 The managed multi-machine target is multiple Catamorphic server instances of
@@ -5366,7 +5538,12 @@ host code (the Work server takes them in its own image, ADR 0261). Guards see ki
 spending rules belong in guards. Usage lands in `model_usage` per session and
 turn, read passively from Anthropic and OpenAI answers (zero when a format is
 not recognized, such as a Chat Completions stream without
-`stream_options.include_usage`). At each sandbox attempt core writes the grant of every model alias into
+`stream_options.include_usage`), with `cost_usd` when the provider reported
+what it charged (ADR 0329). Each call's `chat` span carries the same usage
+under GenAI names with its project, session, turn and agent
+([OBSERVABILITY.md](OBSERVABILITY.md)); `agentSessions.usage({ identity,
+projectId, sessionId, family })` and `GET …/agent/sessions/:sessionId/usage`
+total a chat and the subsessions the caller may read, with unmetered and unpriced call counts. At each sandbox attempt core writes the grant of every model alias into
 the sandbox (the same `sandbox`-channel grants as Git), and an agent
 registered with `harness: { placement: "sandbox", id }` and `modelConnection:
 <alias>` gets `AttemptStart.modelAccess = { kind: "gateway", ... }`. Core
@@ -5434,7 +5611,9 @@ Placement takes only machines that report `sign-in:<harness>:<member>`
 (`signInCapability`), turns must be authored by the owner, and the sandbox
 mounts that member's harness home (`CreateSandboxOpts.signIns`) so the
 harness runs with `CLAUDE_CONFIG_DIR` or `CODEX_HOME` instead of the
-gateway. Listed files are delivered to any of the
+gateway (`SIGN_IN_SPECS` names each harness's login, home variable and the
+file a completed login leaves; on a sign-in the runner adds none of the
+session's variables that name another credential or endpoint, ADR 0342). Listed files are delivered to any of the
 owner's chats in such an Environment, excluded from Git through
 `.git/info/exclude`, and removed on close and idle release. Discovery items
 carry `personalCredentials` when an Environment allows them.
